@@ -1,4 +1,5 @@
 import { BrowserRouter, Route, Routes } from "react-router";
+import { Toaster } from "react-hot-toast";
 import Home from "./components/pages/Home";
 import MainLayout from "./components/layout/MainLayout";
 import AdminLayout from "./components/layout/AdminLayout";
@@ -11,6 +12,7 @@ import ChangePassword from "./components/pages/auth/ChangePassword";
 function App() {
   return (
     <BrowserRouter>
+      <Toaster position="top-right" />
       <Routes>
         <Route path="/" element={<MainLayout />}>
           <Route index element={<Home />} />

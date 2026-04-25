@@ -1,7 +1,52 @@
-import { Link } from "react-router";
-import { Mail, Lock, ArrowRight } from "lucide-react";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router";
+import { Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
+import { useDispatch } from "react-redux";
+import { loginUser } from "@/components/Auth/authSlice";
+import api from "@/utils/axios";
+import { jwtDecode } from "jwt-decode";
+import toast from "react-hot-toast";
+import type { MyJwtPayload } from "@/types/jwtPayload";
 
 export default function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setIsLoading(true);
+      const response = await api.post("/auth/login", { email, password });
+
+      const { accessToken, refreshToken } = response.data;
+
+      // Decode token to get user info
+      const decoded = jwtDecode(accessToken) as MyJwtPayload;
+
+      dispatch(
+        loginUser({
+          user: {
+            email: decoded.sub || email,
+            role: decoded.role || "ROLE_BUYER",
+            fullName: decoded.fullName || email.split("@")[0],
+          },
+          accessToken,
+          refreshToken,
+        }),
+      );
+
+      toast.success("Đăng nhập thành công!");
+      navigate("/");
+    } catch (error) {
+      console.log(error);
+      toast.error("Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="mb-8 text-center sm:text-left">
@@ -11,7 +56,7 @@ export default function Login() {
         <p className="text-slate-500">Bắt đầu thôi</p>
       </div>
 
-      <form className="space-y-5">
+      <form className="space-y-5" onSubmit={handleLogin}>
         <div className="space-y-2">
           <label className="text-sm font-medium text-slate-700">Email</label>
           <div className="relative">
@@ -20,6 +65,8 @@ export default function Login() {
             </div>
             <input
               type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors outline-none text-slate-800"
               placeholder="nhapemail@example.com"
               required
@@ -39,6 +86,8 @@ export default function Login() {
             </div>
             <input
               type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors outline-none text-slate-800"
               placeholder="••••••••"
               required
@@ -65,13 +114,20 @@ export default function Login() {
 
         <button
           type="submit"
-          className="w-full py-3.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-all shadow-md shadow-primary-500/20 flex items-center justify-center group mt-6"
+          disabled={isLoading}
+          className="w-full py-3.5 bg-primary-600 hover:bg-primary-700 text-white font-semibold rounded-xl transition-all shadow-md shadow-primary-500/20 flex items-center justify-center group mt-6 disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          Đăng nhập
-          <ArrowRight
-            size={18}
-            className="ml-2 group-hover:translate-x-1 transition-transform"
-          />
+          {isLoading ? (
+            <Loader2 size={18} className="animate-spin" />
+          ) : (
+            <>
+              Đăng nhập
+              <ArrowRight
+                size={18}
+                className="ml-2 group-hover:translate-x-1 transition-transform"
+              />
+            </>
+          )}
         </button>
       </form>
 

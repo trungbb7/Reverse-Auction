@@ -27,6 +27,7 @@ public class AuthService {
         var user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
+                .fullName(request.getFullName())
                 .role(Role.valueOf(request.getRole().toUpperCase()))
                 .build();
         userRepository.save(user);
