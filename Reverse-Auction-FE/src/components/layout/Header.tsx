@@ -60,6 +60,18 @@ const Header = ({ isAdmin = false }: HeaderProps) => {
 
           <div className="h-6 w-px bg-slate-200 mx-2 hidden sm:block"></div>
 
+          {!isAdmin && (
+            <Link
+              to="/my-auctions"
+              className="hidden md:flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-primary-600 transition-colors"
+            >
+              Đấu giá của tôi
+            </Link>
+          )}
+
+          {!isAdmin && (
+            <div className="h-6 w-px bg-slate-200 mx-2 hidden sm:block"></div>
+          )}
           <Link
             to="/profile"
             className="flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-primary-600 transition-colors"

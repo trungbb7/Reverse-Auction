@@ -1,6 +1,8 @@
 import { BrowserRouter, Route, Routes } from "react-router";
 import { Toaster } from "react-hot-toast";
 import Home from "./components/pages/Home";
+import CreateAuction from "./components/pages/auctions/CreateAuction";
+import MyAuctions from "./components/pages/auctions/MyAuctions";
 import MainLayout from "./components/layout/MainLayout";
 import AdminLayout from "./components/layout/AdminLayout";
 import AuthLayout from "./components/layout/AuthLayout";
@@ -16,6 +18,8 @@ function App() {
       <Routes>
         <Route path="/" element={<MainLayout />}>
           <Route index element={<Home />} />
+          <Route path="create-auction" element={<CreateAuction />} />
+          <Route path="my-auctions" element={<MyAuctions />} />
         </Route>
 
         {/* Auth Routes */}
