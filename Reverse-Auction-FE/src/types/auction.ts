@@ -1,17 +1,17 @@
-export type AuctionStatus = "DRAFT" | "PENDING" | "ACTIVE" | "COMPLETED" | "CANCELLED";
+export type AuctionStatus = "OPEN" | "CLOSE" | "COMPLETED";
 
 export interface Auction {
   id: string;
   title: string;
   category: string;
-  maxBudget: number;
+  budgetMax: number;
   endDate: string;
   description: string;
   status: AuctionStatus;
   createdAt: string;
   lowestBid?: number;
   totalBids?: number;
-  specifications?: Record<string, string>;
+  quantity: number;
 }
 
 export interface Bid {
@@ -19,7 +19,7 @@ export interface Bid {
   auctionId: string;
   sellerId: string;
   sellerName: string;
-  amount: number;
+  bidPrice: number;
   createdAt: string;
   isWinner?: boolean;
 }
