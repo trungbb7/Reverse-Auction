@@ -1,15 +1,16 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { Plus, Search } from "lucide-react";
 import type { Auction } from "@/types/auction";
 import UserAuctionCard from "@/components/ui/UserAuctionCard";
+import api from "@/utils/axios";
 
 // Mock Data
 const MOCK_AUCTIONS: Auction[] = [
   {
-    id: "1",
+    id: 99,
     title: "Cần mua RTX 3060 12GB hoặc RX 6600XT",
-    category: "VGA",
+    categoryName: "VGA",
     budgetMax: 6000000,
     endDate: new Date(Date.now() + 86400000 * 2).toISOString(),
     description: "Cần hàng 2nd, còn bảo hành ít nhất 3 tháng.",
@@ -20,9 +21,9 @@ const MOCK_AUCTIONS: Auction[] = [
     quantity: 1,
   },
   {
-    id: "2",
+    id: 100,
     title: "Tìm kit RAM 32GB (2x16GB) DDR4 3200MHz",
-    category: "RAM",
+    categoryName: "RAM",
     budgetMax: 1500000,
     endDate: new Date(Date.now() + 3600000 * 5).toISOString(),
     description: "Cần kit RAM Corsair Vengeance hoặc Kingston Fury.",
@@ -33,9 +34,9 @@ const MOCK_AUCTIONS: Auction[] = [
     quantity: 2,
   },
   {
-    id: "3",
+    id: 101,
     title: "Build nguyên bộ PC học tập + chơi LMHT",
-    category: "PC Build",
+    categoryName: "PC Build",
     budgetMax: 10000000,
     endDate: new Date(Date.now() - 86400000).toISOString(),
     description: "Cần build 1 bộ PC đủ màn hình để học online.",
@@ -49,10 +50,20 @@ const MOCK_AUCTIONS: Auction[] = [
 
 const MyAuctions = () => {
   const [filter, setFilter] = useState("ALL");
+  const [userAunctions, setUserAunctions] = useState<Auction[]>([]);
 
-  const filteredAuctions = MOCK_AUCTIONS.filter((auction) =>
-    filter === "ALL" ? true : auction.status === filter,
-  );
+  // const filteredAuctions = MOCK_AUCTIONS.filter((auction) =>
+  //   filter === "ALL" ? true : auction.status === filter,
+  // );
+
+  useEffect(() => {
+    async function fetchUserAunctions() {
+      const { data } = await api.get("/auctions/my-auctions");
+      const aunctions = data.content as Auction[];
+      setUserAunctions(aunctions);
+    }
+    fetchUserAunctions();
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 relative min-h-[80vh]">
@@ -85,8 +96,8 @@ const MyAuctions = () => {
               Tất cả
             </button>
             <button
-              onClick={() => setFilter("ACTIVE")}
-              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${filter === "ACTIVE" ? "bg-white text-blue-600 shadow-sm" : "text-slate-600 hover:text-slate-900"}`}
+              onClick={() => setFilter("OPEN")}
+              className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${filter === "OPEN" ? "bg-white text-blue-600 shadow-sm" : "text-slate-600 hover:text-slate-900"}`}
             >
               Đang diễn ra
             </button>
@@ -96,9 +107,11 @@ const MyAuctions = () => {
 
       {/* Grid Layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredAuctions.map((auction) => (
-          <UserAuctionCard key={auction.id} auction={auction} />
-        ))}
+        {[...userAunctions, ...MOCK_AUCTIONS]
+          .filter((auc) => (filter === "ALL" ? true : filter === auc.status))
+          .map((auction) => (
+            <UserAuctionCard key={auction.id} auction={auction} />
+          ))}
       </div>
 
       <div className="flex flex-row gap-6 mt-8">

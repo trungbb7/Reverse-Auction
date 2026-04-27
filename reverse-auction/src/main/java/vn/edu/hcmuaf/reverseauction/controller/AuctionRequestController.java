@@ -16,7 +16,7 @@ import vn.edu.hcmuaf.reverseauction.dto.PageResponse;
 import vn.edu.hcmuaf.reverseauction.service.AuctionRequestService;
 
 @RestController
-@RequestMapping("/api/v1/auctions")
+@RequestMapping("/api/auctions")
 @RequiredArgsConstructor
 public class AuctionRequestController {
 
