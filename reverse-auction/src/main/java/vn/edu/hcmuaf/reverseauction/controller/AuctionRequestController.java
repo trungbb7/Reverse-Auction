@@ -55,6 +55,7 @@ public class AuctionRequestController {
             @RequestParam(defaultValue = "desc") String sortDir) {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        assert authentication != null;
         String email = authentication.getName();
 
         Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending()

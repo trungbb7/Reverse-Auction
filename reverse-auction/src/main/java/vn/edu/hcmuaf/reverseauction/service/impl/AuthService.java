@@ -1,6 +1,7 @@
 package vn.edu.hcmuaf.reverseauction.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -12,6 +13,7 @@ import vn.edu.hcmuaf.reverseauction.dto.RegisterRequest;
 import vn.edu.hcmuaf.reverseauction.entity.RefreshToken;
 import vn.edu.hcmuaf.reverseauction.entity.Role;
 import vn.edu.hcmuaf.reverseauction.entity.User;
+import vn.edu.hcmuaf.reverseauction.exception.CustomException;
 import vn.edu.hcmuaf.reverseauction.repository.UserRepository;
 
 @Service
@@ -62,6 +64,10 @@ public class AuthService {
                             .accessToken(accessToken)
                             .refreshToken(request.getRefreshToken())
                             .build();
-                }).orElseThrow(() -> new RuntimeException("Refresh token is not in database!"));
+                }).orElseThrow(() -> CustomException.builder()
+                        .statusCode(HttpStatus.BAD_REQUEST)
+                        .error("Bad request")
+                        .message("Refresh token is not in database!")
+                        .build());
     }
 }

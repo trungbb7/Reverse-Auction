@@ -1,4 +1,4 @@
-export type AuctionStatus = "OPEN" | "CLOSE" | "COMPLETED";
+export type AuctionStatus = "OPEN" | "CLOSED" | "COMPLETED";
 
 export interface Auction {
   id: string;
