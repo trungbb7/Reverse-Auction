@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import {
   Clock,
@@ -13,6 +13,8 @@ import {
 import type { Auction, Bid } from "@/types/auction";
 import BidCard from "./BidCard";
 import { formatCurrency, formatTimeAgo, useCountdown } from "@/utils/time";
+import api from "@/utils/axios";
+import toast from "react-hot-toast";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -92,8 +94,8 @@ const MOCK_BIDS: (Bid & { note?: string; isTopBid?: boolean })[] = [
 export default function AuctionDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const countdown = useCountdown(MOCK_AUCTION.endDate);
-  const [auction] = useState(MOCK_AUCTION);
+  const [auction, setAuction] = useState<Auction>();
+  const countdown = useCountdown(auction?.endDate ?? new Date().toISOString());
   const [bids] = useState(MOCK_BIDS);
   const [selectedImages] = useState(MOCK_AUCTION.images ?? []);
   const [mainImage, setMainImage] = useState(selectedImages[0] ?? "");
@@ -107,6 +109,20 @@ export default function AuctionDetail() {
   const progressPct = Math.min(100, (bids.length / 20) * 100);
 
   const extraImagesCount = selectedImages.length - 3;
+
+  useEffect(() => {
+    async function fetchAuction() {
+      try {
+        const { data } = await api.get(`/auctions/${id}`);
+        const auc = data as Auction;
+        setAuction(auc);
+      } catch (err) {
+        toast.error("Đã xảy ra lỗi khi lấy dữ liệu đấu giá");
+        console.error(err);
+      }
+    }
+    fetchAuction();
+  }, [id]);
 
   return (
     <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6">
@@ -142,26 +158,26 @@ export default function AuctionDetail() {
               <div className="w-24 h-24 rounded-xl overflow-hidden shrink-0 bg-slate-100">
                 <img
                   src={mainImage || selectedImages[0]}
-                  alt={auction.title}
+                  alt={auction?.title || ""}
                   className="w-full h-full object-cover"
                 />
               </div>
               {/* Info */}
               <div className="flex-1 min-w-0">
                 <h1 className="text-xl font-black text-slate-900 leading-snug mb-1">
-                  {auction.title}
+                  {auction?.title || ""}
                 </h1>
                 <p className="text-sm text-slate-500 mb-3">
-                  {auction.description}
+                  {auction?.description || ""}
                 </p>
                 <div className="flex items-center gap-5 text-sm text-slate-500">
                   <span className="flex items-center gap-1.5">
                     <Users className="w-4 h-4" />
-                    {auction.totalBids} Người bán tham gia
+                    {auction?.totalBids || 0} Người bán tham gia
                   </span>
                   <span className="flex items-center gap-1.5">
                     <MapPin className="w-4 h-4" />
-                    Khu vực: {auction.location}
+                    Khu vực: {"HCM"}
                   </span>
                 </div>
               </div>
@@ -179,7 +195,7 @@ export default function AuctionDetail() {
                   Số lượng
                 </p>
                 <p className="text-base font-semibold text-slate-900">
-                  {String(auction.quantity).padStart(2, "0")} chiếc
+                  {String(auction?.quantity).padStart(2, "0") || 0} chiếc
                 </p>
               </div>
               <div>
@@ -187,7 +203,7 @@ export default function AuctionDetail() {
                   Ngân sách dự kiến
                 </p>
                 <p className="text-base font-semibold text-slate-900">
-                  ~ {formatCurrency(auction.budgetMax ?? 0)}
+                  ~ {formatCurrency(auction?.budgetMax ?? 0)}
                 </p>
               </div>
               <div>
@@ -196,7 +212,7 @@ export default function AuctionDetail() {
                 </p>
                 <p className="text-base font-semibold text-slate-900">
                   Trước{" "}
-                  {new Date(auction.endDate).toLocaleDateString("vi-VN", {
+                  {new Date(auction?.endDate || 0).toLocaleDateString("vi-VN", {
                     day: "2-digit",
                     month: "2-digit",
                     year: "numeric",
@@ -208,7 +224,7 @@ export default function AuctionDetail() {
                   Hình thức thanh toán
                 </p>
                 <p className="text-base font-semibold text-slate-900">
-                  {auction.paymentMethod}
+                  {"Chuyển khoản trước (100%)"}
                 </p>
               </div>
             </div>
@@ -264,7 +280,7 @@ export default function AuctionDetail() {
                   Giá thấp nhất hiện tại
                 </p>
                 <p className="text-xl font-black text-slate-900">
-                  {formatCurrency(auction.lowestBid ?? 0)}
+                  {formatCurrency(auction?.lowestBid ?? 0)}
                   <span className="text-xs font-medium text-slate-400 ml-1">
                     / sản phẩm
                   </span>

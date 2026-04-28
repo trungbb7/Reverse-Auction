@@ -67,4 +67,12 @@ public class AuctionRequestServiceImpl implements AuctionRequestService {
         Page<AuctionRequest> page = auctionRequestRepository.findByBuyer(buyer, pageable);
         return auctionRequestMapper.toPageResponse(page);
     }
+
+    @Override
+    public AuctionRequestResponseDTO findById(long id) {
+        AuctionRequest auc = auctionRequestRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Auction not found with id: " + id));
+
+        return auctionRequestMapper.toDTO(auc);
+    }
 }

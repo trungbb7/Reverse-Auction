@@ -47,6 +47,12 @@ public class AuctionRequestController {
         return ResponseEntity.ok(responseDTO);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<AuctionRequestResponseDTO> getAuctionById(@PathVariable long id){
+        AuctionRequestResponseDTO auc = auctionRequestService.findById(id);
+        return ResponseEntity.ok(auc);
+    }
+
     @GetMapping("/my-auctions")
     public ResponseEntity<PageResponse<AuctionRequestResponseDTO>> getMyAuctionRequests(
             @RequestParam(defaultValue = "0") int page,

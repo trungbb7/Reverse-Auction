@@ -9,4 +9,5 @@ public interface AuctionRequestService {
     AuctionRequestResponseDTO createAuctionRequest(AuctionRequestCreateDTO requestDTO, String username);
     PageResponse<AuctionRequestResponseDTO> getAllAuctionRequests(Pageable pageable);
     PageResponse<AuctionRequestResponseDTO> getMyAuctionRequests(String username, Pageable pageable);
+    AuctionRequestResponseDTO findById(long id);
 }
