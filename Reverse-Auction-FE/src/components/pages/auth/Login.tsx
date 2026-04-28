@@ -39,7 +39,16 @@ export default function Login() {
       );
 
       toast.success("Đăng nhập thành công!");
-      navigate("/");
+
+      // Điều hướng theo vai trò
+      const role = decoded.role;
+      if (role === "ROLE_ADMIN") {
+        navigate("/admin");
+      } else if (role === "ROLE_SELLER") {
+        navigate("/seller");
+      } else {
+        navigate("/");
+      }
     } catch (error) {
       console.log(error);
       toast.error("Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");

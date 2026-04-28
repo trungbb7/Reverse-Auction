@@ -1,14 +1,18 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { Mail, Lock, User, ArrowRight, Loader2 } from "lucide-react";
+import { Mail, Lock, User, ArrowRight, Loader2, ShoppingBag, Store } from "lucide-react";
 import api from "@/utils/axios";
 import toast from "react-hot-toast";
+import type { AxiosError } from "axios";
+
+type RoleOption = "ROLE_BUYER" | "ROLE_SELLER";
 
 export default function Register() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [role, setRole] = useState<RoleOption>("ROLE_BUYER");
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -19,7 +23,6 @@ export default function Register() {
       toast.error("Mật khẩu không khớp!");
       return;
     }
-
     if (!agreeTerms) {
       toast.error("Vui lòng đồng ý với các điều khoản!");
       return;
@@ -27,25 +30,19 @@ export default function Register() {
 
     try {
       setIsLoading(true);
-      // Assuming role is USER by default
-      await api.post("/auth/register", {
-        fullName,
-        email,
-        password,
-        role: "ROLE_BUYER",
-      });
-
+      await api.post("/auth/register", { fullName, email, password, role });
       toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
       navigate("/auth/login");
     } catch (error) {
+      const axiosError = error as AxiosError<string>;
       toast.error(
-        error.response?.data ||
-          "Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.",
+        axiosError.response?.data || "Đăng ký thất bại. Vui lòng kiểm tra lại thông tin."
       );
     } finally {
       setIsLoading(false);
     }
   };
+
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="mb-8 text-center sm:text-left">
@@ -55,11 +52,53 @@ export default function Register() {
         <p className="text-slate-500">Bắt đầu đấu giá linh kiện ngay hôm nay</p>
       </div>
 
+      {/* Role Selection */}
+      <div className="mb-6">
+        <p className="text-sm font-medium text-slate-700 mb-3">Bạn muốn tham gia với tư cách?</p>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => setRole("ROLE_BUYER")}
+            className={`relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all cursor-pointer ${
+              role === "ROLE_BUYER"
+                ? "border-primary-500 bg-primary-50 text-primary-700"
+                : "border-slate-200 bg-white text-slate-500 hover:border-slate-300"
+            }`}
+          >
+            <ShoppingBag size={22} className={role === "ROLE_BUYER" ? "text-primary-600" : "text-slate-400"} />
+            <div className="text-center">
+              <p className="font-semibold text-sm">Người mua</p>
+              <p className="text-xs opacity-70 mt-0.5">Tìm kiếm & đặt giá</p>
+            </div>
+            {role === "ROLE_BUYER" && (
+              <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary-500" />
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setRole("ROLE_SELLER")}
+            className={`relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all cursor-pointer ${
+              role === "ROLE_SELLER"
+                ? "border-primary-500 bg-primary-50 text-primary-700"
+                : "border-slate-200 bg-white text-slate-500 hover:border-slate-300"
+            }`}
+          >
+            <Store size={22} className={role === "ROLE_SELLER" ? "text-primary-600" : "text-slate-400"} />
+            <div className="text-center">
+              <p className="font-semibold text-sm">Người bán</p>
+              <p className="text-xs opacity-70 mt-0.5">Đăng sản phẩm đấu giá</p>
+            </div>
+            {role === "ROLE_SELLER" && (
+              <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-primary-500" />
+            )}
+          </button>
+        </div>
+      </div>
+
       <form className="space-y-4" onSubmit={handleRegister}>
         <div className="space-y-1.5">
-          <label className="text-sm font-medium text-slate-700">
-            Họ và tên
-          </label>
+          <label className="text-sm font-medium text-slate-700">Họ và tên</label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
               <User size={18} />
@@ -104,15 +143,14 @@ export default function Register() {
               onChange={(e) => setPassword(e.target.value)}
               className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors outline-none text-slate-800"
               placeholder="••••••••"
+              minLength={8}
               required
             />
           </div>
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-sm font-medium text-slate-700">
-            Nhập lại mật khẩu
-          </label>
+          <label className="text-sm font-medium text-slate-700">Nhập lại mật khẩu</label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
               <Lock size={18} />

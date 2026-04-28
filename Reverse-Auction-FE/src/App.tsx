@@ -12,6 +12,7 @@ import Login from "./components/pages/auth/Login";
 import Register from "./components/pages/auth/Register";
 import ForgotPassword from "./components/pages/auth/ForgotPassword";
 import ChangePassword from "./components/pages/auth/ChangePassword";
+import ResetPassword from "./components/pages/auth/ResetPassword";
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
           <Route path="register" element={<Register />} />
           <Route path="forgot-password" element={<ForgotPassword />} />
           <Route path="change-password" element={<ChangePassword />} />
+          <Route path="reset-password" element={<ResetPassword />} />
         </Route>
 
         {/* Admin Routes */}

@@ -12,7 +12,7 @@ export default function AuthLayout() {
             alt="bg-img"
           />
           <div className="absolute bottom-0 bg-linear-[0deg,#091F5C0%,rgba(9,31,92,0.00)100%] w-full h-32"></div>
-          <div className="flex max-w-[576px] p-16 flex-col justify-center items-start w-fit h-full">
+          <div className="flex max-w-[576px] p-16 flex-col justify-center items-start w-fit h-full z-10">
             <div className="flex pb-6 flex-col items-start w-full">
               <div className="flex flex-col items-start w-full">
                 <p className="text-[#7096D2] font-publicSans text-5xl font-extrabold w-full tracking-tight">
