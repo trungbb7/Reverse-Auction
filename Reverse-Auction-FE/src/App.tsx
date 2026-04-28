@@ -3,6 +3,7 @@ import { Toaster } from "react-hot-toast";
 import Home from "./components/pages/Home";
 import CreateAuction from "./components/pages/auctions/CreateAuction";
 import MyAuctions from "./components/pages/auctions/MyAuctions";
+import AuctionDetail from "./components/pages/auctions/AuctionDetail";
 import Profile from "./components/pages/Profile.tsx";
 import MainLayout from "./components/layout/MainLayout";
 import AdminLayout from "./components/layout/AdminLayout";
@@ -21,6 +22,7 @@ function App() {
           <Route index element={<Home />} />
           <Route path="create-auction" element={<CreateAuction />} />
           <Route path="my-auctions" element={<MyAuctions />} />
+          <Route path="auctions/:id" element={<AuctionDetail />} />
           <Route path="profile" element={<Profile />} />
         </Route>
 
