@@ -46,7 +46,12 @@ api.interceptors.response.use(
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
-        });
+        })
+          .then((token) => {
+            originalRequest.headers.Authorization = `Beaer ${token}`;
+            return api(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
       }
 
       isRefreshing = true;

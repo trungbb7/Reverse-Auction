@@ -52,10 +52,6 @@ const MyAuctions = () => {
   const [filter, setFilter] = useState("ALL");
   const [userAunctions, setUserAunctions] = useState<Auction[]>([]);
 
-  // const filteredAuctions = MOCK_AUCTIONS.filter((auction) =>
-  //   filter === "ALL" ? true : auction.status === filter,
-  // );
-
   useEffect(() => {
     async function fetchUserAunctions() {
       const { data } = await api.get("/auctions/my-auctions");

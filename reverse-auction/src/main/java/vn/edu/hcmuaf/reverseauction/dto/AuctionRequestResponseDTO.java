@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 public class AuctionRequestResponseDTO {
     private Long id;
     private Long buyerId;
-    private String buyerName; // Assuming User has a name or username
+    private String buyerName;
     private Long categoryId;
     private String categoryName;
     private String title;
