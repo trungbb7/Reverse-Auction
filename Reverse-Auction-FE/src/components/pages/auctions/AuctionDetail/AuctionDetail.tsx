@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import {
   Clock,
@@ -7,48 +7,14 @@ import {
   TrendingDown,
   MoreHorizontal,
   CheckCircle,
-  Crown,
   ChevronRight,
   Image as ImageIcon,
 } from "lucide-react";
 import type { Auction, Bid } from "@/types/auction";
+import BidCard from "./BidCard";
+import { formatCurrency, formatTimeAgo, useCountdown } from "@/utils/time";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
-
-const formatCurrency = (amount: number) =>
-  new Intl.NumberFormat("vi-VN").format(amount) + "đ";
-
-const formatTimeAgo = (iso: string) => {
-  const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-  if (diff < 60) return "Vừa xong";
-  if (diff < 3600) return `${Math.floor(diff / 60)} phút trước`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)} giờ trước`;
-  return `${Math.floor(diff / 86400)} ngày trước`;
-};
-
-function useCountdown(endDateIso: string) {
-  const calc = useCallback(() => {
-    const diff = Math.max(
-      0,
-      Math.floor((new Date(endDateIso).getTime() - Date.now()) / 1000)
-    );
-    return {
-      h: Math.floor(diff / 3600),
-      m: Math.floor((diff % 3600) / 60),
-      s: diff % 60,
-      total: diff,
-    };
-  }, [endDateIso]);
-
-  const [time, setTime] = useState(calc);
-
-  useEffect(() => {
-    const id = setInterval(() => setTime(calc()), 1000);
-    return () => clearInterval(id);
-  }, [calc]);
-
-  return time;
-}
 
 // ─── Mock Data ───────────────────────────────────────────────────────────────
 
@@ -63,7 +29,9 @@ const MOCK_AUCTION: Auction & {
   categoryName: "VGA",
   budgetMax: 215_000_000,
   quantity: 5,
-  endDate: new Date(Date.now() + 4 * 3600_000 + 22 * 60_000 + 15_000).toISOString(),
+  endDate: new Date(
+    Date.now() + 4 * 3600_000 + 22 * 60_000 + 15_000,
+  ).toISOString(),
   createdAt: new Date(Date.now() - 86400_000).toISOString(),
   status: "OPEN",
   lowestBid: 40_500_000,
@@ -121,96 +89,6 @@ const MOCK_BIDS: (Bid & { note?: string; isTopBid?: boolean })[] = [
   },
 ];
 
-// ─── Sub-Components ───────────────────────────────────────────────────────────
-
-const SellerAvatar = ({ name, size = 40 }: { name: string; size?: number }) => {
-  const initials = name
-    .split(" ")
-    .slice(-2)
-    .map((w) => w[0])
-    .join("")
-    .toUpperCase();
-  const colors = [
-    "bg-blue-100 text-blue-700",
-    "bg-green-100 text-green-700",
-    "bg-purple-100 text-purple-700",
-    "bg-orange-100 text-orange-700",
-    "bg-rose-100 text-rose-700",
-  ];
-  const color = colors[name.charCodeAt(0) % colors.length];
-  return (
-    <div
-      style={{ width: size, height: size }}
-      className={`rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${color}`}
-    >
-      {initials}
-    </div>
-  );
-};
-
-interface BidCardProps {
-  bid: (typeof MOCK_BIDS)[0];
-  rank: number;
-  onSelectWinner: (id: string) => void;
-  winnerSelected: boolean;
-}
-
-const BidCard = ({ bid, rank, onSelectWinner, winnerSelected }: BidCardProps) => {
-  const isTop = rank === 0;
-  return (
-    <div
-      className={`rounded-2xl p-4 border transition-all ${
-        isTop
-          ? "border-blue-200 bg-blue-50/50"
-          : "border-slate-100 bg-white hover:border-slate-200"
-      }`}
-    >
-      {/* Seller row */}
-      <div className="flex items-center gap-3 mb-2">
-        <SellerAvatar name={bid.sellerName} />
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-slate-900 text-sm truncate">
-              {bid.sellerName}
-            </span>
-            {isTop && (
-              <span className="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full flex items-center gap-1">
-                <Crown className="w-3 h-3" /> TOP BID
-              </span>
-            )}
-          </div>
-          <span className="text-xs text-slate-400">{formatTimeAgo(bid.createdAt)}</span>
-        </div>
-        <span className="font-black text-lg text-slate-900 shrink-0">
-          {formatCurrency(bid.bidPrice)}
-        </span>
-      </div>
-
-      {/* Note */}
-      {bid.note && (
-        <p className="text-xs text-slate-500 italic mb-3 pl-[52px] leading-relaxed">
-          "{bid.note}"
-        </p>
-      )}
-
-      {/* Select winner button */}
-      <button
-        onClick={() => onSelectWinner(bid.id)}
-        disabled={winnerSelected}
-        className={`w-full py-2.5 rounded-xl text-sm font-bold transition-all ${
-          isTop && !winnerSelected
-            ? "bg-[#375F97] hover:bg-[#2d4f80] text-white shadow-sm hover:shadow-md"
-            : "bg-slate-100 hover:bg-slate-200 text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
-        }`}
-      >
-        Chọn người thắng
-      </button>
-    </div>
-  );
-};
-
-// ─── Main Page ────────────────────────────────────────────────────────────────
-
 export default function AuctionDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -232,7 +110,7 @@ export default function AuctionDetail() {
 
   return (
     <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6">
-      {/* ── Top action bar ─────────────────────────────────────────── */}
+      {/* Top action bar */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
           <span className="flex items-center gap-1.5 bg-red-500 text-white text-xs font-black px-3 py-1.5 rounded-full animate-pulse">
@@ -253,9 +131,9 @@ export default function AuctionDetail() {
         </div>
       </div>
 
-      {/* ── Main two-column layout ──────────────────────────────────── */}
+      {/* Main two-column layout */}
       <div className="flex gap-6 items-start">
-        {/* ══ LEFT COLUMN ══════════════════════════════════════════════ */}
+        {/* LEFT COLUMN */}
         <div className="flex-1 min-w-0 space-y-5">
           {/* Product card */}
           <div className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
@@ -273,7 +151,9 @@ export default function AuctionDetail() {
                 <h1 className="text-xl font-black text-slate-900 leading-snug mb-1">
                   {auction.title}
                 </h1>
-                <p className="text-sm text-slate-500 mb-3">{auction.description}</p>
+                <p className="text-sm text-slate-500 mb-3">
+                  {auction.description}
+                </p>
                 <div className="flex items-center gap-5 text-sm text-slate-500">
                   <span className="flex items-center gap-1.5">
                     <Users className="w-4 h-4" />
@@ -290,7 +170,9 @@ export default function AuctionDetail() {
 
           {/* Requirements detail */}
           <div className="bg-white rounded-2xl border border-slate-100 p-6 shadow-sm">
-            <h2 className="text-base font-black text-slate-900 mb-5">Chi tiết yêu cầu</h2>
+            <h2 className="text-base font-black text-slate-900 mb-5">
+              Chi tiết yêu cầu
+            </h2>
             <div className="grid grid-cols-2 gap-x-8 gap-y-5">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
@@ -378,7 +260,9 @@ export default function AuctionDetail() {
                 <TrendingDown className="w-5 h-5 text-green-600" />
               </div>
               <div>
-                <p className="text-xs text-slate-500 mb-0.5">Giá thấp nhất hiện tại</p>
+                <p className="text-xs text-slate-500 mb-0.5">
+                  Giá thấp nhất hiện tại
+                </p>
                 <p className="text-xl font-black text-slate-900">
                   {formatCurrency(auction.lowestBid ?? 0)}
                   <span className="text-xs font-medium text-slate-400 ml-1">
@@ -392,7 +276,9 @@ export default function AuctionDetail() {
                 <Clock className="w-5 h-5 text-blue-600" />
               </div>
               <div>
-                <p className="text-xs text-slate-500 mb-0.5">Lượt đề nghị cuối</p>
+                <p className="text-xs text-slate-500 mb-0.5">
+                  Lượt đề nghị cuối
+                </p>
                 <p className="text-xl font-black text-slate-900">
                   {bids[0] ? formatTimeAgo(bids[0].createdAt) : "---"}
                 </p>
@@ -425,7 +311,9 @@ export default function AuctionDetail() {
           {/* Bid list */}
           <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
-              <h3 className="font-black text-slate-900 text-sm">Dòng đề nghị</h3>
+              <h3 className="font-black text-slate-900 text-sm">
+                Dòng đề nghị
+              </h3>
               <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">
                 {bids.length} OFFERS
               </span>
@@ -462,8 +350,8 @@ export default function AuctionDetail() {
                     Đã chọn người thắng!
                   </p>
                   <p className="text-xs text-green-600 mt-1">
-                    {bids.find((b) => b.id === winner)?.sellerName} đã được chọn. Phiên
-                    đấu giá sẽ kết thúc sớm.
+                    {bids.find((b) => b.id === winner)?.sellerName} đã được
+                    chọn. Phiên đấu giá sẽ kết thúc sớm.
                   </p>
                   <button className="mt-3 flex items-center gap-1 text-xs font-bold text-green-700 hover:text-green-900 transition-colors">
                     Xem hợp đồng <ChevronRight className="w-3 h-3" />
