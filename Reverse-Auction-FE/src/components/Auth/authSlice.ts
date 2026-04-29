@@ -15,7 +15,7 @@ const refreshToken = localStorage.getItem("refreshToken") || "";
 const initialState: AuthState = {
   accessToken,
   refreshToken,
-  logged: false,
+  logged: !!accessToken,
 };
 
 const authSlice = createSlice({
@@ -41,8 +41,11 @@ const authSlice = createSlice({
       localStorage.setItem("accessToken", "");
       localStorage.setItem("refreshToken", "");
     },
+    updateUser: (state, action: PayloadAction<User>) => {
+      state.user = action.payload;
+    },
   },
 });
 
-export const { loginUser, logoutUser } = authSlice.actions;
+export const { loginUser, logoutUser, updateUser } = authSlice.actions;
 export default authSlice.reducer;

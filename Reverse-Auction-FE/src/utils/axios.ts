@@ -1,3 +1,5 @@
+import { logoutUser } from "@/components/Auth/authSlice";
+import { store } from "@/store";
 import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
 
 const api = axios.create({
@@ -83,6 +85,7 @@ api.interceptors.response.use(
         localStorage.setItem("accessToken", "");
         localStorage.setItem("refreshToken", "");
         handleQueue(refreshError, null);
+        store.dispatch(logoutUser());
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

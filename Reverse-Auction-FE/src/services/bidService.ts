@@ -13,16 +13,21 @@ export const bidService = {
     return response.data;
   },
 
-  updateBid: async (bidId: string | number, data: Omit<BidRequest, "auctionId">): Promise<Bid> => {
+  updateBid: async (
+    bidId: string | number,
+    data: Omit<BidRequest, "auctionId">,
+  ): Promise<Bid> => {
     const response = await api.put(`/bids/${bidId}`, data);
     return response.data;
   },
 
-  getMyBidForAuction: async (auctionId: string | number): Promise<Bid | null> => {
+  getMyBidForAuction: async (
+    auctionId: string | number,
+  ): Promise<Bid | null> => {
     try {
       const response = await api.get(`/bids/my`, { params: { auctionId } });
       return response.data;
-    } catch (error: any) {
+    } catch (error) {
       if (error.response?.status === 404) {
         return null;
       }
