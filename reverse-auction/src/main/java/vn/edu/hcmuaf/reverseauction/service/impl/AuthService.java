@@ -27,7 +27,7 @@ public class AuthService {
         var user = User.builder()
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(Role.valueOf(request.getRole().toUpperCase()))
+                .role(parseRole(request.getRole()))
                 .build();
         userRepository.save(user);
         return "User registered successfully!";
@@ -62,5 +62,18 @@ public class AuthService {
                             .refreshToken(request.getRefreshToken())
                             .build();
                 }).orElseThrow(() -> new RuntimeException("Refresh token is not in database!"));
+    }
+
+    private Role parseRole(String rawRole) {
+        if (rawRole == null || rawRole.isBlank()) {
+            throw new IllegalArgumentException("Role is required");
+        }
+
+        String normalized = rawRole.trim().toUpperCase();
+        if (!normalized.startsWith("ROLE_")) {
+            normalized = "ROLE_" + normalized;
+        }
+
+        return Role.valueOf(normalized);
     }
 }

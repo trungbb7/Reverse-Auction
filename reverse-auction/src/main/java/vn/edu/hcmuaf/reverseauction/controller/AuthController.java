@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import vn.edu.hcmuaf.reverseauction.dto.AuthenticationResponse;
 import vn.edu.hcmuaf.reverseauction.dto.LoginRequest;
 import vn.edu.hcmuaf.reverseauction.dto.RefreshTokenRequest;
@@ -14,6 +15,7 @@ import vn.edu.hcmuaf.reverseauction.service.impl.AuthService;
 
 @RestController
 @RequestMapping("/api/auth")
+@Tag(name = "Auth")
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
@@ -32,4 +34,5 @@ public class AuthController {
     public ResponseEntity<AuthenticationResponse> refreshToken(@RequestBody RefreshTokenRequest request) {
         return ResponseEntity.ok(authService.refreshToken(request));
     }
+
 }
