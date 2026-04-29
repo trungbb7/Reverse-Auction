@@ -1,6 +1,14 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router";
-import { Lock, ArrowLeft, Eye, EyeOff, Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import {
+  Lock,
+  ArrowLeft,
+  Eye,
+  EyeOff,
+  Loader2,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
 import api from "@/utils/axios";
 import toast from "react-hot-toast";
 import type { AxiosError } from "axios";
@@ -26,7 +34,9 @@ export default function ResetPassword() {
             <AlertCircle size={36} className="text-red-500" />
           </div>
         </div>
-        <h1 className="text-2xl font-bold text-slate-900 mb-3">Liên kết không hợp lệ</h1>
+        <h1 className="text-2xl font-bold text-slate-900 mb-3">
+          Liên kết không hợp lệ
+        </h1>
         <p className="text-slate-500 mb-6">
           Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.
         </p>
@@ -40,7 +50,7 @@ export default function ResetPassword() {
     );
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault();
     if (newPassword !== confirmPassword) {
       toast.error("Mật khẩu không khớp!");
@@ -70,7 +80,9 @@ export default function ResetPassword() {
             <CheckCircle size={36} className="text-green-600" />
           </div>
         </div>
-        <h1 className="text-2xl font-bold text-slate-900 mb-3">Đặt lại mật khẩu thành công!</h1>
+        <h1 className="text-2xl font-bold text-slate-900 mb-3">
+          Đặt lại mật khẩu thành công!
+        </h1>
         <p className="text-slate-500 mb-8">
           Mật khẩu của bạn đã được cập nhật. Hãy đăng nhập với mật khẩu mới.
         </p>
@@ -94,7 +106,9 @@ export default function ResetPassword() {
       </Link>
 
       <div className="mb-8 text-center sm:text-left">
-        <h1 className="text-3xl font-bold text-slate-900 mb-3">Tạo mật khẩu mới</h1>
+        <h1 className="text-3xl font-bold text-slate-900 mb-3">
+          Tạo mật khẩu mới
+        </h1>
         <p className="text-slate-500 leading-relaxed">
           Mật khẩu mới của bạn phải khác với các mật khẩu đã sử dụng trước đây.
         </p>
@@ -102,7 +116,9 @@ export default function ResetPassword() {
 
       <form className="space-y-5" onSubmit={handleSubmit}>
         <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-700">Mật khẩu mới</label>
+          <label className="text-sm font-medium text-slate-700">
+            Mật khẩu mới
+          </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
               <Lock size={18} />
@@ -124,11 +140,15 @@ export default function ResetPassword() {
               {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
           </div>
-          <p className="text-xs text-slate-500">Mật khẩu phải có ít nhất 8 ký tự.</p>
+          <p className="text-xs text-slate-500">
+            Mật khẩu phải có ít nhất 8 ký tự.
+          </p>
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-medium text-slate-700">Xác nhận mật khẩu mới</label>
+          <label className="text-sm font-medium text-slate-700">
+            Xác nhận mật khẩu mới
+          </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
               <Lock size={18} />

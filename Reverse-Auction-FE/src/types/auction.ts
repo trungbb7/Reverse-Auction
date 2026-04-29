@@ -13,6 +13,9 @@ export interface Auction {
   lowestBid?: number;
   totalBids?: number;
   quantity?: number;
+  location?: string;
+  paymentMethod?: string;
+  images?: string[];
 }
 
 export interface Bid {
@@ -23,4 +26,5 @@ export interface Bid {
   bidPrice: number;
   createdAt: string;
   isWinner?: boolean;
+  note?: string;
 }

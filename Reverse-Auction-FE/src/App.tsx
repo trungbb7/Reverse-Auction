@@ -13,6 +13,8 @@ import Register from "./components/pages/auth/Register";
 import ForgotPassword from "./components/pages/auth/ForgotPassword";
 import ChangePassword from "./components/pages/auth/ChangePassword";
 import ResetPassword from "./components/pages/auth/ResetPassword";
+import SellerSearch from "./components/pages/seller/SellerSearch";
+import SellerAuctionDetail from "./components/pages/seller/SellerAuctionDetail";
 
 function App() {
   return (
@@ -44,6 +46,8 @@ function App() {
         {/* Seller Routes */}
         <Route path="/seller" element={<AdminLayout role="seller" />}>
           <Route index element={<div>Seller Dashboard (To be built)</div>} />
+          <Route path="search" element={<SellerSearch />} />
+          <Route path="auctions/:id" element={<SellerAuctionDetail />} />
         </Route>
       </Routes>
     </BrowserRouter>
