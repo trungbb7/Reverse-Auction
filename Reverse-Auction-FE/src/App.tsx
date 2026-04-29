@@ -13,8 +13,8 @@ import Register from "./components/pages/auth/Register";
 import ForgotPassword from "./components/pages/auth/ForgotPassword";
 import ChangePassword from "./components/pages/auth/ChangePassword";
 import ResetPassword from "./components/pages/auth/ResetPassword";
-import SellerSearch from "./components/pages/seller/SellerSearch";
 import SellerAuctionDetail from "./components/pages/seller/SellerAuctionDetail";
+import SellerSearch from "./components/pages/seller/SellerSearch/SellerSearch.tsx";
 
 function App() {
   return (

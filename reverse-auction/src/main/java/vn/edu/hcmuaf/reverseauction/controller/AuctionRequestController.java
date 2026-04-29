@@ -2,6 +2,7 @@ package vn.edu.hcmuaf.reverseauction.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -13,11 +14,16 @@ import org.springframework.web.bind.annotation.*;
 import vn.edu.hcmuaf.reverseauction.dto.AuctionRequestCreateDTO;
 import vn.edu.hcmuaf.reverseauction.dto.AuctionRequestResponseDTO;
 import vn.edu.hcmuaf.reverseauction.dto.PageResponse;
+import vn.edu.hcmuaf.reverseauction.entity.AuctionStatus;
+import vn.edu.hcmuaf.reverseauction.entity.Category;
 import vn.edu.hcmuaf.reverseauction.service.AuctionRequestService;
+
+import java.math.BigDecimal;
 
 @RestController
 @RequestMapping("/api/auctions")
 @RequiredArgsConstructor
+@Slf4j
 public class AuctionRequestController {
 
     private final AuctionRequestService auctionRequestService;
@@ -34,16 +40,21 @@ public class AuctionRequestController {
 
     @GetMapping
     public ResponseEntity<PageResponse<AuctionRequestResponseDTO>> getAllAuctionRequests(
+            @RequestParam(defaultValue = "") AuctionStatus status,
+            @RequestParam(defaultValue = "") String categoryName,
+            @RequestParam(defaultValue = "0") BigDecimal minBudget,
+            @RequestParam(defaultValue = "0") BigDecimal maxBudget,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir) {
 
+        log.debug("size: {}", size);
         Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        PageResponse<AuctionRequestResponseDTO> responseDTO = auctionRequestService.getAllAuctionRequests(pageable);
+        PageResponse<AuctionRequestResponseDTO> responseDTO = auctionRequestService.getFilteredAuction(categoryName, status, minBudget, maxBudget, pageable);
         return ResponseEntity.ok(responseDTO);
     }
 

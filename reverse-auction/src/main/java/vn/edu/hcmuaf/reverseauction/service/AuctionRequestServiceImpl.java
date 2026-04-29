@@ -3,6 +3,7 @@ package vn.edu.hcmuaf.reverseauction.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import vn.edu.hcmuaf.reverseauction.dto.AuctionRequestCreateDTO;
 import vn.edu.hcmuaf.reverseauction.dto.AuctionRequestResponseDTO;
@@ -16,7 +17,9 @@ import vn.edu.hcmuaf.reverseauction.mapper.AuctionRequestMapper;
 import vn.edu.hcmuaf.reverseauction.repository.AuctionRequestRepository;
 import vn.edu.hcmuaf.reverseauction.repository.CategoryRepository;
 import vn.edu.hcmuaf.reverseauction.repository.UserRepository;
+import vn.edu.hcmuaf.reverseauction.repository.specification.AuctionRequestSpecification;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -74,5 +77,15 @@ public class AuctionRequestServiceImpl implements AuctionRequestService {
                 .orElseThrow(() -> new ResourceNotFoundException("Auction not found with id: " + id));
 
         return auctionRequestMapper.toDTO(auc);
+    }
+
+    @Override
+    public PageResponse<AuctionRequestResponseDTO> getFilteredAuction(String categoryName, AuctionStatus status, BigDecimal minBudget, BigDecimal maxBudget, Pageable pageable) {
+        Specification<AuctionRequest> spec = Specification.where(AuctionRequestSpecification.hasCategoryName(categoryName))
+                .and(AuctionRequestSpecification.hasStatus(status))
+                .and(AuctionRequestSpecification.inBudgetRange(minBudget, maxBudget));
+
+        Page<AuctionRequest> page = auctionRequestRepository.findAll(spec, pageable);
+        return auctionRequestMapper.toPageResponse(page);
     }
 }
