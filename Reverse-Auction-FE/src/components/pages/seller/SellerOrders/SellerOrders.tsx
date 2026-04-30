@@ -1,4 +1,5 @@
-import {useState} from "react";
+import {useState } from "react";
+import { useNavigate } from "react-router";
 import Pagination from "@/components/ui/Pagination";
 import {Search, Printer } from "lucide-react";
 
@@ -83,7 +84,7 @@ function OrderCard({order}: { order: Order }) {
     ];
 
     const [status, setStatus] = useState<OrderStatus>(order.status);
-
+    const navigate = useNavigate();
     const currentIndex = {
         AWAITING_PAYMENT: 0,
         PAID: 0,
@@ -183,7 +184,8 @@ function OrderCard({order}: { order: Order }) {
                     <option value="DISPUTED">Tranh chấp</option>
                     <option value="CANCELLED">Đã huỷ</option>
                 </select>
-                <button className="flex items-center justify-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition">
+                <button  onClick={() => navigate(`/seller/orders-detail/${encodeURIComponent(order.id)}`)}
+                         className="flex items-center justify-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition">
                     Xem chi tiết
                 </button>
                 <button className="flex items-center justify-center gap-2 text-sm text-primary-800 hover:text-gray-900 transition">
@@ -197,6 +199,7 @@ function OrderCard({order}: { order: Order }) {
 }
 
 export default function OrderManagement() {
+
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages] = useState(8);
     const [activeTab, setActiveTab] = useState<"orders" | "auction">("orders");
