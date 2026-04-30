@@ -139,7 +139,6 @@ export default function SellerSearch() {
         setAuctions(result.content.length > 0 ? result.content : MOCK_AUCTIONS);
         setTotalResults(result.totalElements || MOCK_AUCTIONS.length);
         setTotalPages(result.totalPages || MOCK_AUCTIONS.length);
-        setCurrentPage(1);
       } catch {
         toast.error("Đã xảy ra lỗi khi lấy dữ liệu!");
         setAuctions([]);
@@ -154,6 +153,13 @@ export default function SellerSearch() {
     budgetRange,
     selectedStatus,
   ]);
+
+  useEffect(() => {
+    const setPageTo1 = async () => {
+      setCurrentPage(1);
+    };
+    setPageTo1();
+  }, [debouncedKeyword, selectedCategory, budgetRange, selectedStatus]);
 
   const handleViewBid = (id: number) => {
     navigate(`/seller/auctions/${id}`);
