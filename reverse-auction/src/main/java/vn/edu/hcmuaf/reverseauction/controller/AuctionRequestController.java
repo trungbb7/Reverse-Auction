@@ -44,6 +44,7 @@ public class AuctionRequestController {
             @RequestParam(defaultValue = "") String categoryName,
             @RequestParam(defaultValue = "0") BigDecimal minBudget,
             @RequestParam(defaultValue = "0") BigDecimal maxBudget,
+            @RequestParam(defaultValue = "") String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
@@ -54,7 +55,7 @@ public class AuctionRequestController {
                 : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(page, size, sort);
 
-        PageResponse<AuctionRequestResponseDTO> responseDTO = auctionRequestService.getFilteredAuction(categoryName, status, minBudget, maxBudget, pageable);
+        PageResponse<AuctionRequestResponseDTO> responseDTO = auctionRequestService.getFilteredAuction(keyword, categoryName, status, minBudget, maxBudget, pageable);
         return ResponseEntity.ok(responseDTO);
     }
 

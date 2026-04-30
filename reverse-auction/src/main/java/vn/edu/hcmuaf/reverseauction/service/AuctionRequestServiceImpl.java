@@ -80,10 +80,11 @@ public class AuctionRequestServiceImpl implements AuctionRequestService {
     }
 
     @Override
-    public PageResponse<AuctionRequestResponseDTO> getFilteredAuction(String categoryName, AuctionStatus status, BigDecimal minBudget, BigDecimal maxBudget, Pageable pageable) {
+    public PageResponse<AuctionRequestResponseDTO> getFilteredAuction(String keyword, String categoryName, AuctionStatus status, BigDecimal minBudget, BigDecimal maxBudget, Pageable pageable) {
         Specification<AuctionRequest> spec = Specification.where(AuctionRequestSpecification.hasCategoryName(categoryName))
                 .and(AuctionRequestSpecification.hasStatus(status))
-                .and(AuctionRequestSpecification.inBudgetRange(minBudget, maxBudget));
+                .and(AuctionRequestSpecification.inBudgetRange(minBudget, maxBudget))
+                .and(AuctionRequestSpecification.hasKeyword(keyword));
 
         Page<AuctionRequest> page = auctionRequestRepository.findAll(spec, pageable);
         return auctionRequestMapper.toPageResponse(page);

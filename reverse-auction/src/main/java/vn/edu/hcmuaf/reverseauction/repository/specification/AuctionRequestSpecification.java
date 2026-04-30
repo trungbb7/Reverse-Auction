@@ -1,6 +1,7 @@
 package vn.edu.hcmuaf.reverseauction.repository.specification;
 
 import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 import vn.edu.hcmuaf.reverseauction.entity.AuctionRequest;
 import vn.edu.hcmuaf.reverseauction.entity.AuctionStatus;
@@ -37,4 +38,20 @@ public class AuctionRequestSpecification {
             return cb.between(root.get("budgetMax"), minBudget, maxBudget);
         };
     }
+
+    public static Specification<AuctionRequest> hasKeyword(String keyword) {
+        return (root, query, cb) -> {
+            if (keyword == null || keyword.isEmpty()){
+                return cb.conjunction();
+            }
+
+            String pattern = "%" + keyword.toLowerCase() + "%";
+
+            Predicate titleLike = cb.like(cb.lower(root.get("title")), pattern);
+            Predicate descriptionLike = cb.like(cb.lower(root.get("description")), pattern);
+
+            return cb.or(titleLike, descriptionLike);
+        };
+    }
+
 }

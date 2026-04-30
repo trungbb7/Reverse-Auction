@@ -7,6 +7,7 @@ import AuctionSearchCard from "./AuctionSearchCard";
 import AutoBidCard from "./AutoBidCard";
 import toast from "react-hot-toast";
 import Pagination from "@/components/ui/Pagination";
+import useDebounce from "@/hooks/useDebounce";
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 const MOCK_AUCTIONS: Auction[] = [
@@ -118,12 +119,14 @@ export default function SellerSearch() {
   const [showFilters, setShowFilters] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
+  const debouncedKeyword = useDebounce(keyword, 500);
 
   useEffect(() => {
     async function search() {
+      console.log(`Keyword: ${debouncedKeyword}`);
       try {
         const params = {
-          keyword: keyword || undefined,
+          keyword: debouncedKeyword.trim() || undefined,
           status: selectedStatus.value || undefined,
           categoryName: selectedCategory.value || undefined,
           minBudget: budgetRange[0] * 1_000_000,
@@ -136,6 +139,7 @@ export default function SellerSearch() {
         setAuctions(result.content.length > 0 ? result.content : MOCK_AUCTIONS);
         setTotalResults(result.totalElements || MOCK_AUCTIONS.length);
         setTotalPages(result.totalPages || MOCK_AUCTIONS.length);
+        setCurrentPage(1);
       } catch {
         toast.error("Đã xảy ra lỗi khi lấy dữ liệu!");
         setAuctions([]);
@@ -143,7 +147,13 @@ export default function SellerSearch() {
       }
     }
     search();
-  }, [currentPage, keyword, selectedCategory, budgetRange, selectedStatus]);
+  }, [
+    currentPage,
+    debouncedKeyword,
+    selectedCategory,
+    budgetRange,
+    selectedStatus,
+  ]);
 
   const handleViewBid = (id: number) => {
     navigate(`/seller/auctions/${id}`);

@@ -13,15 +13,16 @@ export interface AuctionSearchParams {
 
 export interface PagedResult<T> {
   content: T[];
+  pageNo: number;
+  pageSize: number;
   totalElements: number;
   totalPages: number;
-  number: number;
-  size: number;
+  last: boolean;
 }
 
 export const auctionService = {
   searchAuctions: async (
-    params: AuctionSearchParams
+    params: AuctionSearchParams,
   ): Promise<PagedResult<Auction>> => {
     const response = await api.get("/auctions", { params });
     return response.data;

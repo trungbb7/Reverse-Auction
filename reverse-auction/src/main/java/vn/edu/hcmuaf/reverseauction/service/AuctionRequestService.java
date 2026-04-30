@@ -12,6 +12,6 @@ public interface AuctionRequestService {
     AuctionRequestResponseDTO createAuctionRequest(AuctionRequestCreateDTO requestDTO, String username);
     PageResponse<AuctionRequestResponseDTO> getAllAuctionRequests(Pageable pageable);
     PageResponse<AuctionRequestResponseDTO> getMyAuctionRequests(String username, Pageable pageable);
-    PageResponse<AuctionRequestResponseDTO> getFilteredAuction(String categoryName, AuctionStatus status, BigDecimal minBudget, BigDecimal maxBudget, Pageable pageable);
+    PageResponse<AuctionRequestResponseDTO> getFilteredAuction(String keyword, String categoryName, AuctionStatus status, BigDecimal minBudget, BigDecimal maxBudget, Pageable pageable);
     AuctionRequestResponseDTO findById(long id);
 }
