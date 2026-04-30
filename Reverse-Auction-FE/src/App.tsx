@@ -13,8 +13,9 @@ import Register from "./components/pages/auth/Register";
 import ForgotPassword from "./components/pages/auth/ForgotPassword";
 import ChangePassword from "./components/pages/auth/ChangePassword";
 import ResetPassword from "./components/pages/auth/ResetPassword";
+import SellerSearch from "./components/pages/seller/SellerSearch/SellerSearch";
 import SellerAuctionDetail from "./components/pages/seller/SellerAuctionDetail";
-import SellerSearch from "./components/pages/seller/SellerSearch/SellerSearch.tsx";
+import OrderManagement from "./components/pages/seller/SellerOrders/SellerOrders.tsx";
 
 function App() {
   return (
@@ -48,6 +49,7 @@ function App() {
           <Route index element={<div>Seller Dashboard (To be built)</div>} />
           <Route path="search" element={<SellerSearch />} />
           <Route path="auctions/:id" element={<SellerAuctionDetail />} />
+          <Route path="orders" element={<OrderManagement />} />
         </Route>
       </Routes>
     </BrowserRouter>
