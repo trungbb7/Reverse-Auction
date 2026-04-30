@@ -1,17 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import {
-  Search,
-  SlidersHorizontal,
-  ChevronLeft,
-  ChevronRight,
-  ChevronDown,
-} from "lucide-react";
+import { Search, SlidersHorizontal, ChevronDown } from "lucide-react";
 import type { Auction } from "@/types/auction";
 import { auctionService } from "@/services/auctionService";
 import AuctionSearchCard from "./AuctionSearchCard";
 import AutoBidCard from "./AutoBidCard";
 import toast from "react-hot-toast";
+import Pagination from "@/components/ui/Pagination";
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 const MOCK_AUCTIONS: Auction[] = [
@@ -119,7 +114,7 @@ export default function SellerSearch() {
   const [auctions, setAuctions] = useState<Auction[]>(MOCK_AUCTIONS);
   const [totalResults, setTotalResults] = useState(MOCK_AUCTIONS.length);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages] = useState(8);
+  const [totalPages, setTotalPages] = useState(8);
   const [showFilters, setShowFilters] = useState(false);
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [statusOpen, setStatusOpen] = useState(false);
@@ -135,11 +130,12 @@ export default function SellerSearch() {
           maxBudget:
             budgetRange[1] === 500 ? undefined : budgetRange[1] * 1_000_000,
           page: currentPage - 1,
-          size: 6,
+          size: 5,
         };
         const result = await auctionService.searchAuctions(params);
         setAuctions(result.content.length > 0 ? result.content : MOCK_AUCTIONS);
         setTotalResults(result.totalElements || MOCK_AUCTIONS.length);
+        setTotalPages(result.totalPages || MOCK_AUCTIONS.length);
       } catch {
         toast.error("Đã xảy ra lỗi khi lấy dữ liệu!");
         setAuctions([]);
@@ -152,9 +148,6 @@ export default function SellerSearch() {
   const handleViewBid = (id: number) => {
     navigate(`/seller/auctions/${id}`);
   };
-
-  // Displayed grid: 5 auction cards + 1 auto-bid card in position 6
-  const displayedAuctions = auctions.slice(0, 5);
 
   return (
     <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6">
@@ -307,7 +300,7 @@ export default function SellerSearch() {
 
       {/* ── Grid ─────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {displayedAuctions.map((auction) => (
+        {auctions.map((auction) => (
           <AuctionSearchCard
             key={auction.id}
             auction={auction}
@@ -319,7 +312,12 @@ export default function SellerSearch() {
       </div>
 
       {/* ── Pagination ───────────────────────────────────────────────── */}
-      <div className="flex items-center justify-center gap-2 mt-10">
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        setCurrentPage={setCurrentPage}
+      />
+      {/* <div className="flex items-center justify-center gap-2 mt-10">
         <button
           onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
           disabled={currentPage === 1}
@@ -362,7 +360,7 @@ export default function SellerSearch() {
         >
           <ChevronRight className="w-4 h-4" />
         </button>
-      </div>
+      </div> */}
     </div>
   );
 }
