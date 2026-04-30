@@ -1,4 +1,4 @@
-package vn.edu.hcmuaf.reverseauction.service;
+package vn.edu.hcmuaf.reverseauction.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,10 +18,9 @@ import vn.edu.hcmuaf.reverseauction.repository.AuctionRequestRepository;
 import vn.edu.hcmuaf.reverseauction.repository.CategoryRepository;
 import vn.edu.hcmuaf.reverseauction.repository.UserRepository;
 import vn.edu.hcmuaf.reverseauction.repository.specification.AuctionRequestSpecification;
+import vn.edu.hcmuaf.reverseauction.service.AuctionRequestService;
 
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor

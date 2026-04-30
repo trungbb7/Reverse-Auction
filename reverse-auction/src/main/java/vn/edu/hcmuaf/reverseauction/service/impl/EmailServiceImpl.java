@@ -10,11 +10,12 @@ import org.springframework.stereotype.Service;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import vn.edu.hcmuaf.reverseauction.service.EmailService;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class EmailService {
+public class EmailServiceImpl implements EmailService {
 
     private final JavaMailSender mailSender;
 
@@ -24,6 +25,7 @@ public class EmailService {
     @Value("${app.frontend.url}")
     private String frontendUrl;
 
+    @Override
     public void sendPasswordResetEmail(String toEmail, String token) {
         String resetLink = frontendUrl + "/auth/reset-password?token=" + token;
 

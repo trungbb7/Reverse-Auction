@@ -6,12 +6,15 @@ import org.springframework.stereotype.Service;
 import vn.edu.hcmuaf.reverseauction.dto.UserDTO;
 import vn.edu.hcmuaf.reverseauction.entity.User;
 import vn.edu.hcmuaf.reverseauction.repository.UserRepository;
+import vn.edu.hcmuaf.reverseauction.service.UserService;
 
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+
+    @Override
     public UserDTO getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
@@ -21,6 +24,7 @@ public class UserService {
         return mapToDTO(user);
     }
 
+    @Override
     public UserDTO updateCurrentUser(UserDTO request) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
