@@ -1,5 +1,6 @@
 import api from "@/utils/axios";
 import type { Bid } from "@/types/auction";
+import { AxiosError } from "axios";
 
 interface BidRequest {
   auctionId: string | number;
@@ -28,7 +29,7 @@ export const bidService = {
       const response = await api.get(`/bids/my`, { params: { auctionId } });
       return response.data;
     } catch (error) {
-      if (error.response?.status === 404) {
+      if (error instanceof AxiosError && error.response?.status === 404) {
         return null;
       }
       throw error;
@@ -37,6 +38,6 @@ export const bidService = {
 
   getBidsForAuction: async (auctionId: string | number): Promise<Bid[]> => {
     const response = await api.get(`/bids`, { params: { auctionId } });
-    return response.data;
+    return response.data.bids;
   },
 };

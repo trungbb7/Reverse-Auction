@@ -26,6 +26,7 @@ public class JwtServiceImpl implements JwtService {
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 15)); // 15 mins
 
         if (userDetails instanceof User user) {
+            builder.claim("id", user.getId());
             builder.claim("fullName", user.getFullName());
             builder.claim("role", user.getRole().name());
         }

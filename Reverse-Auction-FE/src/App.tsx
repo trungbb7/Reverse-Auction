@@ -14,8 +14,8 @@ import ForgotPassword from "./components/pages/auth/ForgotPassword";
 import ChangePassword from "./components/pages/auth/ChangePassword";
 import ResetPassword from "./components/pages/auth/ResetPassword";
 import SellerSearch from "./components/pages/seller/SellerSearch/SellerSearch";
-import SellerAuctionDetail from "./components/pages/seller/SellerAuctionDetail";
 import OrderManagement from "./components/pages/seller/SellerOrders/SellerOrders.tsx";
+import SellerAuctionDetail from "./components/pages/seller/SellerAuctionDetail/SellerAuctionDetail.tsx";
 
 function App() {
   return (

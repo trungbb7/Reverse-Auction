@@ -31,7 +31,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        user.setFullName(request.getName());
+        user.setFullName(request.getFullName());
         user.setPhone(request.getPhone());
 
         userRepository.save(user);
@@ -41,9 +41,11 @@ public class UserServiceImpl implements UserService {
 
     private UserDTO mapToDTO(User user) {
         return UserDTO.builder()
-                .name(user.getFullName())
+                .fullName(user.getFullName())
                 .email(user.getEmail())
                 .phone(user.getPhone())
+                .id(user.getId())
+                .role(user.getRole())
                 .build();
     }
 
