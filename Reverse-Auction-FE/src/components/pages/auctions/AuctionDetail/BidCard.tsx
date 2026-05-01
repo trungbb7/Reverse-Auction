@@ -1,37 +1,23 @@
 import { formatCurrency, formatTimeAgo } from "@/utils/time";
 import SellerAvatar from "./SellerAvatar";
 import { Crown } from "lucide-react";
-
-interface Bid {
-  id: string;
-  auctionId: string;
-  sellerId: string;
-  sellerName: string;
-  bidPrice: number;
-  createdAt: string;
-  isWinner?: boolean;
-  isTopBid?: boolean;
-  note?: string;
-}
+import type { Bid } from "@/types/auction";
 
 interface BidCardProps {
   bid: Bid;
-  rank: number;
   onSelectWinner: (id: string) => void;
   winnerSelected: boolean;
 }
 
 export default function BidCard({
   bid,
-  rank,
   onSelectWinner,
   winnerSelected,
 }: BidCardProps) {
-  const isTop = rank === 0;
   return (
     <div
       className={`rounded-2xl p-4 border transition-all ${
-        isTop
+        bid.isTopBid
           ? "border-blue-200 bg-blue-50/50"
           : "border-slate-100 bg-white hover:border-slate-200"
       }`}
@@ -44,14 +30,14 @@ export default function BidCard({
             <span className="font-semibold text-slate-900 text-sm truncate">
               {bid.sellerName}
             </span>
-            {isTop && (
+            {bid.isTopBid && (
               <span className="text-[10px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full flex items-center gap-1">
                 <Crown className="w-3 h-3" /> TOP BID
               </span>
             )}
           </div>
           <span className="text-xs text-slate-400">
-            {formatTimeAgo(bid.createdAt)}
+            {formatTimeAgo(bid.updatedAt)}
           </span>
         </div>
         <span className="font-black text-lg text-slate-900 shrink-0">
@@ -71,7 +57,7 @@ export default function BidCard({
         onClick={() => onSelectWinner(bid.id)}
         disabled={winnerSelected}
         className={`w-full py-2.5 rounded-xl text-sm font-bold transition-all ${
-          isTop && !winnerSelected
+          bid.isTopBid && !winnerSelected
             ? "bg-[#375F97] hover:bg-[#2d4f80] text-white shadow-sm hover:shadow-md"
             : "bg-slate-100 hover:bg-slate-200 text-slate-600 disabled:opacity-50 disabled:cursor-not-allowed"
         }`}

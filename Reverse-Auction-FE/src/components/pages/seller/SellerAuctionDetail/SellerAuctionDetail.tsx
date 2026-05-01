@@ -8,6 +8,7 @@ import { bidService } from "@/services/bidService";
 import BidPanel from "./BidPanel";
 import BidStream from "./BidStream";
 import { useAppSelector } from "@/hooks/redux";
+import toast from "react-hot-toast";
 
 // ─── Mock Data ────────────────────────────────────────────────────────────────
 const MOCK_AUCTION: Auction = {
@@ -33,50 +34,11 @@ const MOCK_AUCTION: Auction = {
   ],
 };
 
-const MOCK_BIDS: Bid[] = [
-  {
-    id: "b1",
-    auctionId: "1",
-    sellerId: "s1",
-    sellerName: "Hanoi Computer",
-    bidPrice: 44_800_000,
-    createdAt: new Date(Date.now() - 60_000).toISOString(),
-    note: "Bảo hành 36 tháng + Free ship",
-  },
-  {
-    id: "b_me",
-    auctionId: "1",
-    sellerId: "me",
-    sellerName: "Bạn (Bạn đang dẫn đầu)",
-    bidPrice: 44_200_000,
-    createdAt: new Date(Date.now() - 120_000).toISOString(),
-    note: "Bảo hành 24 tháng chính hãng",
-  },
-  {
-    id: "b3",
-    auctionId: "1",
-    sellerId: "s3",
-    sellerName: "An Phat PC",
-    bidPrice: 45_000_000,
-    createdAt: new Date(Date.now() - 300_000).toISOString(),
-    note: "Sẵn hàng tại kho HCM",
-  },
-  {
-    id: "b4",
-    auctionId: "1",
-    sellerId: "s4",
-    sellerName: "GearVN",
-    bidPrice: 45_200_000,
-    createdAt: new Date(Date.now() - 480_000).toISOString(),
-    note: "",
-  },
-];
-
 export default function SellerAuctionDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [auction, setAuction] = useState<Auction>(MOCK_AUCTION);
-  const [bids, setBids] = useState<Bid[]>(MOCK_BIDS);
+  const [bids, setBids] = useState<Bid[]>([]);
   const [myBid, setMyBid] = useState<Bid | null>(null);
   const [mainImage, setMainImage] = useState(MOCK_AUCTION.images?.[0] ?? "");
   const countdown = useCountdown(auction.endDate);
@@ -93,11 +55,11 @@ export default function SellerAuctionDetail() {
           bidService.getMyBidForAuction(id!),
         ]);
         setAuction(auc);
-        setBids(allBids.length > 0 ? allBids : MOCK_BIDS);
+        setBids(allBids);
         setMyBid(mine);
         if (auc.images?.[0]) setMainImage(auc.images[0]);
       } catch {
-        // Use mock data in demo
+        toast.error("Đã xảy ra lỗi!");
       }
     }
     load();
@@ -181,7 +143,7 @@ export default function SellerAuctionDetail() {
               </div>
               <div className="flex-1">
                 <p className="font-bold text-slate-900 text-sm">
-                  Công ty TNHH TechNova
+                  {auction.buyerName}
                 </p>
                 <p className="text-xs text-slate-400 flex items-center gap-1">
                   <MapPin className="w-3 h-3" />

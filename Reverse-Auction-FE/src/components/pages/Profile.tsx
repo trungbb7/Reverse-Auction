@@ -123,14 +123,14 @@ export default function Profile() {
             <div className="grid grid-cols-2 gap-4">
               <Input
                 label="Họ và tên"
-                name="name"
+                name="fullName"
                 value={form.fullName || ""}
                 onChange={handleChange}
               />
               <Input
                 label="Tên hiển thị"
                 name="username"
-                value={form.fullName || ""}
+                value={""}
                 onChange={handleChange}
               />
               <Input

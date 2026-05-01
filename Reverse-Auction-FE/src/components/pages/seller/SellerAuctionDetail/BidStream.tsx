@@ -43,7 +43,7 @@ export default function BidStream({
                     {isMe ? "Bạn" : bid.sellerName}
                   </p>
                   <span className="text-[10px] text-slate-400 shrink-0">
-                    {formatTimeAgo(bid.createdAt)}
+                    {formatTimeAgo(bid.updatedAt)}
                   </span>
                 </div>
                 <p className="text-base font-black text-slate-900">

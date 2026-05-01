@@ -15,8 +15,7 @@ import BidCard from "./BidCard";
 import { formatCurrency, formatTimeAgo, useCountdown } from "@/utils/time";
 import api from "@/utils/axios";
 import toast from "react-hot-toast";
-
-// ─── Helpers ────────────────────────────────────────────────────────────────
+import { bidService } from "@/services/bidService";
 
 // ─── Mock Data ───────────────────────────────────────────────────────────────
 
@@ -49,54 +48,14 @@ const MOCK_AUCTION: Auction & {
   ],
 };
 
-const MOCK_BIDS: (Bid & { note?: string; isTopBid?: boolean })[] = [
-  {
-    id: "b1",
-    auctionId: "1",
-    sellerId: "s1",
-    sellerName: "Minh TechStore",
-    bidPrice: 40_500_000,
-    createdAt: new Date(Date.now() - 30_000).toISOString(),
-    isWinner: false,
-    isTopBid: true,
-    note: "Hàng sẵn kho TP.HCM, giao ngay trong sáng mai. Bảo hành mở rộng 12 tháng.",
-  },
-  {
-    id: "b2",
-    auctionId: "1",
-    sellerId: "s2",
-    sellerName: "Giga-Components",
-    bidPrice: 41_200_000,
-    createdAt: new Date(Date.now() - 120_000).toISOString(),
-    isWinner: false,
-    note: "Sẵn số lượng lớn, hỗ trợ VAT đầy đủ cho doanh nghiệp.",
-  },
-  {
-    id: "b3",
-    auctionId: "1",
-    sellerId: "s3",
-    sellerName: "Hanoi Computer Jsc",
-    bidPrice: 41_500_000,
-    createdAt: new Date(Date.now() - 300_000).toISOString(),
-    isWinner: false,
-  },
-  {
-    id: "b4",
-    auctionId: "1",
-    sellerId: "s4",
-    sellerName: "PC Master Ltd",
-    bidPrice: 42_000_000,
-    createdAt: new Date(Date.now() - 480_000).toISOString(),
-    isWinner: false,
-  },
-];
-
 export default function AuctionDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [auction, setAuction] = useState<Auction>();
   const countdown = useCountdown(auction?.endDate ?? new Date().toISOString());
-  const [bids] = useState(MOCK_BIDS);
+  const [bids, setBids] = useState<Bid[]>([]);
+  const [lowestBid, setLowestBid] = useState<number>(0);
+  const [lastOffer, setLastOffer] = useState<string | undefined>();
   const [selectedImages] = useState(MOCK_AUCTION.images ?? []);
   const [mainImage, setMainImage] = useState(selectedImages[0] ?? "");
   const [winner, setWinner] = useState<string | null>(null);
@@ -117,11 +76,41 @@ export default function AuctionDetail() {
         const auc = data as Auction;
         setAuction(auc);
       } catch (err) {
-        toast.error("Đã xảy ra lỗi khi lấy dữ liệu đấu giá");
+        toast.error("Đã xảy ra lỗi khi lấy dữ liệu phiên đấu giá");
         console.error(err);
       }
     }
     fetchAuction();
+  }, [id]);
+
+  useEffect(() => {
+    async function fetchBidsForAuction() {
+      try {
+        const rsBids = await bidService.getBidsForAuction(id || -1);
+        const min = rsBids.reduce(
+          (prev, cur) => Math.min(prev, cur.bidPrice),
+          Infinity,
+        );
+        const newLastOffer = rsBids.reduce(
+          (prev, cur) => (cur.updatedAt > prev ? cur.updatedAt : prev),
+          "1970-01-01",
+        );
+        let newBids = rsBids.map((bid) => ({
+          ...bid,
+          isTopBid: bid.bidPrice === min,
+        }));
+
+        newBids = newBids.sort((a, b) => a.bidPrice - b.bidPrice);
+
+        setBids(newBids);
+        setLowestBid(min);
+        setLastOffer(newLastOffer);
+      } catch (err) {
+        toast.error("Đã xảy ra lỗi khi lấy giữ liệu đấu giá");
+        console.error(err);
+      }
+    }
+    fetchBidsForAuction();
   }, [id]);
 
   return (
@@ -173,7 +162,7 @@ export default function AuctionDetail() {
                 <div className="flex items-center gap-5 text-sm text-slate-500">
                   <span className="flex items-center gap-1.5">
                     <Users className="w-4 h-4" />
-                    {auction?.totalBids || 0} Người bán tham gia
+                    {bids.length || 0} Người bán tham gia
                   </span>
                   <span className="flex items-center gap-1.5">
                     <MapPin className="w-4 h-4" />
@@ -210,14 +199,7 @@ export default function AuctionDetail() {
                 <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
                   Thời hạn giao hàng
                 </p>
-                <p className="text-base font-semibold text-slate-900">
-                  Trước{" "}
-                  {new Date(auction?.endDate || 0).toLocaleDateString("vi-VN", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                  })}
-                </p>
+                <p className="text-base font-semibold text-slate-900">...</p>
               </div>
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
@@ -280,10 +262,7 @@ export default function AuctionDetail() {
                   Giá thấp nhất hiện tại
                 </p>
                 <p className="text-xl font-black text-slate-900">
-                  {formatCurrency(auction?.lowestBid ?? 0)}
-                  <span className="text-xs font-medium text-slate-400 ml-1">
-                    / sản phẩm
-                  </span>
+                  {formatCurrency(lowestBid)}
                 </p>
               </div>
             </div>
@@ -296,7 +275,7 @@ export default function AuctionDetail() {
                   Lượt đề nghị cuối
                 </p>
                 <p className="text-xl font-black text-slate-900">
-                  {bids[0] ? formatTimeAgo(bids[0].createdAt) : "---"}
+                  {lastOffer ? formatTimeAgo(lastOffer) : "---"}
                 </p>
               </div>
             </div>
@@ -336,11 +315,10 @@ export default function AuctionDetail() {
             </div>
 
             <div className="p-4 space-y-3 max-h-[520px] overflow-y-auto">
-              {bids.map((bid, i) => (
+              {bids.map((bid) => (
                 <BidCard
                   key={bid.id}
                   bid={bid}
-                  rank={i}
                   onSelectWinner={handleSelectWinner}
                   winnerSelected={winner !== null}
                 />

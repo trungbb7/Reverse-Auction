@@ -3,6 +3,8 @@ export type AuctionStatus = "OPEN" | "CLOSED" | "COMPLETED";
 export interface Auction {
   id: number;
   title?: string;
+  buyerId?: number;
+  buyerName?: string;
   categoryId?: number;
   categoryName?: string;
   budgetMax?: number;
@@ -24,7 +26,9 @@ export interface Bid {
   sellerId: string;
   sellerName: string;
   bidPrice: number;
-  createdAt: string;
   isWinner?: boolean;
   note?: string;
+  isTopBid?: boolean;
+  createdAt: string;
+  updatedAt: string;
 }
