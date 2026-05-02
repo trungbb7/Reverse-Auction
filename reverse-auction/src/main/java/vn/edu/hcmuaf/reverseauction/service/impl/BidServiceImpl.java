@@ -71,6 +71,26 @@ public class BidServiceImpl implements BidService {
                         .error("Not found")
                         .message("Không tìm thấy phiên đấu giá")
                         .build());
+
+        // Validate: auction must be OPEN
+        if (auc.getStatus() != vn.edu.hcmuaf.reverseauction.entity.AuctionStatus.OPEN) {
+            throw CustomException.builder()
+                    .statusCode(HttpStatus.BAD_REQUEST)
+                    .error("Invalid status")
+                    .message("Phiên đấu giá đã đóng, không thể đặt giá")
+                    .build();
+        }
+
+        // Validate: seller mustn't have bid on this auction
+        if (bidRepository.existsByAuctionIdAndSellerId(requestDTO.getAuctionId(), sellerId)) {
+            throw CustomException.builder()
+                    .statusCode(HttpStatus.CONFLICT)
+                    .error("Duplicate bid")
+                    .message("Bạn đã đặt giá cho phiên đấu giá này. Hãy cập nhật giá thay vì tạo mới")
+                    .build();
+        }
+
+        // Find seller
         User seller = userRepository.findById(sellerId)
                 .orElseThrow(() -> CustomException.builder()
                         .statusCode(HttpStatus.NOT_FOUND)
@@ -78,6 +98,7 @@ public class BidServiceImpl implements BidService {
                         .message("Không tìm thấy người bán")
                         .build());
 
+        // Save bid
         Bid bid = Bid.builder()
                 .auction(auc)
                 .seller(seller)

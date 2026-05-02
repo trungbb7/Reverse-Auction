@@ -87,4 +87,17 @@ public class AuctionRequestController {
         PageResponse<AuctionRequestResponseDTO> responseDTO = auctionRequestService.getMyAuctionRequests(email, pageable);
         return ResponseEntity.ok(responseDTO);
     }
+
+    @PatchMapping("/{auctionId}/select-winner")
+    @PreAuthorize("hasRole('BUYER')")
+    public ResponseEntity<AuctionRequestResponseDTO> selectWinner(
+            @PathVariable long auctionId,
+            @RequestParam long bidId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        assert authentication != null;
+        String email = authentication.getName();
+
+        AuctionRequestResponseDTO result = auctionRequestService.selectWinner(auctionId, bidId, email);
+        return ResponseEntity.ok(result);
+    }
 }
