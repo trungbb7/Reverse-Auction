@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import vn.edu.hcmuaf.reverseauction.dto.*;
 import vn.edu.hcmuaf.reverseauction.entity.AuctionRequest;
+import vn.edu.hcmuaf.reverseauction.entity.AuctionStatus;
 import vn.edu.hcmuaf.reverseauction.entity.Bid;
 import vn.edu.hcmuaf.reverseauction.entity.User;
 import vn.edu.hcmuaf.reverseauction.exception.CustomException;
@@ -25,7 +26,7 @@ public class BidServiceImpl implements BidService {
     private final BidMapper bidMapper;
 
     @Override
-    public BidResponseDTO update(long id, UpdateBidRequestDTO bid) {
+    public BidResponseDTO update(long id, UpdateBidRequestDTO bid, long sellerId) {
         Bid existing = bidRepository.findById(id).
                 orElseThrow(() -> CustomException
                 .builder()
@@ -33,6 +34,24 @@ public class BidServiceImpl implements BidService {
                 .statusCode(HttpStatus.NOT_FOUND)
                 .error("Not found")
                 .build());
+
+        AuctionRequest auc = existing.getAuction();
+        if(auc.getStatus() != AuctionStatus.OPEN) {
+            throw CustomException.builder()
+                    .statusCode(HttpStatus.BAD_REQUEST)
+                    .error("Invalid status")
+                    .message("Phiên đấu giá đã không ở trạng thái mở, không được cập nhật giá")
+                    .build();
+        }
+
+        if(existing.getSeller().getId() != sellerId) {
+            throw CustomException.builder()
+                    .statusCode(HttpStatus.FORBIDDEN)
+                    .error("Forbidden")
+                    .message("Người bán không hợp lệ")
+                    .build();
+        }
+
         existing.setBidPrice(bid.getBidPrice());
         Bid saved = bidRepository.save(existing);
         return bidMapper.toDTO(saved);

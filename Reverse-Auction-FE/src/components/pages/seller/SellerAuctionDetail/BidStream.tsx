@@ -3,10 +3,10 @@ import { formatCurrency, formatTimeAgo } from "@/utils/time";
 
 export default function BidStream({
   bids,
-  myId = "me",
+  myId = -1,
 }: {
   bids: Bid[];
-  myId?: string;
+  myId?: number;
 }) {
   const sorted = [...bids].sort((a, b) => a.bidPrice - b.bidPrice);
   return (

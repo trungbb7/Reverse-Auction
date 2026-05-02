@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { Clock, Users, MapPin, Image as ImageIcon } from "lucide-react";
-import type { Auction, Bid } from "@/types/auction";
+import {
+  auctionEmpty,
+  auctionStatusMap,
+  type Auction,
+  type Bid,
+} from "@/types/auction";
 import { formatCurrency, useCountdown } from "@/utils/time";
 import { auctionService } from "@/services/auctionService";
 import { bidService } from "@/services/bidService";
@@ -10,38 +15,14 @@ import BidStream from "./BidStream";
 import { useAppSelector } from "@/hooks/redux";
 import toast from "react-hot-toast";
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-const MOCK_AUCTION: Auction = {
-  id: 1,
-  title: "RTX 4090 Founders Edition",
-  description:
-    "NVIDIA flagship GPU - Hàng mới 100% nguyên seal, yêu cầu bảo hành chính hãng tối thiểu 24 tháng.",
-  categoryName: "GPU / GAMING",
-  budgetMax: 45_500_000,
-  quantity: 2,
-  endDate: new Date(
-    Date.now() + 4 * 3600_000 + 12 * 60_000 + 45_000,
-  ).toISOString(),
-  createdAt: new Date(Date.now() - 86400_000).toISOString(),
-  status: "OPEN",
-  lowestBid: 44_200_000,
-  totalBids: 8,
-  location: "Ho Chi Minh City",
-  paymentMethod: "Chuyển khoản trước (100%)",
-  images: [
-    "https://images.unsplash.com/photo-1591488320449-011701bb6704?w=600",
-    "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=600",
-  ],
-};
-
 export default function SellerAuctionDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [auction, setAuction] = useState<Auction>(MOCK_AUCTION);
+  const [auction, setAuction] = useState<Auction>(auctionEmpty);
   const [bids, setBids] = useState<Bid[]>([]);
   const [myBid, setMyBid] = useState<Bid | null>(null);
-  const [mainImage, setMainImage] = useState(MOCK_AUCTION.images?.[0] ?? "");
-  const countdown = useCountdown(auction.endDate);
+  const [mainImage, setMainImage] = useState(auction.images?.[0] ?? "");
+  const countdown = useCountdown(auction.endDate || "");
   const userId = useAppSelector((state) => state.auth.user?.id);
 
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -85,9 +66,17 @@ export default function SellerAuctionDetail() {
       {/* Top bar */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1.5 bg-red-500 text-white text-xs font-black px-3 py-1.5 rounded-full animate-pulse">
+          <span
+            className={`flex items-center gap-1.5 ${
+              auction?.status === "OPEN"
+                ? "bg-red-500 animate-pulse"
+                : auction?.status === "COMPLETED"
+                  ? "bg-green-500"
+                  : "bg-slate-500"
+            } text-white text-xs font-black px-3 py-1.5 rounded-full`}
+          >
             <span className="w-2 h-2 bg-white rounded-full" />
-            LIVE
+            {auction?.status ? auctionStatusMap[auction?.status] : ""}
           </span>
           <span className="text-sm text-slate-500 font-medium">
             Phiên đấu thầu #{id?.padStart(5, "0")}

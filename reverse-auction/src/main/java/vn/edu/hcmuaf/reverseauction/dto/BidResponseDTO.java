@@ -13,7 +13,7 @@ public class BidResponseDTO {
     private String sellerName;
     private BigDecimal bidPrice;
     private String note;
-    private boolean isWinner;
+    private Boolean isWinner;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

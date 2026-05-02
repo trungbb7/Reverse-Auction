@@ -34,7 +34,7 @@ function App() {
     dispatch(fetchCurrentUser());
   }, [dispatch]);
 
-  if (!user) {
+  if (!user && localStorage.getItem("accessToken")) {
     return <div>Loading...</div>;
   }
 

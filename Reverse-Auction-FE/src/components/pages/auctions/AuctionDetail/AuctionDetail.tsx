@@ -16,6 +16,8 @@ import { formatCurrency, formatTimeAgo, useCountdown } from "@/utils/time";
 import api from "@/utils/axios";
 import toast from "react-hot-toast";
 import { bidService } from "@/services/bidService";
+import { auctionService } from "@/services/auctionService";
+import { useAppSelector } from "@/hooks/redux";
 
 export default function AuctionDetail() {
   const { id } = useParams<{ id: string }>();
@@ -27,10 +29,29 @@ export default function AuctionDetail() {
   const [lastOffer, setLastOffer] = useState<string | undefined>();
   const [selectedImages] = useState<string[]>([]);
   const [mainImage, setMainImage] = useState(selectedImages[0] ?? "");
-  const [winner, setWinner] = useState<string | null>(null);
+  const [winner, setWinner] = useState<number | null>(null);
+  const currentUser = useAppSelector((state) => state.auth.user);
 
-  const handleSelectWinner = (bidId: string) => {
-    setWinner(bidId);
+  const handleSelectWinner = async (bidId: number) => {
+    try {
+      await auctionService.selectWinner(id || "", bidId);
+      setWinner(bidId);
+
+      setBids((prev) =>
+        prev.map((b) => ({
+          ...b,
+          isWinner: b.id === bidId,
+        })),
+      );
+      setAuction((prev) =>
+        prev ? { ...prev, status: "COMPLETED" } : undefined,
+      );
+
+      toast.success("Đã chọn người thắng thành công!");
+    } catch (err) {
+      toast.error("Không thể chọn người thắng. Vui lòng thử lại.");
+      console.error(err);
+    }
   };
 
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -62,7 +83,7 @@ export default function AuctionDetail() {
         );
         const newLastOffer = rsBids.reduce(
           (prev, cur) => (cur.updatedAt > prev ? cur.updatedAt : prev),
-          "1970-01-01",
+          "",
         );
         let newBids = rsBids.map((bid) => ({
           ...bid,
@@ -70,10 +91,21 @@ export default function AuctionDetail() {
         }));
 
         newBids = newBids.sort((a, b) => a.bidPrice - b.bidPrice);
+        newBids.forEach((b) => {
+          if (b.isWinner) {
+            console.log("Winner");
+            setWinner(b.id);
+          }
+        });
 
         setBids(newBids);
         setLowestBid(min);
         setLastOffer(newLastOffer);
+
+        const winnerBid = newBids.find((b) => b.isWinner);
+        if (winnerBid) {
+          setWinner(winnerBid.id);
+        }
       } catch (err) {
         toast.error("Đã xảy ra lỗi khi lấy giữ liệu đấu giá");
         console.error(err);
@@ -298,6 +330,10 @@ export default function AuctionDetail() {
                   bid={bid}
                   onSelectWinner={handleSelectWinner}
                   winnerSelected={winner !== null}
+                  canSelectWinner={
+                    currentUser?.id === auction?.buyerId &&
+                    auction?.status === "CLOSED"
+                  }
                 />
               ))}
             </div>

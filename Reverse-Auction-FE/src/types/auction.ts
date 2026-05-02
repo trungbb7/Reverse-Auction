@@ -28,9 +28,9 @@ export interface Auction {
 }
 
 export interface Bid {
-  id: string;
-  auctionId: string;
-  sellerId: string;
+  id: number;
+  auctionId: number;
+  sellerId: number;
   sellerName: string;
   bidPrice: number;
   isWinner?: boolean;
@@ -39,3 +39,23 @@ export interface Bid {
   createdAt: string;
   updatedAt: string;
 }
+
+export const auctionEmpty: Auction = {
+  id: 0,
+  title: "",
+  buyerId: 0,
+  buyerName: "",
+  categoryId: 0,
+  categoryName: "",
+  budgetMax: 0,
+  endDate: "",
+  description: "",
+  status: "OPEN",
+  createdAt: "",
+  lowestPrice: 0,
+  totalBids: 0,
+  quantity: 0,
+  location: "",
+  paymentMethod: "",
+  images: [],
+};

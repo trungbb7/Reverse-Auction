@@ -34,15 +34,16 @@ public class BidController {
     @PostMapping
     @PreAuthorize("hasRole('SELLER')")
     public ResponseEntity<BidResponseDTO> createBid(@AuthenticationPrincipal User user, @RequestBody CreateBidRequestDTO bid) {
-        long seller_id = user.getId();
-        BidResponseDTO created = bidService.create(bid, seller_id);
+        long sellerId = user.getId();
+        BidResponseDTO created = bidService.create(bid, sellerId);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('SELLER')")
-    public ResponseEntity<BidResponseDTO> updateBid(@PathVariable long id, @RequestBody UpdateBidRequestDTO bid) {
-        BidResponseDTO updated = bidService.update(id, bid);
+    public ResponseEntity<BidResponseDTO> updateBid(@AuthenticationPrincipal User user, @PathVariable long id, @RequestBody UpdateBidRequestDTO bid) {
+        long sellerId = user.getId();
+        BidResponseDTO updated = bidService.update(id, bid, sellerId);
         return ResponseEntity.ok(updated);
     }
 

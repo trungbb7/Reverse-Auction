@@ -1,5 +1,7 @@
 import { bidService } from "@/services/bidService";
 import type { Bid } from "@/types/auction";
+import type { ErrorResponse } from "@/types/errorResponse";
+import { AxiosError } from "axios";
 import { CheckCircle, MoreHorizontal, RefreshCw, Send } from "lucide-react";
 import { useState } from "react";
 import toast from "react-hot-toast";
@@ -58,21 +60,14 @@ export default function BidPanel({
         toast.success("Đã gửi báo giá thành công!");
       }
       onBidSuccess(result);
-    } catch {
-      // Demo mode: create mock result
-      const mockResult: Bid = {
-        id: myBid?.id ?? "b_me",
-        auctionId: String(auctionId),
-        sellerId: "me",
-        sellerName: "Bạn (Bạn đang dẫn đầu)",
-        bidPrice: numericPrice,
-        createdAt: new Date().toISOString(),
-        note,
-      };
-      onBidSuccess(mockResult);
-      toast.success(
-        myBid ? "Đã cập nhật báo giá! (demo)" : "Đã gửi báo giá! (demo)",
-      );
+    } catch (err) {
+      console.error(err);
+      if (err instanceof AxiosError) {
+        const errorResponse = err.response?.data as ErrorResponse;
+        toast.error(errorResponse.message || "Đã xảy ra lỗi khi cập nhật");
+      } else {
+        toast.error("Đã xảy ra lỗi khi cập nhật");
+      }
     } finally {
       setLoading(false);
     }
