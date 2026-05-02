@@ -12,8 +12,7 @@ import {
 } from "lucide-react";
 import { Link, useNavigate } from "react-router";
 import { useAppSelector, useAppDispatch } from "@/hooks/redux";
-import { logoutUser, updateUser } from "@/components/Auth/authSlice";
-import { fetchUser } from "@/services/userService";
+import { logoutUser } from "@/components/Auth/authSlice";
 
 interface HeaderProps {
   isAdmin?: boolean;
@@ -39,15 +38,6 @@ const Header = ({ isAdmin = false }: HeaderProps) => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  // Fetch user
-  useEffect(() => {
-    async function updateUserInfo() {
-      const user = await fetchUser();
-      dispatch(updateUser(user));
-    }
-    updateUserInfo();
-  }, [dispatch]);
 
   const handleLogout = () => {
     dispatch(logoutUser());

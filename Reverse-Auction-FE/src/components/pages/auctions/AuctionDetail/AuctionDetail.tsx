@@ -10,43 +10,12 @@ import {
   ChevronRight,
   Image as ImageIcon,
 } from "lucide-react";
-import type { Auction, Bid } from "@/types/auction";
+import { auctionStatusMap, type Auction, type Bid } from "@/types/auction";
 import BidCard from "./BidCard";
 import { formatCurrency, formatTimeAgo, useCountdown } from "@/utils/time";
 import api from "@/utils/axios";
 import toast from "react-hot-toast";
 import { bidService } from "@/services/bidService";
-
-// ─── Mock Data ───────────────────────────────────────────────────────────────
-
-const MOCK_AUCTION: Auction & {
-  location?: string;
-  paymentMethod?: string;
-  images?: string[];
-} = {
-  id: 1,
-  title: "RTX 4090 Founders Edition - 24GB GDDR6X",
-  description: "Yêu cầu mới 100%, bảo hành chính hãng, giao hàng tại TP.HCM.",
-  categoryName: "VGA",
-  budgetMax: 215_000_000,
-  quantity: 5,
-  endDate: new Date(
-    Date.now() + 4 * 3600_000 + 22 * 60_000 + 15_000,
-  ).toISOString(),
-  createdAt: new Date(Date.now() - 86400_000).toISOString(),
-  status: "OPEN",
-  lowestBid: 40_500_000,
-  totalBids: 8,
-  location: "Miền Nam",
-  paymentMethod: "Chuyển khoản (Cọc 30%)",
-  images: [
-    "https://images.unsplash.com/photo-1591488320449-011701bb6704?w=400",
-    "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=400",
-    "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400",
-    "https://images.unsplash.com/photo-1562976540-1502c2145851?w=400",
-    "https://images.unsplash.com/photo-1555617117-08c4bfc6b010?w=400",
-  ],
-};
 
 export default function AuctionDetail() {
   const { id } = useParams<{ id: string }>();
@@ -56,7 +25,7 @@ export default function AuctionDetail() {
   const [bids, setBids] = useState<Bid[]>([]);
   const [lowestBid, setLowestBid] = useState<number>(0);
   const [lastOffer, setLastOffer] = useState<string | undefined>();
-  const [selectedImages] = useState(MOCK_AUCTION.images ?? []);
+  const [selectedImages] = useState<string[]>([]);
   const [mainImage, setMainImage] = useState(selectedImages[0] ?? "");
   const [winner, setWinner] = useState<string | null>(null);
 
@@ -118,9 +87,17 @@ export default function AuctionDetail() {
       {/* Top action bar */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1.5 bg-red-500 text-white text-xs font-black px-3 py-1.5 rounded-full animate-pulse">
+          <span
+            className={`flex items-center gap-1.5 ${
+              auction?.status === "OPEN"
+                ? "bg-red-500 animate-pulse"
+                : auction?.status === "COMPLETED"
+                  ? "bg-green-500"
+                  : "bg-slate-500"
+            } text-white text-xs font-black px-3 py-1.5 rounded-full`}
+          >
             <span className="w-2 h-2 bg-white rounded-full" />
-            TRỰC TIẾP
+            {auction?.status ? auctionStatusMap[auction?.status] : ""}
           </span>
         </div>
         <div className="flex items-center gap-2">

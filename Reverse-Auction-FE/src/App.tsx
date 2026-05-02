@@ -22,8 +22,22 @@ import {
   RequireRole,
   GuestOnly,
 } from "./components/Auth/ProtectedRoute";
+import { useEffect } from "react";
+import { useAppDispatch, useAppSelector } from "./hooks/redux.ts";
+import { fetchCurrentUser } from "./components/Auth/authSlice.ts";
 
 function App() {
+  const dispatch = useAppDispatch();
+  const user = useAppSelector((state) => state.auth.user);
+
+  useEffect(() => {
+    dispatch(fetchCurrentUser());
+  }, [dispatch]);
+
+  if (!user) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <BrowserRouter>
       <Toaster position="top-right" />

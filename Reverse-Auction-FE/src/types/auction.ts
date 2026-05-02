@@ -1,5 +1,12 @@
 export type AuctionStatus = "OPEN" | "CLOSED" | "COMPLETED";
 
+export const auctionStatusMap = {
+  OPEN: "Đang diễn ra",
+  CLOSED: "Đã đóng",
+  CANCELLED: "Đã hủy",
+  COMPLETED: "Hoàn thành",
+};
+
 export interface Auction {
   id: number;
   title?: string;
