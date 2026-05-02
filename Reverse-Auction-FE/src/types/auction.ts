@@ -12,7 +12,7 @@ export interface Auction {
   description?: string;
   status?: AuctionStatus;
   createdAt: string;
-  lowestBid?: number;
+  lowestPrice?: number;
   totalBids?: number;
   quantity?: number;
   location?: string;

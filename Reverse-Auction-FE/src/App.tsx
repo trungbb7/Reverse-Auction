@@ -5,6 +5,7 @@ import CreateAuction from "./components/pages/auctions/CreateAuction";
 import MyAuctions from "./components/pages/auctions/MyAuctions";
 import AuctionDetail from "./components/pages/auctions/AuctionDetail/AuctionDetail";
 import Profile from "./components/pages/Profile.tsx";
+import Unauthorized from "./components/pages/Unauthorized.tsx";
 import MainLayout from "./components/layout/MainLayout";
 import AdminLayout from "./components/layout/AdminLayout";
 import AuthLayout from "./components/layout/AuthLayout";
@@ -16,22 +17,57 @@ import ResetPassword from "./components/pages/auth/ResetPassword";
 import SellerSearch from "./components/pages/seller/SellerSearch/SellerSearch";
 import OrderManagement from "./components/pages/seller/SellerOrders/SellerOrders.tsx";
 import SellerAuctionDetail from "./components/pages/seller/SellerAuctionDetail/SellerAuctionDetail.tsx";
+import {
+  RequireAuth,
+  RequireRole,
+  GuestOnly,
+} from "./components/Auth/ProtectedRoute";
 
 function App() {
   return (
     <BrowserRouter>
       <Toaster position="top-right" />
       <Routes>
+        {/* Public home route */}
         <Route path="/" element={<MainLayout />}>
           <Route index element={<Home />} />
+        </Route>
+
+        {/* Buyer-only routes */}
+        <Route
+          path="/"
+          element={
+            <RequireRole roles={["ROLE_BUYER"]}>
+              <MainLayout />
+            </RequireRole>
+          }
+        >
           <Route path="create-auction" element={<CreateAuction />} />
           <Route path="my-auctions" element={<MyAuctions />} />
           <Route path="auctions/:id" element={<AuctionDetail />} />
+        </Route>
+
+        {/* Any authenticated user routes */}
+        <Route
+          path="/"
+          element={
+            <RequireAuth>
+              <MainLayout />
+            </RequireAuth>
+          }
+        >
           <Route path="profile" element={<Profile />} />
         </Route>
 
-        {/* Auth Routes */}
-        <Route path="/auth" element={<AuthLayout />}>
+        {/* Auth routes */}
+        <Route
+          path="/auth"
+          element={
+            <GuestOnly>
+              <AuthLayout />
+            </GuestOnly>
+          }
+        >
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />
           <Route path="forgot-password" element={<ForgotPassword />} />
@@ -39,13 +75,30 @@ function App() {
           <Route path="reset-password" element={<ResetPassword />} />
         </Route>
 
-        {/* Admin Routes */}
-        <Route path="/admin" element={<AdminLayout role="admin" />}>
+        {/* Unauthorized page */}
+        <Route path="/unauthorized" element={<Unauthorized />} />
+
+        {/* Admin routes */}
+        <Route
+          path="/admin"
+          element={
+            <RequireRole roles={["ROLE_ADMIN"]}>
+              <AdminLayout role="admin" />
+            </RequireRole>
+          }
+        >
           <Route index element={<div>Admin Dashboard (To be built)</div>} />
         </Route>
 
-        {/* Seller Routes */}
-        <Route path="/seller" element={<AdminLayout role="seller" />}>
+        {/* Seller routes */}
+        <Route
+          path="/seller"
+          element={
+            <RequireRole roles={["ROLE_SELLER"]}>
+              <AdminLayout role="seller" />
+            </RequireRole>
+          }
+        >
           <Route index element={<div>Seller Dashboard (To be built)</div>} />
           <Route path="search" element={<SellerSearch />} />
           <Route path="auctions/:id" element={<SellerAuctionDetail />} />

@@ -9,80 +9,6 @@ import toast from "react-hot-toast";
 import Pagination from "@/components/ui/Pagination";
 import useDebounce from "@/hooks/useDebounce";
 
-// ─── Mock Data ────────────────────────────────────────────────────────────────
-const MOCK_AUCTIONS: Auction[] = [
-  {
-    id: 1,
-    title: "Cung cấp 15x RTX 4070 Super cho Cyber Game",
-    categoryName: "GPU / GAMING",
-    budgetMax: 250_000_000,
-    endDate: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
-    description:
-      "Yêu cầu hàng chính hãng, bảo hành 36 tháng, giao hàng trong vòng 48 giờ tại HCM. Ưu tiên đối tác đã cung cấp hàng loạt trước đây.",
-    status: "OPEN",
-    createdAt: new Date(Date.now() - 3600_000).toISOString(),
-    lowestBid: 230_000_000,
-    totalBids: 6,
-    quantity: 15,
-  },
-  {
-    id: 2,
-    title: "64GB RAM DDR5 ECC cho hệ thống Workstation",
-    categoryName: "RAM / SERVER",
-    budgetMax: 120_000_000,
-    endDate: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
-    description:
-      "Số lượng 20 thanh, ưu tiên các hãng Samsung hoặc Micron. Yêu cầu ECC, tốc độ 4800MHz trở lên.",
-    status: "OPEN",
-    createdAt: new Date(Date.now() - 7200_000).toISOString(),
-    lowestBid: 105_000_000,
-    totalBids: 9,
-    quantity: 20,
-  },
-  {
-    id: 3,
-    title: "Dự án nâng cấp 50 CPU Intel Core i7-14700K",
-    categoryName: "CPU / BUILD PC",
-    budgetMax: 450_000_000,
-    endDate: new Date(Date.now() + 2 * 86400_000).toISOString(),
-    description:
-      "Cần báo giá tốt nhất cho lô hàng 50 chiếc i7 thế hệ 14. Giao hàng tại Hà Nội. Bảo hành 12 tháng chính hãng.",
-    status: "OPEN",
-    createdAt: new Date(Date.now() - 86400_000).toISOString(),
-    lowestBid: 420_000_000,
-    totalBids: 3,
-    quantity: 50,
-  },
-  {
-    id: 4,
-    title: "Lô 100 ổ cứng SSD Samsung 980 Pro 1TB",
-    categoryName: "STORAGE / SSD",
-    budgetMax: 180_000_000,
-    endDate: new Date(Date.now() + 5 * 60 * 60 * 1000).toISOString(),
-    description:
-      "Đấu giá cung cấp linh kiện cho dự án lắp ráp laptop văn phòng cao cấp. Yêu cầu hàng nguyên seal, có hoá đơn VAT.",
-    status: "OPEN",
-    createdAt: new Date(Date.now() - 3600_000 * 3).toISOString(),
-    lowestBid: 165_000_000,
-    totalBids: 11,
-    quantity: 100,
-  },
-  {
-    id: 5,
-    title: "Cung cấp trọn bộ 30 bộ máy tính văn phòng",
-    categoryName: "COMBO / PC SET",
-    budgetMax: 300_000_000,
-    endDate: new Date(Date.now() + 4 * 86400_000).toISOString(),
-    description:
-      "Combo bao gồm Mainboard, CPU, RAM, SSD và Case. Không bao gồm màn hình. Giao tại Đà Nẵng.",
-    status: "OPEN",
-    createdAt: new Date(Date.now() - 86400_000 * 2).toISOString(),
-    lowestBid: 270_000_000,
-    totalBids: 7,
-    quantity: 30,
-  },
-];
-
 interface Item {
   value: string;
   display: string;
@@ -104,6 +30,7 @@ const STATUS_OPTIONS: Item[] = [
   { value: "OPEN", display: "Đang diễn ra" },
   { value: "CLOSED", display: "Đã đóng" },
   { value: "COMPLETED", display: "Hoàn thành" },
+  { value: "CANCELLED", display: "Đã hủy" },
 ];
 
 export default function SellerSearch() {
@@ -112,8 +39,8 @@ export default function SellerSearch() {
   const [selectedCategory, setSelectedCategory] = useState<Item>(CATEGORIES[0]);
   const [selectedStatus, setSelectedStatus] = useState<Item>(STATUS_OPTIONS[0]);
   const [budgetRange, setBudgetRange] = useState<[number, number]>([0, 500]);
-  const [auctions, setAuctions] = useState<Auction[]>(MOCK_AUCTIONS);
-  const [totalResults, setTotalResults] = useState(MOCK_AUCTIONS.length);
+  const [auctions, setAuctions] = useState<Auction[]>([]);
+  const [totalResults, setTotalResults] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(8);
   const [showFilters, setShowFilters] = useState(false);
@@ -136,9 +63,9 @@ export default function SellerSearch() {
           size: 5,
         };
         const result = await auctionService.searchAuctions(params);
-        setAuctions(result.content.length > 0 ? result.content : MOCK_AUCTIONS);
-        setTotalResults(result.totalElements || MOCK_AUCTIONS.length);
-        setTotalPages(result.totalPages || MOCK_AUCTIONS.length);
+        setAuctions(result.content);
+        setTotalResults(result.totalElements);
+        setTotalPages(result.totalPages);
       } catch {
         toast.error("Đã xảy ra lỗi khi lấy dữ liệu!");
         setAuctions([]);
@@ -314,7 +241,6 @@ export default function SellerSearch() {
         )}
       </div>
 
-      {/* ── Grid ─────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {auctions.map((auction) => (
           <AuctionSearchCard
@@ -323,60 +249,14 @@ export default function SellerSearch() {
             onViewBid={handleViewBid}
           />
         ))}
-        {/* Auto-bid CTA Card in last slot */}
         <AutoBidCard />
       </div>
 
-      {/* ── Pagination ───────────────────────────────────────────────── */}
       <Pagination
         currentPage={currentPage}
         totalPages={totalPages}
         setCurrentPage={setCurrentPage}
       />
-      {/* <div className="flex items-center justify-center gap-2 mt-10">
-        <button
-          onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-          disabled={currentPage === 1}
-          className="w-9 h-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-        >
-          <ChevronLeft className="w-4 h-4" />
-        </button>
-
-        {[1, 2, 3].map((p) => (
-          <button
-            key={p}
-            onClick={() => setCurrentPage(p)}
-            className={`w-9 h-9 rounded-xl text-sm font-bold transition-all ${
-              currentPage === p
-                ? "bg-[#375F97] text-white shadow-md"
-                : "border border-slate-200 text-slate-600 hover:bg-slate-50"
-            }`}
-          >
-            {p}
-          </button>
-        ))}
-
-        <span className="text-slate-400 text-sm font-medium px-1">...</span>
-
-        <button
-          onClick={() => setCurrentPage(totalPages)}
-          className={`w-9 h-9 rounded-xl text-sm font-bold transition-all ${
-            currentPage === totalPages
-              ? "bg-[#375F97] text-white shadow-md"
-              : "border border-slate-200 text-slate-600 hover:bg-slate-50"
-          }`}
-        >
-          {totalPages}
-        </button>
-
-        <button
-          onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-          disabled={currentPage === totalPages}
-          className="w-9 h-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
-        >
-          <ChevronRight className="w-4 h-4" />
-        </button>
-      </div> */}
     </div>
   );
 }

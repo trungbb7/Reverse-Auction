@@ -68,7 +68,7 @@ export default function UserAuctionCard({ auction }: UserAuctionCardProps) {
             Giá tốt nhất
           </span>
           <span className="text-lg font-black text-green-600">
-            {auction.lowestBid ? formatCurrency(auction.lowestBid) : "---"}
+            {auction.lowestPrice ? formatCurrency(auction.lowestPrice) : "---"}
           </span>
         </div>
       </div>

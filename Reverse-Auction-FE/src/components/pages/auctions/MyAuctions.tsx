@@ -5,49 +5,6 @@ import type { Auction } from "@/types/auction";
 import UserAuctionCard from "@/components/ui/UserAuctionCard";
 import api from "@/utils/axios";
 
-// Mock Data
-const MOCK_AUCTIONS: Auction[] = [
-  {
-    id: 99,
-    title: "Cần mua RTX 3060 12GB hoặc RX 6600XT",
-    categoryName: "VGA",
-    budgetMax: 6000000,
-    endDate: new Date(Date.now() + 86400000 * 2).toISOString(),
-    description: "Cần hàng 2nd, còn bảo hành ít nhất 3 tháng.",
-    status: "OPEN",
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-    lowestBid: 5500000,
-    totalBids: 4,
-    quantity: 1,
-  },
-  {
-    id: 100,
-    title: "Tìm kit RAM 32GB (2x16GB) DDR4 3200MHz",
-    categoryName: "RAM",
-    budgetMax: 1500000,
-    endDate: new Date(Date.now() + 3600000 * 5).toISOString(),
-    description: "Cần kit RAM Corsair Vengeance hoặc Kingston Fury.",
-    status: "OPEN",
-    createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-    lowestBid: 1400000,
-    totalBids: 8,
-    quantity: 2,
-  },
-  {
-    id: 101,
-    title: "Build nguyên bộ PC học tập + chơi LMHT",
-    categoryName: "PC Build",
-    budgetMax: 10000000,
-    endDate: new Date(Date.now() - 86400000).toISOString(),
-    description: "Cần build 1 bộ PC đủ màn hình để học online.",
-    status: "OPEN",
-    createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
-    lowestBid: 9500000,
-    totalBids: 12,
-    quantity: 1,
-  },
-];
-
 const MyAuctions = () => {
   const [filter, setFilter] = useState("ALL");
   const [userAunctions, setUserAunctions] = useState<Auction[]>([]);
@@ -103,7 +60,7 @@ const MyAuctions = () => {
 
       {/* Grid Layout */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {[...userAunctions, ...MOCK_AUCTIONS]
+        {userAunctions
           .filter((auc) => (filter === "ALL" ? true : filter === auc.status))
           .map((auction) => (
             <UserAuctionCard key={auction.id} auction={auction} />
