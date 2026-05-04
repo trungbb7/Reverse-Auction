@@ -1,48 +1,11 @@
-import {useState } from "react";
+import {useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import Pagination from "@/components/ui/Pagination";
+import { orderService } from "@/services/orderService";
+import type { Order } from "@/types/orders";
 import {Search, Printer } from "lucide-react";
 
-const orders: Order[] = [
-    {
-        id: "#ORD-8921-X",
-        name: "NVIDIA GeForce RTX 4090 Founders Edition",
-        price: 1599,
-        shipping: 25,
-        buyer: "James Nguyen",
-        address: "789 Tech Boulevard, Quận 1, TP.HCM",
-        status: "DELIVERED",
-    },
-    {
-        id: "#ORD-8812-A",
-        name: "AMD Ryzen 9 7950X Desktop Processor",
-        price: 699,
-        shipping: 0,
-        buyer: "Alice Trương",
-        address: "124 Khu Công Nghệ Cao, Quận 9",
-        status: "COMPLETED",
-    },
-    {
-        id: "#ORD-7754-C",
-        name: "Logitech G Pro X Superlight 2",
-        price: 159,
-        shipping: 5,
-        buyer: "Kevin Vu",
-        address: "45 Gaming House, Cầu Giấy, Hà Nội",
-        status: "SHIPPED",
-    },
-];
 type OrderStatus = | "AWAITING_PAYMENT" | "PAID" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "COMPLETED" | "DISPUTED" | "CANCELLED";
-
-interface Order {
-    id: string;
-    name: string;
-    price: number;
-    shipping: number;
-    buyer: string;
-    address: string;
-    status: OrderStatus;
-}
 
 const statusColor = {
     AWAITING_PAYMENT: "text-yellow-700",
@@ -74,7 +37,7 @@ function StatusBadge({status}: { status: OrderStatus }) {
     );
 }
 
-function OrderCard({order}: { order: Order }) {
+function OrderCard({order, onStatusUpdate,}: { order: Order; onStatusUpdate: (id: number, status: OrderStatus) => void; }) {
 
     const steps: OrderStatus[] = [
         "PAID",
@@ -104,19 +67,19 @@ function OrderCard({order}: { order: Order }) {
                         <span className="text-xs font-medium bg-gray-100 p-1 rounded-md text-gray-400">{order.id}</span>
                     </div>
                     <p className="text-2xl font-bold text-primary-900">
-                        ${order.price.toFixed(2)}
+                        ${order.totalAmount}
                     </p>
                 </div>
                 <div className="flex justify-between text-sm items-start">
                     <h2 className="font-semibold text-lg">
-                        {order.name}
+                        {order.productName}
                     </h2>
                     <div className="text-right">
                         <div className="flex justify-end items-center gap-2">
                             <span className="text-xs ">Phí vận chuyển: </span>
-                            <span className="font-medium">${order.shipping.toFixed(2)}</span>
+                            <span className="font-medium">${order.shippingFee.toFixed(2)}</span>
                         </div>
-                        {order.shipping === 0 && (
+                        {order.shippingFee === 0 && (
                             <p className="text-xs text-green-600 font-medium mt-1">Freeship</p>
                         )}
                     </div>
@@ -126,13 +89,13 @@ function OrderCard({order}: { order: Order }) {
                     <div className="flex justify-between text-sm">
                         <div>
                             <p className="text-xs text-gray-400">Người mua</p>
-                            <p className="font-medium">{order.buyer}</p>
+                            <p className="font-medium">{order.buyerName}</p>
                         </div>
 
                         <div className="text-left">
                             <p className="text-xs text-gray-400">Địa chỉ</p>
                             <p className="text-sm text-gray-600">
-                                {order.address}
+                                {order.shippingAddress}
                             </p>
                         </div>
                     </div>
@@ -171,10 +134,23 @@ function OrderCard({order}: { order: Order }) {
                 <p className="text-xs text-gray-400">Trạng thái</p>
                 <StatusBadge status={status}/>
                 <p className="text-xs text-gray-400">
-                    Cập nhật: 30/04/2026 10:30
+                    Cập nhật: {new Date(order.updatedAt).toLocaleString("vi-VN")}
                 </p>
 
-                <select value={status} onChange={(e) => setStatus(e.target.value as OrderStatus)} className="bg-black text-center text-white px-3 py-2 rounded-lg text-sm outline-none">
+                <select
+                    value={status}
+                    onChange={async (e) => {
+                        const newStatus = e.target.value as OrderStatus;
+                        setStatus(newStatus);
+                        try {
+                            const updated = await orderService.updateStatus(order.id, newStatus);
+                            onStatusUpdate(order.id, updated.status);
+                        } catch {
+                            setStatus(status);
+                        }
+                    }}
+                    className="bg-black text-center text-white px-3 py-2 rounded-lg text-sm outline-none"
+                >
                     <option value="AWAITING_PAYMENT">Chờ thanh toán</option>
                     <option value="PAID">Đã thanh toán</option>
                     <option value="PROCESSING">Đang xử lý</option>
@@ -199,12 +175,33 @@ function OrderCard({order}: { order: Order }) {
 }
 
 export default function OrderManagement() {
-
+    const [orders, setOrders] = useState<Order[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages] = useState(8);
+
     const [activeTab, setActiveTab] = useState<"orders" | "auction">("orders");
     const [filter, setFilter] = useState<"ALL" | "PROCESSING" | "SHIPPING" | "COMPLETED" | "CANCEL">("ALL");
+
     const [keyword, setKeyword] = useState("");
+    useEffect(() => {
+        const fetchOrders = async () => {
+            try {
+                const data = await orderService.getMyOrders();
+                setOrders(data);
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        fetchOrders();
+    }, []);
+    const handleStatusUpdate = (id: number, status: OrderStatus) => {
+        setOrders((prev) =>
+            prev.map((o) =>
+                o.id === id ? { ...o, status } : o
+            )
+        );
+    };
     return (
         <div className="min-h-screen bg-gray-100 p-5">
             <div className="max-w-7xl">
@@ -260,8 +257,17 @@ export default function OrderManagement() {
                         />
                     </div>
                 </div>
-                {orders.map((order) => (
-                    <OrderCard key={order.id} order={order}/>
+                {orders.length === 0 ? (
+                    <div className="bg-white rounded-2xl shadow p-10 text-center">
+                        <p className="text-gray-500 text-lg font-medium">
+                            Không có đơn hàng nào
+                        </p>
+                        <p className="text-gray-400 test-sm mt-1">
+                            Hãy quay lại sau khi có đơn mới
+                        </p>
+                    </div>
+                ): orders.map((order) => (
+                    <OrderCard key={order.id} order={order} onStatusUpdate={handleStatusUpdate}/>
                 ))}
             </div>
             <Pagination
