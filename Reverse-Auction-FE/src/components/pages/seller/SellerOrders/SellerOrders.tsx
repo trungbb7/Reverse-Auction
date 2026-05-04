@@ -1,11 +1,9 @@
-import {useState, useEffect } from "react";
-import { useNavigate } from "react-router";
+import {useState, useEffect} from "react";
+import {useNavigate} from "react-router";
 import Pagination from "@/components/ui/Pagination";
-import { orderService } from "@/services/orderService";
-import type { Order } from "@/types/orders";
-import {Search, Printer } from "lucide-react";
-
-type OrderStatus = | "AWAITING_PAYMENT" | "PAID" | "PROCESSING" | "SHIPPED" | "DELIVERED" | "COMPLETED" | "DISPUTED" | "CANCELLED";
+import {orderService} from "@/services/orderService";
+import {type Order, type OrderStatus, ORDER_STEPS, ORDER_STATUS_INDEX, ORDER_STATUS_LABEL, ORDER_TRANSITION_RULE} from "@/types/orders";
+import {Search, Printer} from "lucide-react";
 
 const statusColor = {
     AWAITING_PAYMENT: "text-yellow-700",
@@ -37,27 +35,26 @@ function StatusBadge({status}: { status: OrderStatus }) {
     );
 }
 
-function OrderCard({order, onStatusUpdate,}: { order: Order; onStatusUpdate: (id: number, status: OrderStatus) => void; }) {
-
-    const steps: OrderStatus[] = [
-        "PAID",
-        "PROCESSING",
-        "SHIPPED",
-        "COMPLETED",
-    ];
+function OrderCard({order, onStatusUpdate,}: {
+    order: Order;
+    onStatusUpdate: (id: number, status: OrderStatus) => void;
+}) {
+    const navigate = useNavigate();
 
     const [status, setStatus] = useState<OrderStatus>(order.status);
-    const navigate = useNavigate();
-    const currentIndex = {
-        AWAITING_PAYMENT: 0,
-        PAID: 0,
-        PROCESSING: 1,
-        SHIPPED: 2,
-        DELIVERED: 3,
-        COMPLETED: 3,
-        DISPUTED: -1,
-        CANCELLED: -1,
-    }[status];
+    const allowedStatuses = ORDER_TRANSITION_RULE[status];
+    const steps = ORDER_STEPS;
+    const currentIndex = ORDER_STATUS_INDEX[status];
+    const handleChange = async (newStatus: OrderStatus) => {
+        const oldStatus = status;
+        setStatus(newStatus);
+        try {
+            const updated = await orderService.updateStatus(order.id, newStatus);
+            onStatusUpdate(order.id, updated.status);
+        } catch {
+            setStatus(oldStatus);
+        }
+    }
     return (
         <div className="bg-white rounded-2xl shadow p-6 mb-4 flex gap-6">
             <div className="flex-1">
@@ -109,13 +106,15 @@ function OrderCard({order, onStatusUpdate,}: { order: Order; onStatusUpdate: (id
                     <div className="relative flex items-center justify-between">
                         <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-gray-200 -translate-y-1/2"/>
 
-                        <div className="absolute top-1/2 h-0.5 bg-primary-900 -translate-y-1/2 transition-all duration-300"
+                        <div
+                            className="absolute top-1/2 h-0.5 bg-primary-900 -translate-y-1/2 transition-all duration-300"
                             style={{width: `${(currentIndex / (steps.length - 1)) * 100}%`,}}/>
                         {steps.map((_, index) => {
                             const isActive = index <= currentIndex;
                             return (
                                 <div key={index} className="relative z-10 flex flex-col items-center">
-                                    <div className={`w-3.5 h-3.5 rounded-full transition ${isActive ? "bg-primary-900" : "bg-gray-300"}`}/>
+                                    <div
+                                        className={`w-3.5 h-3.5 rounded-full transition ${isActive ? "bg-primary-900" : "bg-gray-300"}`}/>
                                 </div>
                             );
                         })}
@@ -139,33 +138,22 @@ function OrderCard({order, onStatusUpdate,}: { order: Order; onStatusUpdate: (id
 
                 <select
                     value={status}
-                    onChange={async (e) => {
-                        const newStatus = e.target.value as OrderStatus;
-                        setStatus(newStatus);
-                        try {
-                            const updated = await orderService.updateStatus(order.id, newStatus);
-                            onStatusUpdate(order.id, updated.status);
-                        } catch {
-                            setStatus(status);
-                        }
-                    }}
+                    onChange={(e) => handleChange(e.target.value as OrderStatus)}
                     className="bg-black text-center text-white px-3 py-2 rounded-lg text-sm outline-none"
                 >
-                    <option value="AWAITING_PAYMENT">Chờ thanh toán</option>
-                    <option value="PAID">Đã thanh toán</option>
-                    <option value="PROCESSING">Đang xử lý</option>
-                    <option value="SHIPPED">Đang giao</option>
-                    <option value="DELIVERED">Đã giao</option>
-                    <option value="COMPLETED">Hoàn tất</option>
-                    <option value="DISPUTED">Tranh chấp</option>
-                    <option value="CANCELLED">Đã huỷ</option>
+                    {allowedStatuses.map((s) => (
+                        <option key={s} value={s}>
+                            {ORDER_STATUS_LABEL[s]}
+                        </option>
+                    ))}
                 </select>
-                <button  onClick={() => navigate(`/seller/orders-detail/${encodeURIComponent(order.id)}`)}
-                         className="flex items-center justify-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition">
+                <button onClick={() => navigate(`/seller/orders-detail/${order.id}`)}
+                        className="flex items-center justify-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition">
                     Xem chi tiết
                 </button>
-                <button className="flex items-center justify-center gap-2 text-sm text-primary-800 hover:text-gray-900 transition">
-                    <Printer className="w-4 h-4" />
+                <button
+                    className="flex items-center justify-center gap-2 text-sm text-primary-800 hover:text-gray-900 transition">
+                    <Printer className="w-4 h-4"/>
                     <span>In hóa đơn</span>
                 </button>
             </div>
@@ -177,11 +165,18 @@ function OrderCard({order, onStatusUpdate,}: { order: Order; onStatusUpdate: (id
 export default function OrderManagement() {
     const [orders, setOrders] = useState<Order[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages] = useState(8);
+    const [totalPages] = useState(1);
 
     const [activeTab, setActiveTab] = useState<"orders" | "auction">("orders");
     const [filter, setFilter] = useState<"ALL" | "PROCESSING" | "SHIPPING" | "COMPLETED" | "CANCEL">("ALL");
-
+    const filteredOrders = orders.filter((o) => {
+        if (filter === "ALL") return true;
+        if (filter === "PROCESSING") return o.status === "PROCESSING";
+        if (filter === "SHIPPING") return o.status === "SHIPPED";
+        if (filter === "COMPLETED") return o.status === "COMPLETED";
+        if (filter === "CANCEL") return o.status === "CANCELLED";
+        return true;
+    });
     const [keyword, setKeyword] = useState("");
     useEffect(() => {
         const fetchOrders = async () => {
@@ -198,7 +193,7 @@ export default function OrderManagement() {
     const handleStatusUpdate = (id: number, status: OrderStatus) => {
         setOrders((prev) =>
             prev.map((o) =>
-                o.id === id ? { ...o, status } : o
+                o.id === id ? {...o, status} : o
             )
         );
     };
@@ -213,36 +208,36 @@ export default function OrderManagement() {
 
                     <div className="bg-slate-200 p-1 rounded-xl flex items-center shrink-0">
                         <button onClick={() => setActiveTab("orders")}
-                            className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all ${
-                                activeTab === "orders" ? "bg-white text-blue-600 shadow-sm" : "text-slate-600 hover:text-slate-900"}`}>
+                                className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all ${
+                                    activeTab === "orders" ? "bg-white text-blue-600 shadow-sm" : "text-slate-600 hover:text-slate-900"}`}>
                             Danh sách đơn
                         </button>
                         <button onClick={() => setActiveTab("auction")}
-                            className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all ${
-                                activeTab === "auction" ? "bg-white text-blue-600 shadow-sm" : "text-slate-600 hover:text-slate-900"}`}>
+                                className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all ${
+                                    activeTab === "auction" ? "bg-white text-blue-600 shadow-sm" : "text-slate-600 hover:text-slate-900"}`}>
                             Lịch sử đấu giá
                         </button>
                     </div>
                 </div>
                 <div className="flex items-center gap-15 mb-6 text-sm">
                     <button onClick={() => setFilter("ALL")}
-                        className={`pb-1 transition ${filter === "ALL" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-gray-700"}`}>
+                            className={`pb-1 transition ${filter === "ALL" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-gray-700"}`}>
                         Tất cả
                     </button>
                     <button onClick={() => setFilter("PROCESSING")}
-                        className={`pb-1 transition ${filter === "PROCESSING" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-gray-700"}`}>
+                            className={`pb-1 transition ${filter === "PROCESSING" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-gray-700"}`}>
                         Đang xử lý
                     </button>
                     <button onClick={() => setFilter("SHIPPING")}
-                        className={`pb-1 transition ${filter === "SHIPPING" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-gray-700"}`}>
+                            className={`pb-1 transition ${filter === "SHIPPING" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-gray-700"}`}>
                         Đang giao
                     </button>
                     <button onClick={() => setFilter("COMPLETED")}
-                        className={`pb-1 transition ${filter === "COMPLETED" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-gray-700"}`}>
+                            className={`pb-1 transition ${filter === "COMPLETED" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-gray-700"}`}>
                         Đã hoàn thành
                     </button>
                     <button onClick={() => setFilter("CANCEL")}
-                        className={`pb-1 transition ${filter === "CANCEL" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-gray-700"}`}>
+                            className={`pb-1 transition ${filter === "CANCEL" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-gray-700"}`}>
                         Đã hủy
                     </button>
                     <div className="relative w-100 ml-auto">
@@ -266,7 +261,7 @@ export default function OrderManagement() {
                             Hãy quay lại sau khi có đơn mới
                         </p>
                     </div>
-                ): orders.map((order) => (
+                ) : filteredOrders.map((order) =>  (
                     <OrderCard key={order.id} order={order} onStatusUpdate={handleStatusUpdate}/>
                 ))}
             </div>

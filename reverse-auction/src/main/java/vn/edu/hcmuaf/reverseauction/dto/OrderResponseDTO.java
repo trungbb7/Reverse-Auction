@@ -16,6 +16,7 @@ public class OrderResponseDTO {
 
     private Long productId;
     private String productName;
+    private String imageUrl;
 
     private Long buyerId;
     private String buyerName;

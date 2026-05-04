@@ -17,4 +17,7 @@ public class Product {
 
     @Column(nullable = false, unique = true)
     private String name;
+
+    @Column
+    private String imageUrl;
 }

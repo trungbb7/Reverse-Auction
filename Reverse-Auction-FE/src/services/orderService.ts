@@ -9,5 +9,9 @@ export const orderService = {
     updateStatus: async (orderId: number, status: Order["status"]): Promise<Order> => {
         const res = await api.put(`/orders/${orderId}/status`, status);
         return res.data;
+    },
+    getOrderDetail: async (id: number) => {
+        const res = await api.get(`/orders/${id}`);
+        return res.data;
     }
 };

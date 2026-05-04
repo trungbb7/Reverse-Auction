@@ -45,6 +45,7 @@ public class OrderServiceImpl implements OrderService {
 
                 .productId(o.getProduct() != null ? o.getProduct().getId() : null)
                 .productName(o.getProduct() != null ? o.getProduct().getName() : null)
+                .productName(o.getProduct() != null ? o.getProduct().getImageUrl() : null)
 
                 .buyerId(o.getBuyer().getId())
                 .buyerName(o.getBuyer().getFullName())

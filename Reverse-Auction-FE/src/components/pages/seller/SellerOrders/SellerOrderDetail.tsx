@@ -1,87 +1,40 @@
 import {useParams} from "react-router";
+import {useState, useEffect } from "react";
 import {useNavigate} from "react-router";
 import {ArrowLeft, Phone, MapPin, AlertCircle} from "lucide-react";
+import { orderService } from "@/services/orderService";
+import { type Order, ORDER_STEPS, ORDER_STATUS_INDEX, } from "@/types/orders";
 
-type Order = {
-    id: string;
-    name: string;
-    price: number;
-    shipping: number;
-    buyer: string;
-    address: string;
-    status: OrderStatus;
-};
-
-const orders: Order[] = [
-    {
-        id: "#ORD-8921-X",
-        name: "NVIDIA GeForce RTX 4090 Founders Edition",
-        price: 1599,
-        shipping: 25,
-        buyer: "James Nguyen",
-        address: "789 Tech Boulevard, Quận 1, TP.HCM",
-        status: "DELIVERED",
-    },
-    {
-        id: "#ORD-8812-A",
-        name: "AMD Ryzen 9 7950X Desktop Processor",
-        price: 699,
-        shipping: 0,
-        buyer: "Alice Trương",
-        address: "124 Khu Công Nghệ Cao, Quận 9",
-        status: "COMPLETED",
-    },
-    {
-        id: "#ORD-7754-C",
-        name: "Logitech G Pro X Superlight 2",
-        price: 159,
-        shipping: 5,
-        buyer: "Kevin Vu",
-        address: "45 Gaming House, Cầu Giấy, Hà Nội",
-        status: "SHIPPED",
-    },
-];
-type OrderStatus =
-    | "AWAITING_PAYMENT"
-    | "PAID"
-    | "PROCESSING"
-    | "SHIPPED"
-    | "DELIVERED"
-    | "COMPLETED"
-    | "DISPUTED"
-    | "CANCELLED";
 export default function OrderDetail() {
-    const {id} = useParams();
-    const decodedId = decodeURIComponent(id || "");
+    const { id } = useParams();
     const navigate = useNavigate();
-    const order = orders.find(o => o.id === decodedId);
-    if (!order) {
-        return <div className="p-5">Không tìm thấy đơn hàng</div>;
-    }
-    const steps: OrderStatus[] = [
-        "PAID",
-        "PROCESSING",
-        "SHIPPED",
-        "COMPLETED",
-    ];
-    const status: OrderStatus = order.status;
-    const currentIndex = {
-        AWAITING_PAYMENT: 0,
-        PAID: 0,
-        PROCESSING: 1,
-        SHIPPED: 2,
-        DELIVERED: 3,
-        COMPLETED: 3,
-        DISPUTED: -1,
-        CANCELLED: -1,
-    }[status];
+
+    const [order, setOrder] = useState<Order | null>(null);
+
+    useEffect(() => {
+        const fetchOrder = async () => {
+            try {
+                if (!id) return;
+                const data = await orderService.getOrderDetail(Number(id));
+                setOrder(data);
+            } catch (err) {
+                console.error(err);
+            }
+        };
+        fetchOrder();
+    }, [id]);
+
+    if (!order) return <div className="p-5">Không tìm thấy đơn hàng</div>;
+    const status = order.status;
+    const steps = ORDER_STEPS;
+    const currentIndex = ORDER_STATUS_INDEX[status];
 
     return (
         <div className="min-h-screen bg-gray-100 p-5">
             <div className="max-w-7xl mx-auto">
                 <div className="flex items-center justify-between mb-6">
                     <div>
-                        <h1 className="text-3xl font-bold mb-2">Chi tiết đơn {order.id}</h1>
+                        <h1 className="text-3xl font-bold mb-2">Chi tiết đơn #{order.id}</h1>
                         <p className="text-gray-500">Quản lý và cập nhật tiến độ vận chuyển.</p>
                     </div>
                     <button onClick={() => navigate(-1)}
@@ -100,7 +53,7 @@ export default function OrderDetail() {
                                         <span className="text-blue-600 font-medium">{order.status}</span>
                                         <span className="text-gray-500">{order.id}</span>
                                     </div>
-                                    <h2 className="font-semibold text-lg">{order.name}</h2>
+                                    <h2 className="font-semibold text-lg">{order.productName}</h2>
                                     <p className="text-gray-500 text-sm">NVIDIA</p>
                                 </div>
                             </div>
@@ -136,7 +89,7 @@ export default function OrderDetail() {
                                         <div className="flex-1 space-y-1">
                                             <div className="flex justify-between">
                                                 <p className="text-sm font-medium text-gray-800">Đang vận chuyển</p>
-                                                <span className="text-xs text-gray-400">Cập nhật: 14:32 30/04</span>
+                                                <span className="text-xs text-gray-400">Cập nhật: {new Date(order.updatedAt).toLocaleString("vi-VN")}</span>
                                             </div>
                                             <p className="text-sm text-gray-600">Đơn hàng đang được giao đến khách hàng</p>
                                         </div>
@@ -157,7 +110,7 @@ export default function OrderDetail() {
                                 <div className="flex items-center gap-3">
                                     <img src="https://i.pravatar.cc/40" className="w-10 h-10 rounded-full"/>
                                     <div>
-                                        <p className="font-medium">{order.buyer}</p>
+                                        <p className="font-medium">{order.buyerName}</p>
                                         <p className="text-sm text-gray-500">ID: KH001</p>
                                     </div>
                                 </div>
@@ -167,7 +120,7 @@ export default function OrderDetail() {
                                 </div>
                                 <div className="flex items-start gap-2">
                                     <MapPin size={16} className="text-gray-500 mt-0.5"/>
-                                    <span>{order.address}</span>
+                                    <span>{order.shippingAddress}</span>
                                 </div>
                                 <button className="w-full mt-2 px-4 py-2 bg-gray-200 rounded-full text-sm ">
                                     Liên hệ
@@ -179,7 +132,7 @@ export default function OrderDetail() {
                                 </h2>
                                 <div className="flex justify-between">
                                     <span>Sản phẩm</span>
-                                    <span>{order.price}đ</span>
+                                    <span>{order.finalPrice}đ</span>
                                 </div>
 
                                 <div className="flex justify-between text-gray-500">
@@ -189,12 +142,12 @@ export default function OrderDetail() {
 
                                 <div className="flex justify-between">
                                     <span>Shipping</span>
-                                    <span>{order.shipping}đ</span>
+                                    <span>{order.shippingFee}đ</span>
                                 </div>
                                 <hr/>
                                 <div className="flex justify-between font-semibold text-lg">
                                     <span>Tổng nhận</span>
-                                    <span>{order.price + order.shipping}đ</span>
+                                    <span>{order.totalAmount}đ</span>
                                 </div>
                             </div>
                             <div className="bg-white p-5 rounded-xl shadow space-y-2">
