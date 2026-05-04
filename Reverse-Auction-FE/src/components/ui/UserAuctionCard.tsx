@@ -1,4 +1,4 @@
-import type { Auction } from "@/types/auction";
+import { auctionStatusMap, type Auction } from "@/types/auction";
 import { Package, Tag } from "lucide-react";
 import { Link } from "react-router";
 
@@ -32,7 +32,7 @@ export default function UserAuctionCard({ auction }: UserAuctionCardProps) {
           </div>
         ) : (
           <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-bold tracking-wide">
-            {auction.status === "COMPLETED" ? "HOÀN THÀNH" : "ĐÃ HỦY"}
+            {auctionStatusMap[auction.status]}
           </div>
         )}
       </div>
@@ -68,7 +68,7 @@ export default function UserAuctionCard({ auction }: UserAuctionCardProps) {
             Giá tốt nhất
           </span>
           <span className="text-lg font-black text-green-600">
-            {auction.lowestBid ? formatCurrency(auction.lowestBid) : "---"}
+            {auction.lowestPrice ? formatCurrency(auction.lowestPrice) : "---"}
           </span>
         </div>
       </div>

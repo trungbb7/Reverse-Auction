@@ -32,4 +32,11 @@ export const auctionService = {
     const response = await api.get(`/auctions/${id}`);
     return response.data;
   },
+
+  selectWinner: async (auctionId: string | number, bidId: string | number): Promise<Auction> => {
+    const response = await api.patch(`/auctions/${auctionId}/select-winner`, null, {
+      params: { bidId }
+    });
+    return response.data;
+  },
 };

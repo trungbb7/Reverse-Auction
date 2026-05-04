@@ -8,6 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -29,6 +30,7 @@ public class AuctionRequestController {
     private final AuctionRequestService auctionRequestService;
 
     @PostMapping
+    @PreAuthorize("hasRole('BUYER')")
     public ResponseEntity<AuctionRequestResponseDTO> createAuctionRequest(
             @Valid @RequestBody AuctionRequestCreateDTO createDTO) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
@@ -60,12 +62,14 @@ public class AuctionRequestController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('BUYER', 'SELLER')")
     public ResponseEntity<AuctionRequestResponseDTO> getAuctionById(@PathVariable long id){
         AuctionRequestResponseDTO auc = auctionRequestService.findById(id);
         return ResponseEntity.ok(auc);
     }
 
     @GetMapping("/my-auctions")
+    @PreAuthorize("hasRole('BUYER')")
     public ResponseEntity<PageResponse<AuctionRequestResponseDTO>> getMyAuctionRequests(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -82,5 +86,18 @@ public class AuctionRequestController {
 
         PageResponse<AuctionRequestResponseDTO> responseDTO = auctionRequestService.getMyAuctionRequests(email, pageable);
         return ResponseEntity.ok(responseDTO);
+    }
+
+    @PatchMapping("/{auctionId}/select-winner")
+    @PreAuthorize("hasRole('BUYER')")
+    public ResponseEntity<AuctionRequestResponseDTO> selectWinner(
+            @PathVariable long auctionId,
+            @RequestParam long bidId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        assert authentication != null;
+        String email = authentication.getName();
+
+        AuctionRequestResponseDTO result = auctionRequestService.selectWinner(auctionId, bidId, email);
+        return ResponseEntity.ok(result);
     }
 }

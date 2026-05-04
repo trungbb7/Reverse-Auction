@@ -1,7 +1,9 @@
 export interface User {
-  email?: string;
-  role?: string;
+  id: number;
+  email: string;
+  role: string;
   fullName?: string;
+  phone?: string;
 }
 
 export interface UserWithToken {

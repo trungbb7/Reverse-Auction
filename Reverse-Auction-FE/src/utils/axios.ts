@@ -1,6 +1,7 @@
 import { logoutUser } from "@/components/Auth/authSlice";
 import { store } from "@/store";
 import axios, { AxiosError, type InternalAxiosRequestConfig } from "axios";
+import toast from "react-hot-toast";
 
 const api = axios.create({
   baseURL: "http://localhost:8080/api",
@@ -86,6 +87,9 @@ api.interceptors.response.use(
         localStorage.setItem("refreshToken", "");
         handleQueue(refreshError, null);
         store.dispatch(logoutUser());
+        toast.error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", {
+          duration: 4000,
+        });
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

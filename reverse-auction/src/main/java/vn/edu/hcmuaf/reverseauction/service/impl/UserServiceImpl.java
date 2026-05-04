@@ -6,12 +6,15 @@ import org.springframework.stereotype.Service;
 import vn.edu.hcmuaf.reverseauction.dto.UserDTO;
 import vn.edu.hcmuaf.reverseauction.entity.User;
 import vn.edu.hcmuaf.reverseauction.repository.UserRepository;
+import vn.edu.hcmuaf.reverseauction.service.UserService;
 
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+
+    @Override
     public UserDTO getCurrentUser() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
@@ -21,13 +24,14 @@ public class UserService {
         return mapToDTO(user);
     }
 
+    @Override
     public UserDTO updateCurrentUser(UserDTO request) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        user.setFullName(request.getName());
+        user.setFullName(request.getFullName());
         user.setPhone(request.getPhone());
 
         userRepository.save(user);
@@ -37,9 +41,11 @@ public class UserService {
 
     private UserDTO mapToDTO(User user) {
         return UserDTO.builder()
-                .name(user.getFullName())
+                .fullName(user.getFullName())
                 .email(user.getEmail())
                 .phone(user.getPhone())
+                .id(user.getId())
+                .role(user.getRole())
                 .build();
     }
 

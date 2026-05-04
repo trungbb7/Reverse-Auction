@@ -3,13 +3,7 @@ import { useNavigate } from "react-router";
 import api from "@/utils/axios";
 import { logoutUser } from "../Auth/authSlice";
 import { useAppDispatch } from "@/hooks/redux";
-
-type User = {
-  name: string;
-  username: string;
-  email: string;
-  phone: string;
-};
+import type { User } from "@/types/user";
 
 type InputProps = {
   label: string;
@@ -19,10 +13,11 @@ type InputProps = {
 };
 
 const defaultUser: User = {
-  name: "Nguyen A",
-  username: "AAAA",
+  id: "0",
+  fullName: "Nguyen A",
   email: "nguyenA@gmail.com",
   phone: "+84 90 123 4567",
+  role: "ROLE_BUYER",
 };
 
 export default function Profile() {
@@ -94,7 +89,7 @@ export default function Profile() {
               />
               <div className="absolute bottom-0 right-0 w-6 h-6 bg-blue-500 rounded-full border-2 border-white" />
             </div>
-            <h2 className="mt-4 font-semibold text-lg">{user.name}</h2>
+            <h2 className="mt-4 font-semibold text-lg">{user.fullName}</h2>
 
             <div className="w-full mt-6 text-sm">
               <p className="text-gray-400 text-xs uppercase">Email</p>
@@ -128,14 +123,14 @@ export default function Profile() {
             <div className="grid grid-cols-2 gap-4">
               <Input
                 label="Họ và tên"
-                name="name"
-                value={form.name}
+                name="fullName"
+                value={form.fullName || ""}
                 onChange={handleChange}
               />
               <Input
                 label="Tên hiển thị"
                 name="username"
-                value={form.username}
+                value={""}
                 onChange={handleChange}
               />
               <Input
@@ -147,7 +142,7 @@ export default function Profile() {
               <Input
                 label="Số điện thoại"
                 name="phone"
-                value={form.phone}
+                value={form.phone || ""}
                 onChange={handleChange}
               />
             </div>

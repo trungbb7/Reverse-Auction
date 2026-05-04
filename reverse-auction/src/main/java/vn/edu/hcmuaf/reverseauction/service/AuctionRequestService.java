@@ -14,4 +14,5 @@ public interface AuctionRequestService {
     PageResponse<AuctionRequestResponseDTO> getMyAuctionRequests(String username, Pageable pageable);
     PageResponse<AuctionRequestResponseDTO> getFilteredAuction(String keyword, String categoryName, AuctionStatus status, BigDecimal minBudget, BigDecimal maxBudget, Pageable pageable);
     AuctionRequestResponseDTO findById(long id);
+    AuctionRequestResponseDTO selectWinner(long auctionId, long bidId, String buyerEmail);
 }
