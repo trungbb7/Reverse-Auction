@@ -15,7 +15,8 @@ import ForgotPassword from "./components/pages/auth/ForgotPassword";
 import ChangePassword from "./components/pages/auth/ChangePassword";
 import ResetPassword from "./components/pages/auth/ResetPassword";
 import SellerSearch from "./components/pages/seller/SellerSearch/SellerSearch";
-import OrderManagement from "./components/pages/seller/SellerOrders/SellerOrders.tsx";
+import OrderManagement from "./components/pages/seller/SellerOrders/SellerOrders";
+import OrderDetail from "./components/pages/seller/SellerOrders/SellerOrderDetail";
 import SellerAuctionDetail from "./components/pages/seller/SellerAuctionDetail/SellerAuctionDetail.tsx";
 import {
   RequireAuth,
@@ -117,6 +118,7 @@ function App() {
           <Route path="search" element={<SellerSearch />} />
           <Route path="auctions/:id" element={<SellerAuctionDetail />} />
           <Route path="orders" element={<OrderManagement />} />
+          <Route path="orders-detail/:id" element={<OrderDetail />} />
         </Route>
       </Routes>
     </BrowserRouter>

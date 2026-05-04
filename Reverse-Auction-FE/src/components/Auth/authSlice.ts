@@ -1,4 +1,4 @@
-import { fetchUser } from "@/services/userService";
+import { userService } from "@/services/userService";
 import type { User, UserWithToken } from "@/types/user";
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
@@ -23,7 +23,7 @@ export const fetchCurrentUser = createAsyncThunk(
   "auth/fetchCurrentUser",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await fetchUser();
+      const response = await userService.fetchUser();
       return response;
     } catch (error) {
       return rejectWithValue(error.message);
