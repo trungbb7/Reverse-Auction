@@ -1,27 +1,20 @@
 package vn.edu.hcmuaf.reverseauction.controller;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import io.swagger.v3.oas.annotations.tags.Tag;
-import vn.edu.hcmuaf.reverseauction.dto.AuthenticationResponse;
-import vn.edu.hcmuaf.reverseauction.dto.LoginRequest;
-import vn.edu.hcmuaf.reverseauction.dto.RefreshTokenRequest;
-import vn.edu.hcmuaf.reverseauction.dto.RegisterRequest;
+import org.springframework.web.bind.annotation.*;
+import vn.edu.hcmuaf.reverseauction.dto.*;
 import vn.edu.hcmuaf.reverseauction.service.impl.AuthService;
 
 @RestController
 @RequestMapping("/api/auth")
-@Tag(name = "Auth")
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<String> register(@Valid @RequestBody RegisterRequest request) {
         return ResponseEntity.ok(authService.register(request));
     }
 
@@ -35,4 +28,13 @@ public class AuthController {
         return ResponseEntity.ok(authService.refreshToken(request));
     }
 
-}
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        return ResponseEntity.ok(authService.forgotPassword(request));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        return ResponseEntity.ok(authService.resetPassword(request));
+    }
+}

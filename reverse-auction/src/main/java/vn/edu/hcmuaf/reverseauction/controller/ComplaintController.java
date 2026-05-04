@@ -1,10 +1,8 @@
 package vn.edu.hcmuaf.reverseauction.controller;
 
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,7 +17,7 @@ import vn.edu.hcmuaf.reverseauction.dto.RespondComplaintRequest;
 import vn.edu.hcmuaf.reverseauction.dto.RespondComplaintResponse;
 import vn.edu.hcmuaf.reverseauction.dto.ResolveComplaintRequest;
 import vn.edu.hcmuaf.reverseauction.dto.ResolveComplaintResponse;
-import vn.edu.hcmuaf.reverseauction.service.ComplaintService;
+import vn.edu.hcmuaf.reverseauction.service.impl.ComplaintService;
 
 import java.util.List;
 

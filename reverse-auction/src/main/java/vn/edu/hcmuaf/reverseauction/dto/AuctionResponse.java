@@ -1,16 +1,17 @@
 package vn.edu.hcmuaf.reverseauction.dto;
 
-import java.time.Instant;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public record AuctionResponse(
         Long auctionId,
         String title,
         String description,
-        Long budgetMax,
+        BigDecimal budgetMax,
         String status,
         Long currentLowestPrice,
-        Instant endDate,
+        LocalDateTime endDate,
         List<BidResponse> bids
 ) {
 }
