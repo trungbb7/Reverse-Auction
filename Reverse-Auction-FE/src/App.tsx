@@ -18,6 +18,7 @@ import SellerSearch from "./components/pages/seller/SellerSearch/SellerSearch";
 import OrderManagement from "./components/pages/seller/SellerOrders/SellerOrders";
 import OrderDetail from "./components/pages/seller/SellerOrders/SellerOrderDetail";
 import SellerAuctionDetail from "./components/pages/seller/SellerAuctionDetail/SellerAuctionDetail.tsx";
+import BuyerOrder from "./components/pages/buyer/BuyerOrder";
 import {
   RequireAuth,
   RequireRole,
@@ -72,6 +73,7 @@ function App() {
           }
         >
           <Route path="profile" element={<Profile />} />
+          <Route path="orderHistory" element={<BuyerOrder />} />
         </Route>
 
         {/* Auth routes */}
