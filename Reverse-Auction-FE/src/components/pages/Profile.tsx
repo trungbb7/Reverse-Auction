@@ -1,13 +1,9 @@
 import {useState, useEffect} from "react";
 import {useNavigate} from "react-router";
-import api from "@/utils/axios";
-
-type User = {
-    name: string;
-    username: string;
-    email: string;
-    phone: string;
-};
+import {userService} from "@/services/userService";
+import {logoutUser} from "../Auth/authSlice";
+import {useAppDispatch} from "@/hooks/redux";
+import type {User} from "@/types/user";
 
 type InputProps = {
     label: string;
@@ -17,10 +13,11 @@ type InputProps = {
 };
 
 const defaultUser: User = {
-    name: "Nguyen A",
-    username: "AAAA",
+    id: 1,
+    fullName: "Nguyen A",
     email: "nguyenA@gmail.com",
     phone: "+84 90 123 4567",
+    role: "ROLE_BUYER",
 };
 
 export default function Profile() {
@@ -29,20 +26,21 @@ export default function Profile() {
     const [user, setUser] = useState<User>(defaultUser);
     const [form, setForm] = useState<User>(defaultUser);
     const [loading, setLoading] = useState(true);
+    const dispatch = useAppDispatch();
 
     useEffect(() => {
-        const fetchUser = async () => {
+        const getUser = async () => {
             try {
-                const res = await api.get("/users/me");
-                setUser(res.data);
-                setForm(res.data);
+                const data = await userService.fetchUser();
+                setUser(data);
+                setForm(data);
             } catch {
                 console.warn("API failed");
             } finally {
                 setLoading(false);
             }
         };
-        fetchUser();
+        getUser();
     }, []);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,13 +52,18 @@ export default function Profile() {
 
     const handleSubmit = async () => {
         try {
-            const res = await api.put("/users/me", form);
-            setUser(res.data);
-            setForm(res.data);
-            console.log("Updated:", res.data);
+            const data = await userService.updateUser(form);
+            setUser(data);
+            setForm(data);
+            console.log("Updated:", data);
         } catch (err) {
             console.error(err);
         }
+    };
+
+    const handleLogout = () => {
+        dispatch(logoutUser());
+        navigate("/auth/login");
     };
 
     if (loading) {
@@ -69,17 +72,13 @@ export default function Profile() {
     return (
         <div className="min-h-screen bg-gray-100 p-10">
             <div className="max-w-6xl mx-auto">
-
-                <h1 className="text-3xl font-bold text-gray-800">
-                    Hồ sơ người dùng
-                </h1>
+                <h1 className="text-3xl font-bold text-gray-800">Hồ sơ người dùng</h1>
 
                 <p className="text-gray-500 mt-2">
                     Quản lý thông tin tài khoản và bảo mật
                 </p>
 
                 <div className="grid grid-cols-3 gap-6 mt-8">
-
                     {/* LEFT */}
                     <div className="bg-white rounded-2xl p-6 shadow-sm flex flex-col items-center">
                         <div className="relative">
@@ -91,9 +90,7 @@ export default function Profile() {
                             <div
                                 className="absolute bottom-0 right-0 w-6 h-6 bg-blue-500 rounded-full border-2 border-white"/>
                         </div>
-                        <h2 className="mt-4 font-semibold text-lg">
-                            {user.name}
-                        </h2>
+                        <h2 className="mt-4 font-semibold text-lg">{user.fullName}</h2>
 
                         <div className="w-full mt-6 text-sm">
                             <p className="text-gray-400 text-xs uppercase">Email</p>
@@ -122,21 +119,19 @@ export default function Profile() {
 
                     {/* RIGHT */}
                     <div className="col-span-2 bg-white rounded-2xl p-6 shadow-sm">
-                        <h2 className="text-lg font-semibold mb-6">
-                            Cập nhật thông tin
-                        </h2>
+                        <h2 className="text-lg font-semibold mb-6">Cập nhật thông tin</h2>
 
                         <div className="grid grid-cols-2 gap-4">
                             <Input
                                 label="Họ và tên"
-                                name="name"
-                                value={form.name}
+                                name="fullName"
+                                value={form.fullName || ""}
                                 onChange={handleChange}
                             />
                             <Input
                                 label="Tên hiển thị"
                                 name="username"
-                                value={form.username}
+                                value={""}
                                 onChange={handleChange}
                             />
                             <Input
@@ -148,7 +143,7 @@ export default function Profile() {
                             <Input
                                 label="Số điện thoại"
                                 name="phone"
-                                value={form.phone}
+                                value={form.phone || ""}
                                 onChange={handleChange}
                             />
                         </div>
@@ -169,23 +164,21 @@ export default function Profile() {
                     <div className="flex justify-between items-center">
                         <div>
                             <p className="font-medium">Phiên làm việc</p>
-                            <p className="text-sm text-gray-400">
-                                Kết thúc phiên hiện tại
-                            </p>
+                            <p className="text-sm text-gray-400">Kết thúc phiên hiện tại</p>
                         </div>
                         <button
-                            onClick={() => console.log("logout")}
-                            className="text-red-500 font-medium"
+                            onClick={handleLogout}
+                            className="text-red-500 font-medium cursor-pointer hover:text-red-600"
                         >
                             Đăng xuất
                         </button>
                     </div>
                 </div>
-
             </div>
         </div>
     );
 }
+
 function Input({label, name, value, onChange}: InputProps) {
     return (
         <div>

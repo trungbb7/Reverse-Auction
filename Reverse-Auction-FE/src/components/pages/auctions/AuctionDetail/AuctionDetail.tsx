@@ -10,99 +10,48 @@ import {
   ChevronRight,
   Image as ImageIcon,
 } from "lucide-react";
-import type { Auction, Bid } from "@/types/auction";
+import { auctionStatusMap, type Auction, type Bid } from "@/types/auction";
 import BidCard from "./BidCard";
 import { formatCurrency, formatTimeAgo, useCountdown } from "@/utils/time";
 import api from "@/utils/axios";
 import toast from "react-hot-toast";
-
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
-// ─── Mock Data ───────────────────────────────────────────────────────────────
-
-const MOCK_AUCTION: Auction & {
-  location?: string;
-  paymentMethod?: string;
-  images?: string[];
-} = {
-  id: 1,
-  title: "RTX 4090 Founders Edition - 24GB GDDR6X",
-  description: "Yêu cầu mới 100%, bảo hành chính hãng, giao hàng tại TP.HCM.",
-  categoryName: "VGA",
-  budgetMax: 215_000_000,
-  quantity: 5,
-  endDate: new Date(
-    Date.now() + 4 * 3600_000 + 22 * 60_000 + 15_000,
-  ).toISOString(),
-  createdAt: new Date(Date.now() - 86400_000).toISOString(),
-  status: "OPEN",
-  lowestBid: 40_500_000,
-  totalBids: 8,
-  location: "Miền Nam",
-  paymentMethod: "Chuyển khoản (Cọc 30%)",
-  images: [
-    "https://images.unsplash.com/photo-1591488320449-011701bb6704?w=400",
-    "https://images.unsplash.com/photo-1587202372775-e229f172b9d7?w=400",
-    "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400",
-    "https://images.unsplash.com/photo-1562976540-1502c2145851?w=400",
-    "https://images.unsplash.com/photo-1555617117-08c4bfc6b010?w=400",
-  ],
-};
-
-const MOCK_BIDS: (Bid & { note?: string; isTopBid?: boolean })[] = [
-  {
-    id: "b1",
-    auctionId: "1",
-    sellerId: "s1",
-    sellerName: "Minh TechStore",
-    bidPrice: 40_500_000,
-    createdAt: new Date(Date.now() - 30_000).toISOString(),
-    isWinner: false,
-    isTopBid: true,
-    note: "Hàng sẵn kho TP.HCM, giao ngay trong sáng mai. Bảo hành mở rộng 12 tháng.",
-  },
-  {
-    id: "b2",
-    auctionId: "1",
-    sellerId: "s2",
-    sellerName: "Giga-Components",
-    bidPrice: 41_200_000,
-    createdAt: new Date(Date.now() - 120_000).toISOString(),
-    isWinner: false,
-    note: "Sẵn số lượng lớn, hỗ trợ VAT đầy đủ cho doanh nghiệp.",
-  },
-  {
-    id: "b3",
-    auctionId: "1",
-    sellerId: "s3",
-    sellerName: "Hanoi Computer Jsc",
-    bidPrice: 41_500_000,
-    createdAt: new Date(Date.now() - 300_000).toISOString(),
-    isWinner: false,
-  },
-  {
-    id: "b4",
-    auctionId: "1",
-    sellerId: "s4",
-    sellerName: "PC Master Ltd",
-    bidPrice: 42_000_000,
-    createdAt: new Date(Date.now() - 480_000).toISOString(),
-    isWinner: false,
-  },
-];
+import { bidService } from "@/services/bidService";
+import { auctionService } from "@/services/auctionService";
+import { useAppSelector } from "@/hooks/redux";
 
 export default function AuctionDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [auction, setAuction] = useState<Auction>();
   const countdown = useCountdown(auction?.endDate ?? new Date().toISOString());
-  const [bids] = useState(MOCK_BIDS);
-  const [selectedImages] = useState(MOCK_AUCTION.images ?? []);
+  const [bids, setBids] = useState<Bid[]>([]);
+  const [lowestBid, setLowestBid] = useState<number>(0);
+  const [lastOffer, setLastOffer] = useState<string | undefined>();
+  const [selectedImages] = useState<string[]>([]);
   const [mainImage, setMainImage] = useState(selectedImages[0] ?? "");
-  const [winner, setWinner] = useState<string | null>(null);
+  const [winner, setWinner] = useState<number | null>(null);
+  const currentUser = useAppSelector((state) => state.auth.user);
 
-  const handleSelectWinner = (bidId: string) => {
-    setWinner(bidId);
+  const handleSelectWinner = async (bidId: number) => {
+    try {
+      await auctionService.selectWinner(id || "", bidId);
+      setWinner(bidId);
+
+      setBids((prev) =>
+        prev.map((b) => ({
+          ...b,
+          isWinner: b.id === bidId,
+        })),
+      );
+      setAuction((prev) =>
+        prev ? { ...prev, status: "COMPLETED" } : undefined,
+      );
+
+      toast.success("Đã chọn người thắng thành công!");
+    } catch (err) {
+      toast.error("Không thể chọn người thắng. Vui lòng thử lại.");
+      console.error(err);
+    }
   };
 
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -117,11 +66,52 @@ export default function AuctionDetail() {
         const auc = data as Auction;
         setAuction(auc);
       } catch (err) {
-        toast.error("Đã xảy ra lỗi khi lấy dữ liệu đấu giá");
+        toast.error("Đã xảy ra lỗi khi lấy dữ liệu phiên đấu giá");
         console.error(err);
       }
     }
     fetchAuction();
+  }, [id]);
+
+  useEffect(() => {
+    async function fetchBidsForAuction() {
+      try {
+        const rsBids = await bidService.getBidsForAuction(id || -1);
+        const min = rsBids.reduce(
+          (prev, cur) => Math.min(prev, cur.bidPrice),
+          Infinity,
+        );
+        const newLastOffer = rsBids.reduce(
+          (prev, cur) => (cur.updatedAt > prev ? cur.updatedAt : prev),
+          "",
+        );
+        let newBids = rsBids.map((bid) => ({
+          ...bid,
+          isTopBid: bid.bidPrice === min,
+        }));
+
+        newBids = newBids.sort((a, b) => a.bidPrice - b.bidPrice);
+        newBids.forEach((b) => {
+          if (b.isWinner) {
+            console.log("Winner");
+            setWinner(b.id);
+          }
+        });
+
+        setBids(newBids);
+        setLowestBid(min);
+        setLastOffer(newLastOffer);
+
+        const winnerBid = newBids.find((b) => b.isWinner);
+        if (winnerBid) {
+          setWinner(winnerBid.id);
+        }
+      } catch (err) {
+        toast.error("Đã xảy ra lỗi khi lấy giữ liệu đấu giá");
+        console.error(err);
+      }
+    }
+    fetchBidsForAuction();
   }, [id]);
 
   return (
@@ -129,9 +119,17 @@ export default function AuctionDetail() {
       {/* Top action bar */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1.5 bg-red-500 text-white text-xs font-black px-3 py-1.5 rounded-full animate-pulse">
+          <span
+            className={`flex items-center gap-1.5 ${
+              auction?.status === "OPEN"
+                ? "bg-red-500 animate-pulse"
+                : auction?.status === "COMPLETED"
+                  ? "bg-green-500"
+                  : "bg-slate-500"
+            } text-white text-xs font-black px-3 py-1.5 rounded-full`}
+          >
             <span className="w-2 h-2 bg-white rounded-full" />
-            TRỰC TIẾP
+            {auction?.status ? auctionStatusMap[auction?.status] : ""}
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -173,7 +171,7 @@ export default function AuctionDetail() {
                 <div className="flex items-center gap-5 text-sm text-slate-500">
                   <span className="flex items-center gap-1.5">
                     <Users className="w-4 h-4" />
-                    {auction?.totalBids || 0} Người bán tham gia
+                    {bids.length || 0} Người bán tham gia
                   </span>
                   <span className="flex items-center gap-1.5">
                     <MapPin className="w-4 h-4" />
@@ -210,14 +208,7 @@ export default function AuctionDetail() {
                 <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
                   Thời hạn giao hàng
                 </p>
-                <p className="text-base font-semibold text-slate-900">
-                  Trước{" "}
-                  {new Date(auction?.endDate || 0).toLocaleDateString("vi-VN", {
-                    day: "2-digit",
-                    month: "2-digit",
-                    year: "numeric",
-                  })}
-                </p>
+                <p className="text-base font-semibold text-slate-900">...</p>
               </div>
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
@@ -280,10 +271,7 @@ export default function AuctionDetail() {
                   Giá thấp nhất hiện tại
                 </p>
                 <p className="text-xl font-black text-slate-900">
-                  {formatCurrency(auction?.lowestBid ?? 0)}
-                  <span className="text-xs font-medium text-slate-400 ml-1">
-                    / sản phẩm
-                  </span>
+                  {formatCurrency(lowestBid)}
                 </p>
               </div>
             </div>
@@ -296,7 +284,7 @@ export default function AuctionDetail() {
                   Lượt đề nghị cuối
                 </p>
                 <p className="text-xl font-black text-slate-900">
-                  {bids[0] ? formatTimeAgo(bids[0].createdAt) : "---"}
+                  {lastOffer ? formatTimeAgo(lastOffer) : "---"}
                 </p>
               </div>
             </div>
@@ -336,13 +324,16 @@ export default function AuctionDetail() {
             </div>
 
             <div className="p-4 space-y-3 max-h-[520px] overflow-y-auto">
-              {bids.map((bid, i) => (
+              {bids.map((bid) => (
                 <BidCard
                   key={bid.id}
                   bid={bid}
-                  rank={i}
                   onSelectWinner={handleSelectWinner}
                   winnerSelected={winner !== null}
+                  canSelectWinner={
+                    currentUser?.id === auction?.buyerId &&
+                    auction?.status === "CLOSED"
+                  }
                 />
               ))}
             </div>

@@ -23,6 +23,8 @@ public class AuctionRequestResponseDTO {
     private String description;
     private Integer quantity;
     private BigDecimal budgetMax;
+    private BigDecimal lowestPrice;
+    private int totalBids;
     private LocalDateTime endDate;
     private AuctionStatus status;
     private LocalDateTime createdAt;

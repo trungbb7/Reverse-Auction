@@ -1,9 +1,18 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { Mail, Lock, User, ArrowRight, Loader2, ShoppingBag, Store } from "lucide-react";
+import {
+  Mail,
+  Lock,
+  User,
+  ArrowRight,
+  Loader2,
+  ShoppingBag,
+  Store,
+} from "lucide-react";
 import api from "@/utils/axios";
 import toast from "react-hot-toast";
 import type { AxiosError } from "axios";
+import type { ErrorResponse } from "@/types/errorResponse";
 
 type RoleOption = "ROLE_BUYER" | "ROLE_SELLER";
 
@@ -33,11 +42,11 @@ export default function Register() {
       await api.post("/auth/register", { fullName, email, password, role });
       toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
       navigate("/auth/login");
-    } catch (error) {
-      const axiosError = error as AxiosError<string>;
-      toast.error(
-        axiosError.response?.data || "Đăng ký thất bại. Vui lòng kiểm tra lại thông tin."
-      );
+    } catch (err) {
+      const axiosError = err as AxiosError;
+      const errRes = axiosError.response?.data as ErrorResponse;
+      toast.error(errRes.message || "Đã xảy ra lỗi");
+      console.error(err);
     } finally {
       setIsLoading(false);
     }
@@ -54,7 +63,9 @@ export default function Register() {
 
       {/* Role Selection */}
       <div className="mb-6">
-        <p className="text-sm font-medium text-slate-700 mb-3">Bạn muốn tham gia với tư cách?</p>
+        <p className="text-sm font-medium text-slate-700 mb-3">
+          Bạn muốn tham gia với tư cách?
+        </p>
         <div className="grid grid-cols-2 gap-3">
           <button
             type="button"
@@ -65,7 +76,12 @@ export default function Register() {
                 : "border-slate-200 bg-white text-slate-500 hover:border-slate-300"
             }`}
           >
-            <ShoppingBag size={22} className={role === "ROLE_BUYER" ? "text-primary-600" : "text-slate-400"} />
+            <ShoppingBag
+              size={22}
+              className={
+                role === "ROLE_BUYER" ? "text-primary-600" : "text-slate-400"
+              }
+            />
             <div className="text-center">
               <p className="font-semibold text-sm">Người mua</p>
               <p className="text-xs opacity-70 mt-0.5">Tìm kiếm & đặt giá</p>
@@ -84,7 +100,12 @@ export default function Register() {
                 : "border-slate-200 bg-white text-slate-500 hover:border-slate-300"
             }`}
           >
-            <Store size={22} className={role === "ROLE_SELLER" ? "text-primary-600" : "text-slate-400"} />
+            <Store
+              size={22}
+              className={
+                role === "ROLE_SELLER" ? "text-primary-600" : "text-slate-400"
+              }
+            />
             <div className="text-center">
               <p className="font-semibold text-sm">Người bán</p>
               <p className="text-xs opacity-70 mt-0.5">Đăng sản phẩm đấu giá</p>
@@ -98,7 +119,9 @@ export default function Register() {
 
       <form className="space-y-4" onSubmit={handleRegister}>
         <div className="space-y-1.5">
-          <label className="text-sm font-medium text-slate-700">Họ và tên</label>
+          <label className="text-sm font-medium text-slate-700">
+            Họ và tên
+          </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
               <User size={18} />
@@ -150,7 +173,9 @@ export default function Register() {
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-sm font-medium text-slate-700">Nhập lại mật khẩu</label>
+          <label className="text-sm font-medium text-slate-700">
+            Nhập lại mật khẩu
+          </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
               <Lock size={18} />
