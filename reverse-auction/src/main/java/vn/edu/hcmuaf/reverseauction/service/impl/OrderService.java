@@ -27,11 +27,11 @@ public class OrderService {
         return new OrderResponse(
                 order.getId(),
                 order.getAuction().getId(),
-                order.getProductName(),
+                order.getProduct().getName(),
                 order.getFinalPrice(),
                 order.getStatus(),
-                order.getBuyerName(),
-                order.getSellerName(),
+                order.getBuyer().getFullName(),
+                order.getSeller().getFullName(),
                 order.getCreatedAt()
         );
     }

@@ -8,14 +8,13 @@ import vn.edu.hcmuaf.reverseauction.dto.AuctionResponse;
 import vn.edu.hcmuaf.reverseauction.dto.BidResponse;
 import vn.edu.hcmuaf.reverseauction.dto.CloseAuctionRequest;
 import vn.edu.hcmuaf.reverseauction.dto.CloseAuctionResponse;
-import vn.edu.hcmuaf.reverseauction.entity.AuctionRequest;
-import vn.edu.hcmuaf.reverseauction.entity.AuctionStatus;
-import vn.edu.hcmuaf.reverseauction.entity.Bid;
-import vn.edu.hcmuaf.reverseauction.entity.Order;
+import vn.edu.hcmuaf.reverseauction.entity.*;
 import vn.edu.hcmuaf.reverseauction.repository.AuctionRepository;
 import vn.edu.hcmuaf.reverseauction.repository.OrderRepository;
 
+import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -52,31 +51,25 @@ public class AuctionService {
         order.setAuction(auction);
         order.setBuyer(auction.getBuyer());
         order.setSeller(selectedBid.getSeller());
-        order.setProductName(selectedBid.getProductDetail());
         order.setFinalPrice(selectedBid.getBidPrice());
-        order.setStatus("CLOSED");
-        order.setBuyerName(auction.getBuyer().getFullName());
-        order.setSellerName(selectedBid.getSellerName());
-        order.setCreatedAt(Instant.now());
+        order.setStatus(OrderStatus.CANCELLED);
+        order.setCreatedAt(LocalDateTime.now());
         order = orderRepository.save(order);
 
-        return new CloseAuctionResponse(order.getId(), order.getStatus(), Instant.now());
+        return new CloseAuctionResponse(order.getId(), order.getStatus(), LocalDateTime.now());
     }
 
     private AuctionResponse toAuctionSummary(AuctionRequest auction) {
-        Long currentLowestPrice = auction.getBids().stream()
+        BigDecimal currentLowestPrice = auction.getBids().stream()
                 .map(Bid::getBidPrice)
-                .min(Long::compareTo)
-                .orElse(null);
+                .min(BigDecimal::compareTo)
+                .orElse(BigDecimal.valueOf(0));
         List<BidResponse> bids = auction.getBids().stream()
                 .map(bid -> new BidResponse(
                         bid.getId(),
                         bid.getSeller() == null ? null : bid.getSeller().getId(),
-                        bid.getSellerName(),
                         bid.getBidPrice(),
-                        bid.getBidMessage(),
-                        bid.getProductDetail()))
-                .toList();
+                        bid.getNote())).toList();
         return new AuctionResponse(
                 auction.getId(),
                 auction.getTitle(),

@@ -45,6 +45,8 @@ public class OrderServiceImpl implements OrderService {
 
                 .productId(o.getProduct() != null ? o.getProduct().getId() : null)
                 .productName(o.getProduct() != null ? o.getProduct().getName() : null)
+                .imageUrl(o.getProduct() != null ? o.getProduct().getImageUrl() : null)
+                .brand(o.getProduct() != null ? o.getProduct().getBrand() : null)
 
                 .buyerId(o.getBuyer().getId())
                 .buyerName(o.getBuyer().getFullName())
@@ -54,6 +56,7 @@ public class OrderServiceImpl implements OrderService {
 
                 .finalPrice(o.getFinalPrice())
                 .shippingFee(o.getShippingFee())
+                .buyerPhone(o.getBuyerPhone())
                 .totalAmount(o.getTotalAmount())
 
                 .status(o.getStatus().name())

@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import vn.edu.hcmuaf.reverseauction.dto.CreatePaymentRequest;
 import vn.edu.hcmuaf.reverseauction.dto.PaymentResponse;
 import vn.edu.hcmuaf.reverseauction.entity.Order;
+import vn.edu.hcmuaf.reverseauction.entity.OrderStatus;
 import vn.edu.hcmuaf.reverseauction.entity.Payment;
 import vn.edu.hcmuaf.reverseauction.repository.OrderRepository;
 import vn.edu.hcmuaf.reverseauction.repository.PaymentRepository;
@@ -34,7 +35,7 @@ public class PaymentService {
         payment.setCreatedAt(Instant.now());
         payment = paymentRepository.save(payment);
 
-        order.setStatus("AWAITING_PAYMENT");
+        order.setStatus(OrderStatus.AWAITING_PAYMENT);
         orderRepository.save(order);
 
         return new PaymentResponse(payment.getId(), payment.getOrder().getId(), payment.getAmount(), payment.getBankCode(), payment.getPaymentUrl(), payment.getCreatedAt());

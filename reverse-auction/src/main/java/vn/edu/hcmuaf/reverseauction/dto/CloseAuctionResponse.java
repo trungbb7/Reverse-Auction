@@ -1,6 +1,9 @@
 package vn.edu.hcmuaf.reverseauction.dto;
 
-import java.time.Instant;
+import vn.edu.hcmuaf.reverseauction.entity.OrderStatus;
 
-public record CloseAuctionResponse(Long orderId, String status, Instant closedAt) {
+import java.time.Instant;
+import java.time.LocalDateTime;
+
+public record CloseAuctionResponse(Long orderId, OrderStatus status, LocalDateTime closedAt) {
 }
