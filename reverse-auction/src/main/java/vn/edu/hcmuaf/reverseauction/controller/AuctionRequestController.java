@@ -1,5 +1,6 @@
 package vn.edu.hcmuaf.reverseauction.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +25,6 @@ import java.math.BigDecimal;
 @RestController
 @RequestMapping("/api/auctions")
 @RequiredArgsConstructor
-@Slf4j
 public class AuctionRequestController {
 
     private final AuctionRequestService auctionRequestService;
@@ -52,7 +52,6 @@ public class AuctionRequestController {
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir) {
 
-        log.debug("size: {}", size);
         Sort sort = sortDir.equalsIgnoreCase(Sort.Direction.ASC.name()) ? Sort.by(sortBy).ascending()
                 : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(page, size, sort);
@@ -99,5 +98,11 @@ public class AuctionRequestController {
 
         AuctionRequestResponseDTO result = auctionRequestService.selectWinner(auctionId, bidId, email);
         return ResponseEntity.ok(result);
+    }
+
+
+    @PatchMapping("/{id}/close")
+    public ResponseEntity<CloseAuctionResponse > closeAuction(@PathVariable Long id, @RequestBody CloseAuctionRequest request) {
+        return ResponseEntity.ok(auctionService.closeAuction(id, request));
     }
 }
