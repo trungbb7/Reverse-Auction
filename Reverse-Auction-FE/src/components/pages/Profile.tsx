@@ -103,7 +103,7 @@ export default function Profile() {
                         </div>
 
                         <button
-                            onClick={() => navigate("")}
+                            onClick={() => navigate("/orderHistory")}
                             className="mt-6 w-full border border-blue-500 text-blue-600 py-2 rounded-full hover:bg-blue-50"
                         >
                             Lịch sử đơn hàng
