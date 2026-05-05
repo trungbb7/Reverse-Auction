@@ -1,6 +1,7 @@
 package vn.edu.hcmuaf.reverseauction.entity;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,6 +19,7 @@ import java.util.List;
 @AllArgsConstructor
 public class ExternalConversation {
 
+    @Id
     private Long id;
 
     private String participantsHash;

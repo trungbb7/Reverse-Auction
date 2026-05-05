@@ -2,6 +2,7 @@ package vn.edu.hcmuaf.reverseauction.dto;
 
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -23,9 +24,9 @@ public class OrderResponseDTO {
     private Long sellerId;
     private String sellerName;
 
-    private Double finalPrice;
-    private Double shippingFee;
-    private Double totalAmount;
+    private BigDecimal finalPrice;
+    private BigDecimal shippingFee;
+    private BigDecimal totalAmount;
 
     private String status;
 

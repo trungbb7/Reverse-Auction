@@ -3,6 +3,7 @@ package vn.edu.hcmuaf.reverseauction.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -43,11 +44,11 @@ public class Order {
     @JoinColumn(name = "bid_id")
     private Bid bid;
 
-    private Double finalPrice;
+    private BigDecimal finalPrice;
 
-    private Double shippingFee;
+    private BigDecimal shippingFee;
 
-    private Double totalAmount;
+    private BigDecimal totalAmount;
 
     private String shippingAddress;
 

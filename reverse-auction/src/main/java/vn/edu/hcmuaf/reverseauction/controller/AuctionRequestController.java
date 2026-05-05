@@ -13,12 +13,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import vn.edu.hcmuaf.reverseauction.dto.AuctionRequestCreateDTO;
-import vn.edu.hcmuaf.reverseauction.dto.AuctionRequestResponseDTO;
-import vn.edu.hcmuaf.reverseauction.dto.PageResponse;
+import vn.edu.hcmuaf.reverseauction.dto.*;
 import vn.edu.hcmuaf.reverseauction.entity.AuctionStatus;
 import vn.edu.hcmuaf.reverseauction.entity.Category;
 import vn.edu.hcmuaf.reverseauction.service.AuctionRequestService;
+import vn.edu.hcmuaf.reverseauction.service.impl.AuctionService;
 
 import java.math.BigDecimal;
 
@@ -28,6 +27,7 @@ import java.math.BigDecimal;
 public class AuctionRequestController {
 
     private final AuctionRequestService auctionRequestService;
+    private final AuctionService auctionService;
 
     @PostMapping
     @PreAuthorize("hasRole('BUYER')")
@@ -102,7 +102,7 @@ public class AuctionRequestController {
 
 
     @PatchMapping("/{id}/close")
-    public ResponseEntity<CloseAuctionResponse > closeAuction(@PathVariable Long id, @RequestBody CloseAuctionRequest request) {
+    public ResponseEntity<CloseAuctionResponse> closeAuction(@PathVariable Long id, @RequestBody CloseAuctionRequest request) {
         return ResponseEntity.ok(auctionService.closeAuction(id, request));
     }
 }

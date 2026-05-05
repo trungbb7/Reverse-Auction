@@ -10,7 +10,7 @@ public record AuctionResponse(
         String description,
         BigDecimal budgetMax,
         String status,
-        Long currentLowestPrice,
+        BigDecimal currentLowestPrice,
         LocalDateTime endDate,
         List<BidResponse> bids
 ) {
