@@ -12,9 +12,6 @@ import java.time.LocalDateTime;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
-@Entity
-@Table(name = "bids")
 public class Bid {
 
     @Id()
