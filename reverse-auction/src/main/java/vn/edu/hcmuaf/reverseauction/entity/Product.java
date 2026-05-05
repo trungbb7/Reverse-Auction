@@ -20,4 +20,7 @@ public class Product {
 
     @Column
     private String imageUrl;
+
+    @Column
+    private String brand;
 }

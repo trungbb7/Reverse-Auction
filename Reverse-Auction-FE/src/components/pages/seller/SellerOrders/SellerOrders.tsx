@@ -64,7 +64,7 @@ function OrderCard({order, onStatusUpdate,}: {
                         <span className="text-xs font-medium bg-gray-100 p-1 rounded-md text-gray-400">{order.id}</span>
                     </div>
                     <p className="text-2xl font-bold text-primary-900">
-                        ${order.totalAmount}
+                        {order.totalAmount}đ
                     </p>
                 </div>
                 <div className="flex justify-between text-sm items-start">
@@ -74,7 +74,7 @@ function OrderCard({order, onStatusUpdate,}: {
                     <div className="text-right">
                         <div className="flex justify-end items-center gap-2">
                             <span className="text-xs ">Phí vận chuyển: </span>
-                            <span className="font-medium">${order.shippingFee.toFixed(2)}</span>
+                            <span className="font-medium">{order.shippingFee.toFixed(2)}đ</span>
                         </div>
                         {order.shippingFee === 0 && (
                             <p className="text-xs text-green-600 font-medium mt-1">Freeship</p>
@@ -173,7 +173,7 @@ export default function OrderManagement() {
         if (filter === "ALL") return true;
         if (filter === "PROCESSING") return o.status === "PROCESSING";
         if (filter === "SHIPPING") return o.status === "SHIPPED";
-        if (filter === "COMPLETED") return o.status === "COMPLETED";
+        if (filter === "COMPLETED") return o.status === "COMPLETED", "DELIVERED";
         if (filter === "CANCEL") return o.status === "CANCELLED";
         return true;
     });

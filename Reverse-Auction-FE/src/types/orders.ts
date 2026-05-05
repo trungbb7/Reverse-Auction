@@ -18,6 +18,7 @@ export interface Order{
     productId: number;
     productName: string;
     imageUrl: string;
+    brand: string;
 
     buyerId: number;
     buyerName: string;
@@ -32,6 +33,7 @@ export interface Order{
     status: OrderStatus
 
     shippingAddress: string;
+    buyerPhone: string;
     createdAt: string;
     updatedAt: string;
 }

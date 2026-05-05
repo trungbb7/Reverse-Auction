@@ -51,10 +51,10 @@ export default function OrderDetail() {
                                 <div className="flex-1 space-y-2">
                                     <div className="flex justify-between text-sm">
                                         <span className="text-blue-600 font-medium">{order.status}</span>
-                                        <span className="text-gray-500">{order.id}</span>
+                                        <span className="text-gray-500">#{order.id}</span>
                                     </div>
-                                    <h2 className="font-semibold text-lg">{order.productName}</h2>
-                                    <p className="text-gray-500 text-sm">NVIDIA</p>
+                                    <h2 className="font-semibold text-gray-500 text-lg">{order.productName}</h2>
+                                    <p className="text-gray-500 text-sm">Thương hiệu: {order.brand}</p>
                                 </div>
                             </div>
                             <div className="bg-gray-100 p-5 rounded-xl shadow space-y-4">
@@ -111,12 +111,12 @@ export default function OrderDetail() {
                                     <img src="https://i.pravatar.cc/40" className="w-10 h-10 rounded-full"/>
                                     <div>
                                         <p className="font-medium">{order.buyerName}</p>
-                                        <p className="text-sm text-gray-500">ID: KH001</p>
+                                        <p className="text-sm text-gray-500">ID: {order.buyerId}</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Phone size={16} className="text-gray-500"/>
-                                    <span>0909 123 456</span>
+                                    <span>{order.buyerPhone}</span>
                                 </div>
                                 <div className="flex items-start gap-2">
                                     <MapPin size={16} className="text-gray-500 mt-0.5"/>

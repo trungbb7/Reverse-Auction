@@ -50,6 +50,7 @@ public class Order {
     private Double totalAmount;
 
     private String shippingAddress;
+    private String buyerPhone;
 
     @Enumerated(EnumType.STRING)
     private OrderStatus status;

@@ -17,6 +17,7 @@ public class OrderResponseDTO {
     private Long productId;
     private String productName;
     private String imageUrl;
+    private String brand;
 
     private Long buyerId;
     private String buyerName;
@@ -34,6 +35,7 @@ public class OrderResponseDTO {
     private Long bidId;
 
     private String shippingAddress;
+    private String buyerPhone;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
