@@ -51,6 +51,7 @@ public class Order {
     private BigDecimal totalAmount;
 
     private String shippingAddress;
+    private String buyerPhone;
 
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
