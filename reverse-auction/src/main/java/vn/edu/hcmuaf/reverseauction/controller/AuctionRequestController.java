@@ -1,5 +1,6 @@
 package vn.edu.hcmuaf.reverseauction.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -16,6 +17,7 @@ import vn.edu.hcmuaf.reverseauction.service.impl.AuctionService;
 
 @RestController
 @RequestMapping("/api/auctions")
+@Tag(name = "Auction")
 @RequiredArgsConstructor
 public class AuctionRequestController {
 
