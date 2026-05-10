@@ -19,6 +19,7 @@ import OrderManagement from "./components/pages/seller/SellerOrders/SellerOrders
 import OrderDetail from "./components/pages/seller/SellerOrders/SellerOrderDetail";
 import SellerAuctionDetail from "./components/pages/seller/SellerAuctionDetail/SellerAuctionDetail.tsx";
 import BuyerOrder from "./components/pages/buyer/BuyerOrder";
+import BuyerReview from "./components/pages/buyer/BuyerReview";
 import {
   RequireAuth,
   RequireRole,
@@ -74,6 +75,7 @@ function App() {
         >
           <Route path="profile" element={<Profile />} />
           <Route path="orderHistory" element={<BuyerOrder />} />
+          <Route path="review/:id" element={<BuyerReview />} />
         </Route>
 
         {/* Auth routes */}
