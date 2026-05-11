@@ -21,6 +21,7 @@ import SellerAuctionDetail from "./components/pages/seller/SellerAuctionDetail/S
 import ExternalChatPage from "./components/pages/chat/ExternalChatPage";
 import GlobalChatWidget from "./components/chat/GlobalChatWidget";
 import BuyerOrder from "./components/pages/buyer/BuyerOrder";
+import BuyerReview from "./components/pages/buyer/BuyerReview";
 import {
   RequireAuth,
   RequireRole,
@@ -76,6 +77,7 @@ function App() {
         >
           <Route path="profile" element={<Profile />} />
           <Route path="orderHistory" element={<BuyerOrder />} />
+          <Route path="review/order/:id" element={<BuyerReview />} />
         </Route>
 
         {/* Auth routes */}

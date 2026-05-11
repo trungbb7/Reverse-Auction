@@ -1,9 +1,9 @@
 import {useParams} from "react-router";
 import {useState, useEffect } from "react";
 import {useNavigate} from "react-router";
-import {ArrowLeft, Phone, MapPin, AlertCircle} from "lucide-react";
+import {ArrowLeft, Phone, MapPin} from "lucide-react";
 import { orderService } from "@/services/orderService";
-import { type Order, ORDER_STEPS, ORDER_STATUS_INDEX, } from "@/types/orders";
+import { type Order, ORDER_STEPS, ORDER_STATUS_INDEX, orderStatusContent} from "@/types/orders";
 
 export default function OrderDetail() {
     const { id } = useParams();
@@ -28,6 +28,8 @@ export default function OrderDetail() {
     const status = order.status;
     const steps = ORDER_STEPS;
     const currentIndex = ORDER_STATUS_INDEX[status];
+    const statusInfo = orderStatusContent[order.status];
+    const StatusIcon = statusInfo.icon;
 
     return (
         <div className="min-h-screen bg-gray-100 p-5">
@@ -85,13 +87,14 @@ export default function OrderDetail() {
                                 </div>
                                 <div className="bg-white p-4 rounded-xl shadow space-y-2">
                                     <div className="flex items-start gap-2">
-                                        <AlertCircle size={18} className="text-blue-600 mt-0.5" />
+                                        <StatusIcon size={18} className={`${statusInfo.color} mt-0.5`}
+                                        />
                                         <div className="flex-1 space-y-1">
                                             <div className="flex justify-between">
-                                                <p className="text-sm font-medium text-gray-800">Đang vận chuyển</p>
+                                                <p className="text-sm font-medium text-gray-800">{statusInfo.title}</p>
                                                 <span className="text-xs text-gray-400">Cập nhật: {new Date(order.updatedAt).toLocaleString("vi-VN")}</span>
                                             </div>
-                                            <p className="text-sm text-gray-600">Đơn hàng đang được giao đến khách hàng</p>
+                                            <p className="text-sm text-gray-600">{statusInfo.description}</p>
                                         </div>
                                     </div>
                                 </div>

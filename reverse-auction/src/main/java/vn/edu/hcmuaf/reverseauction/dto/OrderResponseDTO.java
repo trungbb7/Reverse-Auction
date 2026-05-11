@@ -31,6 +31,7 @@ public class OrderResponseDTO {
     private BigDecimal totalAmount;
 
     private String status;
+    private boolean alreadyReviewed;
 
     private Long auctionId;
     private Long bidId;
