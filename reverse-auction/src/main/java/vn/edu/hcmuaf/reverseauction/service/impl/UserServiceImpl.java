@@ -8,6 +8,9 @@ import vn.edu.hcmuaf.reverseauction.entity.User;
 import vn.edu.hcmuaf.reverseauction.repository.UserRepository;
 import vn.edu.hcmuaf.reverseauction.service.UserService;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -39,13 +42,29 @@ public class UserServiceImpl implements UserService {
         return mapToDTO(user);
     }
 
+    @Override
+    public List<UserDTO> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public void toggleUserBlock(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setEnabled(!user.isEnabled());
+        userRepository.save(user);
+    }
+
     private UserDTO mapToDTO(User user) {
         return UserDTO.builder()
+                .id(user.getId())
                 .fullName(user.getFullName())
                 .email(user.getEmail())
                 .phone(user.getPhone())
-                .id(user.getId())
                 .role(user.getRole())
+                .enabled(user.isEnabled())
                 .build();
     }
 

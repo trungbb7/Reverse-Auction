@@ -28,6 +28,8 @@ import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "./hooks/redux.ts";
 import { fetchCurrentUser } from "./components/Auth/authSlice.ts";
 
+import UserManagement from "./components/pages/admin/UserManagement";
+
 function App() {
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
@@ -105,6 +107,7 @@ function App() {
           }
         >
           <Route index element={<div>Admin Dashboard (To be built)</div>} />
+          <Route path="users" element={<UserManagement />} />
         </Route>
 
         {/* Seller routes */}
