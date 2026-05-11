@@ -45,6 +45,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserDTO> getAllUsers() {
         return userRepository.findAll().stream()
+                .filter(user -> !vn.edu.hcmuaf.reverseauction.entity.Role.ROLE_ADMIN.equals(user.getRole()))
                 .map(this::mapToDTO)
                 .collect(Collectors.toList());
     }
