@@ -18,6 +18,8 @@ import SellerSearch from "./components/pages/seller/SellerSearch/SellerSearch";
 import OrderManagement from "./components/pages/seller/SellerOrders/SellerOrders";
 import OrderDetail from "./components/pages/seller/SellerOrders/SellerOrderDetail";
 import SellerAuctionDetail from "./components/pages/seller/SellerAuctionDetail/SellerAuctionDetail.tsx";
+import ExternalChatPage from "./components/pages/chat/ExternalChatPage";
+import GlobalChatWidget from "./components/chat/GlobalChatWidget";
 import BuyerOrder from "./components/pages/buyer/BuyerOrder";
 import {
   RequireAuth,
@@ -118,11 +120,13 @@ function App() {
         >
           <Route index element={<div>Seller Dashboard (To be built)</div>} />
           <Route path="search" element={<SellerSearch />} />
+          <Route path="chat" element={<ExternalChatPage />} />
           <Route path="auctions/:id" element={<SellerAuctionDetail />} />
           <Route path="orders" element={<OrderManagement />} />
           <Route path="orders-detail/:id" element={<OrderDetail />} />
         </Route>
       </Routes>
+      <GlobalChatWidget />
     </BrowserRouter>
   );
 }
