@@ -2,5 +2,14 @@ package vn.edu.hcmuaf.reverseauction.dto.response;
 
 import java.time.Instant;
 
-public record ExternalMessageResponse(Long msgId, Long receiverId, String content, Instant time) {
+public record ExternalMessageResponse(
+        Long msgId,
+        Long conversationId,
+        Long senderId,
+        String senderName,
+        Long receiverId,
+        String receiverName,
+        String content,
+        Instant time
+) {
 }

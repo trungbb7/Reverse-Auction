@@ -5,6 +5,8 @@ import org.springframework.web.bind.annotation.*;
 import vn.edu.hcmuaf.reverseauction.dto.UserDTO;
 import vn.edu.hcmuaf.reverseauction.service.impl.UserServiceImpl;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
@@ -20,5 +22,10 @@ public class UsersController {
     @PutMapping("/me")
     public UserDTO updateMyProfile(@RequestBody UserDTO request) {
         return userService.updateCurrentUser(request);
+    }
+
+    @GetMapping("/chat-contacts")
+    public List<UserDTO> listChatContacts() {
+        return userService.listChatUsers();
     }
 }
