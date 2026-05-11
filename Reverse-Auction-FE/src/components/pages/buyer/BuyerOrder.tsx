@@ -74,11 +74,16 @@ function OrderCard({order}: { order: Order }) {
             {order.totalAmount.toLocaleString()}đ
           </span>
                 </div>
-                {(order.status === 'DELIVERED' || order.status === 'COMPLETED') && (
-                    <button onClick={() => navigate(`/review/${order.id}`)}
+                {(order.status === 'DELIVERED' || order.status === 'COMPLETED') && !order.alreadyReviewed && (
+                    <button onClick={() => navigate(`/review/order/${order.id}`)}
                             className="w-full mt-3 py-2 text-sm text-primary-900 font-semibold rounded-lg bg-gray-100 hover:bg-gray-200">
                         Đánh giá
                     </button>
+                )}
+                {order.alreadyReviewed && (
+                    <div className="w-full mt-3 py-2 text-sm text-green-600 font-semibold text-center bg-green-50 rounded-lg">
+                        Đã đánh giá
+                    </div>
                 )}
                 <button className="w-full mt-2 py-2 text-sm text-primary-900 font-semibold rounded-lg bg-gray-100 hover:bg-gray-200">
                     Chi tiết

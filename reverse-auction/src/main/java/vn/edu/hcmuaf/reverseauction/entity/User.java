@@ -31,6 +31,12 @@ public class User implements UserDetails {
     @Column(length = 20)
     private String phone;
 
+    @Column(nullable = false)
+    private Double rating = 0.0;
+
+    @Column(nullable = false)
+    private Integer totalReviews = 0;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;

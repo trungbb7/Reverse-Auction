@@ -1,24 +1,46 @@
-import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router";
 import { Star } from "lucide-react";
+import {reviewService} from "@/services/reviewService";
+import type {ReviewContextResponse} from "@/types/review.ts";
+
 export default function BuyerReview() {
     const navigate = useNavigate();
+    const {id} = useParams();
     const [rating, setRating] = useState(0);
     const [comment, setComment] = useState("");
+    const [order, setOrder] = useState<ReviewContextResponse | null>(null);
 
-    const order = {
-        sellerName: "Tech World VN",
-        productName: "Gaming PC Build #HB-882190",
-        rating: 4.8,
-        totalReviews: 1240,
+    useEffect(() => {
+        console.log(id);
+        if (!id) return;
+
+        const fetchData = async () => {
+            try {
+                const data = await reviewService.getReviewContext(id);
+                setOrder(data);
+                console.log(data);
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        fetchData();
+    }, [id]);
+    const handleSubmit = async () => {
+        if (!id) return;
+        try {
+            await reviewService.submitReview({
+                orderId: Number(id),
+                rating,
+                comment,
+            });
+            navigate(-1);
+        } catch (err) {
+            console.error(err);
+        }
     };
-
-    const handleSubmit = () => {
-        const payload = {rating, comment,};
-        console.log("Review submit:", payload);
-        navigate(-1);
-    };
-
+    if (!order) return <div>Loading...</div>;
     return (
         <div className="max-w-3xl mx-auto p-6">
             <div className="text-center mb-8">
@@ -32,9 +54,9 @@ export default function BuyerReview() {
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-gray-200 rounded-full" />
                     <div>
-                        <h2 className="font-semibold">{order.sellerName}</h2>
+                        <h2 className="font-semibold">{order.seller.name}</h2>
                         <p className="text-sm text-gray-500">
-                            ⭐ {order.rating} ({order.totalReviews} đánh giá)
+                            ⭐ {order.seller.rating} ({order.seller.totalReviews} đánh giá)
                         </p>
                     </div>
                 </div>

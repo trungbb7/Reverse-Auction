@@ -6,6 +6,7 @@ import vn.edu.hcmuaf.reverseauction.dto.OrderResponseDTO;
 import vn.edu.hcmuaf.reverseauction.entity.Order;
 import vn.edu.hcmuaf.reverseauction.entity.OrderStatus;
 import vn.edu.hcmuaf.reverseauction.repository.OrderRepository;
+import vn.edu.hcmuaf.reverseauction.repository.ReviewRepository;
 import vn.edu.hcmuaf.reverseauction.service.OrderService;
 
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
+    private final ReviewRepository reviewRepository;
 
     @Override
     public List<OrderResponseDTO> getOrdersByUserId(Long uid) {
@@ -60,6 +62,7 @@ public class OrderServiceImpl implements OrderService {
                 .totalAmount(o.getTotalAmount())
 
                 .status(o.getStatus().name())
+                .alreadyReviewed(reviewRepository.existsByOrderId(o.getId()))
 
                 .auctionId(o.getAuction() != null ? o.getAuction().getId() : null)
                 .bidId(o.getBid() != null ? o.getBid().getId() : null)

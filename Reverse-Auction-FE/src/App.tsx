@@ -75,7 +75,7 @@ function App() {
         >
           <Route path="profile" element={<Profile />} />
           <Route path="orderHistory" element={<BuyerOrder />} />
-          <Route path="review/:id" element={<BuyerReview />} />
+          <Route path="review/order/:id" element={<BuyerReview />} />
         </Route>
 
         {/* Auth routes */}
