@@ -1,4 +1,5 @@
 import {useEffect, useState} from "react";
+import {useNavigate} from "react-router";
 import {type Order, type OrderStatus, ORDER_STATUS_LABEL} from "@/types/orders";
 import {orderService} from "@/services/orderService.ts";
 
@@ -50,20 +51,41 @@ function Tabs({active, setActive,}: { active: string; setActive: (v: string) => 
 }
 
 function OrderCard({order}: { order: Order }) {
+    const navigate = useNavigate();
     return (
         <div className="bg-white rounded-2xl shadow-sm p-4 hover:shadow-md transition">
             <img src={order.imageUrl} className="w-full h-40 object-cover rounded-xl"/>
             <div className="mt-3 space-y-1">
                 <h2 className="font-semibold text-sm">{order.productName}</h2>
                 <p className="text-xs text-gray-400">ID: #{order.code}</p>
-                <span className={`inline-block px-2 py-1 text-xs rounded-full ${statusColor[order.status]}`}>{statusLabel[order.status]}</span>
+                <div className="inline-block px-2 py-1 text-xs rounded-full bg-gray-200">{order.type === "NORMAL" ? 'Đặt hàng' : 'Đấu giá'}</div>
+                <div className="flex justify-between text-sm mt-2">
+                    <span className="text-xs text-gray-400">Ngày đặt</span>
+                    <span className="text-xs text-gray-500">{new Date(order.createdAt).toLocaleString("vi-VN")}</span>
+                </div>
+                <div className="flex justify-between text-sm mt-2">
+                    <span className="text-xs text-gray-400">Trạng thái</span>
+                    <span className={`inline-block px-2 py-1 text-xs rounded-full ${statusColor[order.status]}`}>{statusLabel[order.status]}</span>
+                </div>
+
                 <div className="flex justify-between text-sm mt-2">
                     <span className="text-gray-500">Tổng cộng</span>
                     <span className="font-semibold">
             {order.totalAmount.toLocaleString()}đ
           </span>
                 </div>
-                <button className="w-full mt-3 py-2 text-sm rounded-lg bg-gray-100 hover:bg-gray-200">
+                {(order.status === 'DELIVERED' || order.status === 'COMPLETED') && !order.alreadyReviewed && (
+                    <button onClick={() => navigate(`/review/order/${order.id}`)}
+                            className="w-full mt-3 py-2 text-sm text-primary-900 font-semibold rounded-lg bg-gray-100 hover:bg-gray-200">
+                        Đánh giá
+                    </button>
+                )}
+                {order.alreadyReviewed && (
+                    <div className="w-full mt-3 py-2 text-sm text-green-600 font-semibold text-center bg-green-50 rounded-lg">
+                        Đã đánh giá
+                    </div>
+                )}
+                <button className="w-full mt-2 py-2 text-sm text-primary-900 font-semibold rounded-lg bg-gray-100 hover:bg-gray-200">
                     Chi tiết
                 </button>
             </div>

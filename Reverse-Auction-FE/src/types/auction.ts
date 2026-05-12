@@ -1,4 +1,4 @@
-export type AuctionStatus = "OPEN" | "CLOSED" | "COMPLETED";
+export type AuctionStatus = "OPEN" | "CLOSED" | "COMPLETED" | "CANCELLED";
 
 export const auctionStatusMap = {
   OPEN: "Đang diễn ra",

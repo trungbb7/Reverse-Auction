@@ -8,4 +8,5 @@ public interface UserService {
     UserDTO updateCurrentUser(UserDTO request);
     List<UserDTO> getAllUsers();
     void toggleUserBlock(Long id);
+    List<UserDTO> listChatUsers();
 }

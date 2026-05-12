@@ -1,3 +1,4 @@
+import {CheckCircle2, Clock3, Truck, PackageCheck, XCircle, ShieldAlert, Wallet} from "lucide-react";
 export const ORDER_STATUS_LIST = [
     "AWAITING_PAYMENT",
     "PAID",
@@ -29,6 +30,7 @@ export interface Order{
     finalPrice: number;
     shippingFee: number;
     totalAmount: number;
+    alreadyReviewed: boolean;
 
     status: OrderStatus
 
@@ -74,4 +76,67 @@ export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
     COMPLETED: "Hoàn tất",
     DISPUTED: "Tranh chấp",
     CANCELLED: "Đã huỷ",
+};
+export const orderStatusContent: Record<OrderStatus, {
+    title: string;
+    description: string;
+    icon: React.ElementType;
+    color: string;
+}> = {
+
+    AWAITING_PAYMENT: {
+        title: "Chờ thanh toán",
+        description: "Đơn hàng đang chờ người mua thanh toán",
+        icon: Wallet,
+        color: "text-yellow-500"
+    },
+
+    PAID: {
+        title: "Đã thanh toán",
+        description: "Người mua đã thanh toán thành công",
+        icon: CheckCircle2,
+        color: "text-blue-500"
+    },
+
+    PROCESSING: {
+        title: "Đang xử lý",
+        description: "Người bán đang chuẩn bị đơn hàng",
+        icon: Clock3,
+        color: "text-indigo-500"
+    },
+
+    SHIPPED: {
+        title: "Đang vận chuyển",
+        description: "Đơn hàng đang được giao đến khách hàng",
+        icon: Truck,
+        color: "text-blue-600"
+    },
+
+    DELIVERED: {
+        title: "Đã giao hàng",
+        description: "Khách hàng đã nhận được đơn hàng",
+        icon: PackageCheck,
+        color: "text-green-600"
+    },
+
+    COMPLETED: {
+        title: "Hoàn thành",
+        description: "Đơn hàng đã hoàn tất thành công",
+        icon: CheckCircle2,
+        color: "text-emerald-600"
+    },
+
+    DISPUTED: {
+        title: "Đang tranh chấp",
+        description: "Đơn hàng đang được xử lý tranh chấp",
+        icon: ShieldAlert,
+        color: "text-red-500"
+    },
+
+    CANCELLED: {
+        title: "Đã hủy",
+        description: "Đơn hàng đã bị hủy",
+        icon: XCircle,
+        color: "text-gray-500"
+    }
 };

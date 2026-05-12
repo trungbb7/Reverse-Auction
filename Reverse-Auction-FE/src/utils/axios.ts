@@ -51,6 +51,11 @@ api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as InternalAxiosRequestConfig;
+    const requestUrl = originalRequest.url || "";
+
+    if (requestUrl.includes("/auth/refresh-token")) {
+      return Promise.reject(error);
+    }
 
     if (error.response?.status == 401 && !originalRequest._retry) {
       if (isRefreshing) {
@@ -58,7 +63,7 @@ api.interceptors.response.use(
           failedQueue.push({ resolve, reject });
         })
           .then((token) => {
-            originalRequest.headers.Authorization = `Beaer ${token}`;
+            originalRequest.headers.Authorization = `Bearer ${token}`;
             return api(originalRequest);
           })
           .catch((err) => Promise.reject(err));
@@ -69,6 +74,9 @@ api.interceptors.response.use(
 
       try {
         const refreshToken = localStorage.getItem("refreshToken");
+        if (!refreshToken) {
+          throw new Error("Missing refresh token");
+        }
         const { data } = await axios.post(
           "http://localhost:8080/api/auth/refresh-token",
           { refreshToken },
@@ -77,7 +85,7 @@ api.interceptors.response.use(
 
         localStorage.setItem("accessToken", newAccessToken);
 
-        originalRequest.headers.Authorization = `Beaer ${newAccessToken}`;
+        originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
 
         handleQueue(null, newAccessToken);
 

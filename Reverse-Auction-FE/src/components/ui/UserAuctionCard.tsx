@@ -14,6 +14,9 @@ const formatCurrency = (amount: number) => {
 };
 
 export default function UserAuctionCard({ auction }: UserAuctionCardProps) {
+  const statusLabel =
+    auctionStatusMap[auction.status ?? "OPEN"] ?? auction.status ?? "Không xác định";
+
   return (
     <div
       key={auction.id}
@@ -32,7 +35,7 @@ export default function UserAuctionCard({ auction }: UserAuctionCardProps) {
           </div>
         ) : (
           <div className="flex items-center gap-1.5 px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-bold tracking-wide">
-            {auctionStatusMap[auction.status]}
+            {statusLabel}
           </div>
         )}
       </div>

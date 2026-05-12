@@ -18,7 +18,10 @@ import SellerSearch from "./components/pages/seller/SellerSearch/SellerSearch";
 import OrderManagement from "./components/pages/seller/SellerOrders/SellerOrders";
 import OrderDetail from "./components/pages/seller/SellerOrders/SellerOrderDetail";
 import SellerAuctionDetail from "./components/pages/seller/SellerAuctionDetail/SellerAuctionDetail.tsx";
+import ExternalChatPage from "./components/pages/chat/ExternalChatPage";
+import GlobalChatWidget from "./components/chat/GlobalChatWidget";
 import BuyerOrder from "./components/pages/buyer/BuyerOrder";
+import BuyerReview from "./components/pages/buyer/BuyerReview";
 import {
   RequireAuth,
   RequireRole,
@@ -76,6 +79,7 @@ function App() {
         >
           <Route path="profile" element={<Profile />} />
           <Route path="orderHistory" element={<BuyerOrder />} />
+          <Route path="review/order/:id" element={<BuyerReview />} />
         </Route>
 
         {/* Auth routes */}
@@ -121,11 +125,13 @@ function App() {
         >
           <Route index element={<div>Seller Dashboard (To be built)</div>} />
           <Route path="search" element={<SellerSearch />} />
+          <Route path="chat" element={<ExternalChatPage />} />
           <Route path="auctions/:id" element={<SellerAuctionDetail />} />
           <Route path="orders" element={<OrderManagement />} />
           <Route path="orders-detail/:id" element={<OrderDetail />} />
         </Route>
       </Routes>
+      <GlobalChatWidget />
     </BrowserRouter>
   );
 }

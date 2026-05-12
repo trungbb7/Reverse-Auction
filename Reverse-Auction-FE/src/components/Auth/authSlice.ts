@@ -26,7 +26,8 @@ export const fetchCurrentUser = createAsyncThunk(
       const response = await userService.fetchUser();
       return response;
     } catch (error) {
-      return rejectWithValue(error.message);
+      const message = error instanceof Error ? error.message : "Failed to load user";
+      return rejectWithValue(message);
     }
   },
 );

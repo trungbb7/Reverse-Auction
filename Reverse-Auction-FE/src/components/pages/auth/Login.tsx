@@ -29,7 +29,7 @@ export default function Login() {
       dispatch(
         loginUser({
           user: {
-            id: decoded.id,
+            id: Number(decoded.id),
             email: decoded.sub || email,
             role: decoded.role || "ROLE_BUYER",
             fullName: decoded.fullName || email.split("@")[0],
@@ -75,6 +75,7 @@ export default function Login() {
             </div>
             <input
               type="email"
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors outline-none text-slate-800"
@@ -96,6 +97,7 @@ export default function Login() {
             </div>
             <input
               type="password"
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors outline-none text-slate-800"
