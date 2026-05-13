@@ -13,7 +13,6 @@ import {
   Gavel,
   ExternalLink,
   Loader2,
-  AlertCircle,
 } from "lucide-react";
 import { type Order, ORDER_STATUS_LABEL, ORDER_STEPS, ORDER_STATUS_INDEX } from "@/types/orders";
 import { orderService } from "@/services/orderService";
@@ -38,42 +37,22 @@ const STEP_ICONS = [CreditCard, CheckCircle2, Clock, Truck, Package];
 /* ─── Payment Panel ─────────────────────────────────────────── */
 function PaymentPanel({
   order,
-  onPaid,
 }: {
   order: Order;
-  onPaid: () => void;
 }) {
   const [selectedBank, setSelectedBank] = useState("NCB");
   const [loading, setLoading] = useState(false);
-  const [awaitingConfirm, setAwaitingConfirm] = useState(false);
 
   const handlePay = async () => {
     setLoading(true);
     try {
       const amount = Math.round(Number(order.totalAmount)); // VNPay expects integer VND
       const result = await orderService.createPayment(order.id, amount, selectedBank);
-      // Open VNPay sandbox in new tab
-      window.open(result.paymentUrl, "_blank", "noopener,noreferrer");
-      setAwaitingConfirm(true);
-      toast.success("Trang thanh toán VNPay đã mở. Hoàn tất và quay lại xác nhận!");
+      // Redirect to VNPay — VNPay will redirect back to /payment/result?orderId=X
+      window.location.href = result.paymentUrl;
     } catch (err) {
       console.error(err);
       toast.error("Không thể tạo phiên thanh toán. Vui lòng thử lại!");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleConfirm = async () => {
-    setLoading(true);
-    try {
-      await orderService.confirmPayment(order.id, "success");
-      toast.success("Xác nhận thanh toán thành công! Đơn hàng đã được cập nhật.");
-      onPaid();
-    } catch (err) {
-      console.error(err);
-      toast.error("Xác nhận thất bại. Vui lòng liên hệ hỗ trợ.");
-    } finally {
       setLoading(false);
     }
   };
@@ -94,86 +73,56 @@ function PaymentPanel({
       </div>
 
       {/* Bank selection */}
-      {!awaitingConfirm && (
-        <>
-          <div>
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
-              Chọn ngân hàng
-            </p>
-            <div className="grid grid-cols-3 gap-2">
-              {BANKS.map((bank) => (
-                <button
-                  key={bank.code}
-                  onClick={() => setSelectedBank(bank.code)}
-                  className={`relative p-3 rounded-xl border-2 transition-all text-center ${
-                    selectedBank === bank.code
-                      ? "border-[#375F97] bg-blue-50"
-                      : "border-slate-200 hover:border-slate-300 bg-white"
-                  }`}
-                >
-                  <div
-                    className={`w-8 h-5 rounded bg-gradient-to-r ${bank.color} mx-auto mb-1.5`}
-                  />
-                  <p className="text-[10px] font-bold text-slate-700">{bank.name}</p>
-                  {selectedBank === bank.code && (
-                    <div className="absolute top-1.5 right-1.5 w-3 h-3 rounded-full bg-[#375F97] flex items-center justify-center">
-                      <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                    </div>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <button
-            onClick={handlePay}
-            disabled={loading}
-            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#375F97] to-blue-500 text-white font-black text-sm flex items-center justify-center gap-2 hover:from-[#2d4f80] hover:to-blue-600 transition-all disabled:opacity-60"
-          >
-            {loading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <ExternalLink className="w-4 h-4" />
-            )}
-            Thanh toán qua VNPay ({selectedBank})
-          </button>
-        </>
-      )}
-
-      {/* After opening VNPay — waiting for confirmation */}
-      {awaitingConfirm && (
-        <div className="space-y-3">
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-            <div>
-              <p className="text-sm font-bold text-amber-800">Đang chờ xác nhận</p>
-              <p className="text-xs text-amber-600 mt-0.5">
-                Trang VNPay đã mở. Sau khi hoàn tất thanh toán, nhấn nút bên dưới để xác nhận.
-              </p>
-            </div>
-          </div>
-          <div className="flex gap-2">
+      <div>
+        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+          Chọn ngân hàng
+        </p>
+        <div className="grid grid-cols-3 gap-2">
+          {BANKS.map((bank) => (
             <button
-              onClick={() => setAwaitingConfirm(false)}
-              className="flex-1 py-3 rounded-xl border border-slate-200 text-slate-600 font-semibold text-sm hover:bg-slate-50 transition-colors"
+              key={bank.code}
+              onClick={() => setSelectedBank(bank.code)}
+              className={`relative p-3 rounded-xl border-2 transition-all text-center ${
+                selectedBank === bank.code
+                  ? "border-[#375F97] bg-blue-50"
+                  : "border-slate-200 hover:border-slate-300 bg-white"
+              }`}
             >
-              Thử lại
-            </button>
-            <button
-              onClick={handleConfirm}
-              disabled={loading}
-              className="flex-1 py-3 rounded-xl bg-emerald-500 text-white font-black text-sm flex items-center justify-center gap-2 hover:bg-emerald-600 transition-colors disabled:opacity-60"
-            >
-              {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <CheckCircle2 className="w-4 h-4" />
+              <div
+                className={`w-8 h-5 rounded bg-gradient-to-r ${bank.color} mx-auto mb-1.5`}
+              />
+              <p className="text-[10px] font-bold text-slate-700">{bank.name}</p>
+              {selectedBank === bank.code && (
+                <div className="absolute top-1.5 right-1.5 w-3 h-3 rounded-full bg-[#375F97] flex items-center justify-center">
+                  <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                </div>
               )}
-              Tôi đã thanh toán xong
             </button>
-          </div>
+          ))}
         </div>
-      )}
+      </div>
+
+      <button
+        onClick={handlePay}
+        disabled={loading}
+        className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#375F97] to-blue-500 text-white font-black text-sm flex items-center justify-center gap-2 hover:from-[#2d4f80] hover:to-blue-600 transition-all disabled:opacity-60"
+      >
+        {loading ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Đang chuyển đến VNPay...
+          </>
+        ) : (
+          <>
+            <ExternalLink className="w-4 h-4" />
+            Thanh toán qua VNPay ({selectedBank})
+          </>
+        )}
+      </button>
+
+      <p className="text-center text-xs text-slate-400">
+        Bạn sẽ được chuyển đến trang thanh toán VNPay an toàn
+      </p>
     </div>
   );
 }
@@ -246,10 +195,6 @@ export default function BuyerOrderDetail() {
     })();
   }, [id]);
 
-  const handlePaid = () => {
-    // Optimistically update the local status
-    setOrder((prev) => (prev ? { ...prev, status: "PAID" } : prev));
-  };
 
   if (loading) {
     return (
@@ -406,7 +351,7 @@ export default function BuyerOrderDetail() {
 
             {/* Payment panel — only shown when AWAITING_PAYMENT */}
             {order.status === "AWAITING_PAYMENT" && (
-              <PaymentPanel order={order} onPaid={handlePaid} />
+              <PaymentPanel order={order} />
             )}
 
             {/* Status info for non-payment states */}

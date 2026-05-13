@@ -23,6 +23,7 @@ import GlobalChatWidget from "./components/chat/GlobalChatWidget";
 import BuyerOrder from "./components/pages/buyer/BuyerOrder";
 import BuyerOrderDetail from "./components/pages/buyer/BuyerOrderDetail";
 import BuyerReview from "./components/pages/buyer/BuyerReview";
+import PaymentResult from "./components/pages/PaymentResult";
 import {
   RequireAuth,
   RequireRole,
@@ -135,6 +136,7 @@ function App() {
           <Route path="orders-detail/:id" element={<OrderDetail />} />
         </Route>
         <Route path="/demo" element={<Demo />} />
+        <Route path="/payment/result" element={<PaymentResult />} />
       </Routes>
       <GlobalChatWidget />
     </BrowserRouter>

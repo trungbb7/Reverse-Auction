@@ -16,8 +16,15 @@ export const orderService = {
     return res.data;
   },
 
+  getSellerOrders: async (): Promise<Order[]> => {
+    const res = await api.get("/orders/seller");
+    return res.data;
+  },
+
   updateStatus: async (orderId: number, status: Order["status"]): Promise<Order> => {
-    const res = await api.put(`/orders/${orderId}/status`, status);
+    const res = await api.put(`/orders/${orderId}/status`, null, {
+      params: { status },
+    });
     return res.data;
   },
 
