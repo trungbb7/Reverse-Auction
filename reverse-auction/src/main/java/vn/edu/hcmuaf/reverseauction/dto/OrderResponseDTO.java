@@ -35,6 +35,7 @@ public class OrderResponseDTO {
 
     private Long auctionId;
     private Long bidId;
+    private String auctionTitle;
 
     private String shippingAddress;
     private String buyerPhone;

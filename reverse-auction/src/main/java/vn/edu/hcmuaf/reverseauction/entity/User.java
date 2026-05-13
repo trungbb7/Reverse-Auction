@@ -32,9 +32,11 @@ public class User implements UserDetails {
     private String phone;
 
     @Column(nullable = false)
+    @Builder.Default
     private Double rating = 0.0;
 
     @Column(nullable = false)
+    @Builder.Default
     private Integer totalReviews = 0;
 
     @Enumerated(EnumType.STRING)

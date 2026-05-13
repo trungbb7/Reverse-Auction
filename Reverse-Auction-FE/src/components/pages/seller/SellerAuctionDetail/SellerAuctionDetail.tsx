@@ -1,6 +1,14 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
-import { Clock, Users, MapPin, Image as ImageIcon } from "lucide-react";
+import {
+  Clock,
+  Users,
+  MapPin,
+  Image as ImageIcon,
+  Trophy,
+  XCircle,
+  ChevronRight,
+} from "lucide-react";
 import {
   auctionEmpty,
   auctionStatusMap,
@@ -61,6 +69,12 @@ export default function SellerAuctionDetail() {
 
   const lowestBid = Math.min(...bids.map((b) => b.bidPrice));
 
+  // Determine result state when auction is COMPLETED
+  const isCompleted = auction.status === "COMPLETED";
+  const iWon = isCompleted && myBid?.isWinner === true;
+  const iLost = isCompleted && myBid != null && myBid.isWinner !== true;
+  const winnerBid = bids.find((b) => b.isWinner === true);
+
   return (
     <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6">
       {/* Top bar */}
@@ -89,6 +103,50 @@ export default function SellerAuctionDetail() {
           ← Quay lại
         </button>
       </div>
+
+      {/* Winner / Loser result banner */}
+      {iWon && (
+        <div className="mb-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 p-6 text-white shadow-lg flex items-start gap-4">
+          <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+            <Trophy className="w-6 h-6 text-white" />
+          </div>
+          <div className="flex-1">
+            <p className="text-lg font-black mb-0.5">🎉 Chúc mừng! Bạn đã thắng phiên đấu giá!</p>
+            <p className="text-sm text-emerald-100 mb-3">
+              Giá thắng của bạn:{" "}
+              <span className="font-black text-white">
+                {formatCurrency(myBid?.bidPrice ?? 0)}
+              </span>
+              . Một đơn hàng đã được tạo và đang chờ người mua thanh toán.
+            </p>
+            <button
+              onClick={() => navigate("/seller/orders")}
+              className="inline-flex items-center gap-1 bg-white text-emerald-700 font-bold text-sm px-4 py-2 rounded-xl hover:bg-emerald-50 transition-colors"
+            >
+              Xem đơn hàng <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {iLost && (
+        <div className="mb-6 rounded-2xl bg-slate-100 border border-slate-200 p-6 flex items-start gap-4">
+          <div className="w-12 h-12 rounded-full bg-slate-200 flex items-center justify-center shrink-0">
+            <XCircle className="w-6 h-6 text-slate-400" />
+          </div>
+          <div className="flex-1">
+            <p className="text-base font-black text-slate-700 mb-0.5">
+              Phiên đấu giá đã kết thúc
+            </p>
+            <p className="text-sm text-slate-500">
+              {winnerBid
+                ? `Người thắng là ${winnerBid.sellerName} với giá ${formatCurrency(winnerBid.bidPrice)}.`
+                : "Người mua đã chọn một người thắng khác."}
+              {" "}Cảm ơn bạn đã tham gia!
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Title + Countdown row */}
       <div className="flex flex-col lg:flex-row lg:items-end gap-4 mb-6">
@@ -200,12 +258,15 @@ export default function SellerAuctionDetail() {
 
         {/* RIGHT: Bid panel + stream */}
         <div className="w-[320px] xl:w-[360px] shrink-0 space-y-4">
-          <BidPanel
-            auctionId={auction.id}
-            myBid={myBid}
-            lowestBid={lowestBid}
-            onBidSuccess={handleBidSuccess}
-          />
+          {/* Only show bid panel if auction is still open */}
+          {auction.status === "OPEN" && (
+            <BidPanel
+              auctionId={auction.id}
+              myBid={myBid}
+              lowestBid={lowestBid}
+              onBidSuccess={handleBidSuccess}
+            />
+          )}
           <BidStream bids={bids} myId={userId} />
         </div>
       </div>

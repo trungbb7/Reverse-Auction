@@ -40,14 +40,23 @@ public class OrderServiceImpl implements OrderService {
         return toDTO(order);
     }
     private OrderResponseDTO toDTO(Order o) {
+        // For AUCTION orders, fallback to auction title/image when no product
+        String productName = o.getProduct() != null
+                ? o.getProduct().getName()
+                : (o.getAuction() != null ? o.getAuction().getTitle() : null);
+        String imageUrl = o.getProduct() != null
+                ? o.getProduct().getImageUrl()
+                : null;
+        String auctionTitle = o.getAuction() != null ? o.getAuction().getTitle() : null;
+
         return OrderResponseDTO.builder()
                 .id(o.getId())
                 .code(o.getCode() != null ? o.getCode() : null)
                 .type(o.getType().name())
 
                 .productId(o.getProduct() != null ? o.getProduct().getId() : null)
-                .productName(o.getProduct() != null ? o.getProduct().getName() : null)
-                .imageUrl(o.getProduct() != null ? o.getProduct().getImageUrl() : null)
+                .productName(productName)
+                .imageUrl(imageUrl)
                 .brand(o.getProduct() != null ? o.getProduct().getBrand() : null)
 
                 .buyerId(o.getBuyer().getId())
@@ -66,6 +75,7 @@ public class OrderServiceImpl implements OrderService {
 
                 .auctionId(o.getAuction() != null ? o.getAuction().getId() : null)
                 .bidId(o.getBid() != null ? o.getBid().getId() : null)
+                .auctionTitle(auctionTitle)
 
                 .shippingAddress(o.getShippingAddress())
 

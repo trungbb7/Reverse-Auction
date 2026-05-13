@@ -21,9 +21,9 @@ public class AuctionScheduler {
 
     /**
      * Automatically change auction status from OPEN to CLOSED when endDate has passed
-     * Run every 60 seconds.
+     * Run every 1 second.
      */
-    @Scheduled(fixedRate = 60_000)
+    @Scheduled(fixedRate = 1_000)
     @Transactional
     public void closeExpiredAuctions() {
         LocalDateTime now = LocalDateTime.now();
