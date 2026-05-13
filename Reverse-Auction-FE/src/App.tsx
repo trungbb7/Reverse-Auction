@@ -21,6 +21,7 @@ import SellerAuctionDetail from "./components/pages/seller/SellerAuctionDetail/S
 import ExternalChatPage from "./components/pages/chat/ExternalChatPage";
 import GlobalChatWidget from "./components/chat/GlobalChatWidget";
 import BuyerOrder from "./components/pages/buyer/BuyerOrder";
+import BuyerOrderDetail from "./components/pages/buyer/BuyerOrderDetail";
 import BuyerReview from "./components/pages/buyer/BuyerReview";
 import {
   RequireAuth,
@@ -32,6 +33,7 @@ import { useAppDispatch, useAppSelector } from "./hooks/redux.ts";
 import { fetchCurrentUser } from "./components/Auth/authSlice.ts";
 
 import UserManagement from "./components/pages/admin/UserManagement";
+import Demo from "./components/pages/Demo.tsx";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -66,6 +68,8 @@ function App() {
           <Route path="create-auction" element={<CreateAuction />} />
           <Route path="my-auctions" element={<MyAuctions />} />
           <Route path="auctions/:id" element={<AuctionDetail />} />
+          <Route path="buyer/orders" element={<BuyerOrder />} />
+          <Route path="buyer/orders/:id" element={<BuyerOrderDetail />} />
         </Route>
 
         {/* Any authenticated user routes */}
@@ -130,6 +134,7 @@ function App() {
           <Route path="orders" element={<OrderManagement />} />
           <Route path="orders-detail/:id" element={<OrderDetail />} />
         </Route>
+        <Route path="/demo" element={<Demo />} />
       </Routes>
       <GlobalChatWidget />
     </BrowserRouter>

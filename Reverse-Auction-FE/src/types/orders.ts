@@ -31,6 +31,7 @@ export interface Order{
     shippingFee: number;
     totalAmount: number;
     alreadyReviewed: boolean;
+    auctionTitle?: string;
 
     status: OrderStatus
 
