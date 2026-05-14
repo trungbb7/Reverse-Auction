@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import {
   Clock,
@@ -18,6 +18,8 @@ import toast from "react-hot-toast";
 import { bidService } from "@/services/bidService";
 import { auctionService } from "@/services/auctionService";
 import { useAppSelector } from "@/hooks/redux";
+import { Client } from "@stomp/stompjs";
+import SockJS from "sockjs-client";
 
 export default function AuctionDetail() {
   const { id } = useParams<{ id: string }>();
@@ -73,46 +75,92 @@ export default function AuctionDetail() {
     fetchAuction();
   }, [id]);
 
+  const updateBidInfo = useCallback((bids: Bid[]) => {
+    const min = bids.reduce(
+      (prev, cur) => Math.min(prev, cur.bidPrice),
+      Infinity,
+    );
+    const newLastOffer = bids.reduce(
+      (prev, cur) => (cur.updatedAt > prev ? cur.updatedAt : prev),
+      "",
+    );
+    let newBids = bids.map((bid) => ({
+      ...bid,
+      isTopBid: bid.bidPrice === min,
+    }));
+
+    newBids = newBids.sort((a, b) => a.bidPrice - b.bidPrice);
+    newBids.forEach((b) => {
+      if (b.isWinner) {
+        console.log("Winner");
+        setWinner(b.id);
+      }
+    });
+
+    setBids(newBids);
+    setLowestBid(min);
+    setLastOffer(newLastOffer);
+
+    const winnerBid = newBids.find((b) => b.isWinner);
+    if (winnerBid) {
+      setWinner(winnerBid.id);
+    }
+  }, []);
+
   useEffect(() => {
     async function fetchBidsForAuction() {
       try {
         const rsBids = await bidService.getBidsForAuction(id || -1);
-        const min = rsBids.reduce(
-          (prev, cur) => Math.min(prev, cur.bidPrice),
-          Infinity,
-        );
-        const newLastOffer = rsBids.reduce(
-          (prev, cur) => (cur.updatedAt > prev ? cur.updatedAt : prev),
-          "",
-        );
-        let newBids = rsBids.map((bid) => ({
-          ...bid,
-          isTopBid: bid.bidPrice === min,
-        }));
-
-        newBids = newBids.sort((a, b) => a.bidPrice - b.bidPrice);
-        newBids.forEach((b) => {
-          if (b.isWinner) {
-            console.log("Winner");
-            setWinner(b.id);
-          }
-        });
-
-        setBids(newBids);
-        setLowestBid(min);
-        setLastOffer(newLastOffer);
-
-        const winnerBid = newBids.find((b) => b.isWinner);
-        if (winnerBid) {
-          setWinner(winnerBid.id);
-        }
+        updateBidInfo(rsBids);
       } catch (err) {
         toast.error("Đã xảy ra lỗi khi lấy giữ liệu đấu giá");
         console.error(err);
       }
     }
     fetchBidsForAuction();
-  }, [id]);
+  }, [id, updateBidInfo]);
+
+  useEffect(() => {
+    let client: Client | null = null;
+    function setupWSClient() {
+      const accessToken = localStorage.getItem("accessToken");
+
+      // Connect server
+      const socket = new SockJS("http://localhost:8080/ws-auction");
+
+      client = new Client({
+        webSocketFactory: () => socket,
+        connectHeaders: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+
+        debug: (str) => {
+          console.log(str);
+        },
+
+        onConnect: () => {
+          console.log("Connected");
+
+          client?.subscribe(`/topic/auction/${id}`, (message) => {
+            const responseBody = JSON.parse(message.body);
+            const allBids = responseBody.bids as Bid[];
+
+            updateBidInfo(allBids);
+          });
+        },
+        onStompError: (frame) => {
+          console.error(frame);
+        },
+      });
+
+      client.activate();
+    }
+    setupWSClient();
+
+    return () => {
+      client?.deactivate();
+    };
+  }, [id, updateBidInfo]);
 
   return (
     <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6">
@@ -292,7 +340,7 @@ export default function AuctionDetail() {
         </div>
 
         {/* ══ RIGHT COLUMN ═════════════════════════════════════════════ */}
-        <div className="w-[320px] xl:w-[360px] shrink-0 space-y-4">
+        <div className="w-[320px] xl:w-90 shrink-0 space-y-4">
           {/* Countdown */}
           <div className="bg-[#375F97] rounded-2xl p-6 text-white shadow-lg">
             <p className="text-xs font-bold uppercase tracking-widest text-blue-200 mb-3 text-center">
@@ -323,7 +371,7 @@ export default function AuctionDetail() {
               </span>
             </div>
 
-            <div className="p-4 space-y-3 max-h-[520px] overflow-y-auto">
+            <div className="p-4 space-y-3 max-h-130 overflow-y-auto">
               {bids.map((bid) => (
                 <BidCard
                   key={bid.id}

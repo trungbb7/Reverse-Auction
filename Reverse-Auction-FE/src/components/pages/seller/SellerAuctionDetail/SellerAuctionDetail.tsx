@@ -56,19 +56,6 @@ export default function SellerAuctionDetail() {
     load();
   }, [id]);
 
-  // const handleBidSuccess = (bid: Bid) => {
-  //   setMyBid(bid);
-  //   setBids((prev) => {
-  //     const existing = prev.findIndex((b) => b.id === bid.id);
-  //     if (existing >= 0) {
-  //       const next = [...prev];
-  //       next[existing] = bid;
-  //       return next;
-  //     }
-  //     return [bid, ...prev];
-  //   });
-  // };
-
   useEffect(() => {
     let client: Client | null = null;
     function setupWSClient() {
