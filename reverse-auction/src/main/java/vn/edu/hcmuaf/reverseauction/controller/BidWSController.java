@@ -12,15 +12,13 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Controller;
-import vn.edu.hcmuaf.reverseauction.dto.AllBidResponseDTO;
-import vn.edu.hcmuaf.reverseauction.dto.BidResponseDTO;
-import vn.edu.hcmuaf.reverseauction.dto.CreateBidRequestDTO;
-import vn.edu.hcmuaf.reverseauction.dto.UpdateBidRequestDTO;
+import vn.edu.hcmuaf.reverseauction.dto.*;
 import vn.edu.hcmuaf.reverseauction.entity.User;
 import vn.edu.hcmuaf.reverseauction.service.BidService;
 import vn.edu.hcmuaf.reverseauction.service.UserService;
 
 import java.security.Principal;
+import java.util.List;
 
 @Controller
 @RequiredArgsConstructor
@@ -32,12 +30,13 @@ public class BidWSController {
 
     @MessageMapping("/place-bid/{auctionId}")
     @SendTo("/topic/auction/{auctionId}")
-    public AllBidResponseDTO handlePlaceBid(Principal principal, @DestinationVariable String auctionId, @Payload CreateBidRequestDTO bidDTO) {
+    public AuctionWSResponseDTO handlePlaceBid(Principal principal, @DestinationVariable String auctionId, @Payload CreateBidRequestDTO bidDTO) {
         String email = principal.getName();
         User user = (User) userDetailsService.loadUserByUsername(email);
         long sellerId = user.getId();
         bidService.create(bidDTO, sellerId);
-        return bidService.getBidsForAuction(Long.parseLong(auctionId));
+        AllBidResponseDTO bids = bidService.getBidsForAuction(Long.parseLong(auctionId));
+        return AuctionWSResponseDTO.builder().bids(bids.getBids()).build();
     }
 
     @MessageMapping("/update-bid/{auctionId}")

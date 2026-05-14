@@ -82,14 +82,19 @@ export default function SellerAuctionDetail() {
           client?.subscribe(`/topic/auction/${id}`, (message) => {
             const responseBody = JSON.parse(message.body);
             const allBids = responseBody.bids as Bid[];
+            const auctionWS = responseBody.auction as Auction;
 
-            // check if seller has bid
-            const idx = allBids.findIndex((b) => b.sellerId === userId);
-            if (idx !== -1) {
-              setMyBid(allBids[idx]);
+            if (allBids) {
+              setBids(allBids);
+              const idx = allBids.findIndex((b) => b.sellerId === userId);
+              // check if seller has bid
+              if (idx !== -1) {
+                setMyBid(allBids[idx]);
+              }
             }
-
-            setBids(allBids);
+            if (auctionWS) {
+              setAuction(auctionWS);
+            }
           });
         },
         onStompError: (frame) => {

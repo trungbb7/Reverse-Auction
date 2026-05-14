@@ -144,8 +144,13 @@ export default function AuctionDetail() {
           client?.subscribe(`/topic/auction/${id}`, (message) => {
             const responseBody = JSON.parse(message.body);
             const allBids = responseBody.bids as Bid[];
-
-            updateBidInfo(allBids);
+            const auctionWS = responseBody.auction;
+            if (allBids) {
+              updateBidInfo(allBids);
+            }
+            if (auctionWS) {
+              setAuction(auctionWS);
+            }
           });
         },
         onStompError: (frame) => {
@@ -387,12 +392,14 @@ export default function AuctionDetail() {
             </div>
 
             {/* Loading more indicator */}
-            <div className="px-5 py-3 border-t border-slate-100 flex items-center gap-2">
-              <span className="w-2 h-2 bg-slate-300 rounded-full animate-pulse" />
-              <span className="text-xs text-slate-400 font-medium uppercase tracking-wider">
-                Đang chờ đề nghị mới...
-              </span>
-            </div>
+            {auction?.status === "OPEN" && (
+              <div className="px-5 py-3 border-t border-slate-100 flex items-center gap-2">
+                <span className="w-2 h-2 bg-slate-300 rounded-full animate-pulse" />
+                <span className="text-xs text-slate-400 font-medium uppercase tracking-wider">
+                  Đang chờ đề nghị mới...
+                </span>
+              </div>
+            )}
           </div>
 
           {/* Winner confirmation banner */}
