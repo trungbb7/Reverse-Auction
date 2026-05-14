@@ -14,13 +14,21 @@ import {
   ExternalLink,
   Loader2,
 } from "lucide-react";
-import { type Order, ORDER_STATUS_LABEL, ORDER_STEPS, ORDER_STATUS_INDEX } from "@/types/orders";
+import {
+  type Order,
+  ORDER_STATUS_LABEL,
+  ORDER_STEPS,
+  ORDER_STATUS_INDEX,
+} from "@/types/orders";
 import { orderService } from "@/services/orderService";
 import toast from "react-hot-toast";
 
 /* ─── helpers ─────────────────────────────────────────────────── */
 function formatCurrency(n: number) {
-  return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(n);
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  }).format(n);
 }
 
 const BANKS = [
@@ -35,11 +43,7 @@ const BANKS = [
 const STEP_ICONS = [CreditCard, CheckCircle2, Clock, Truck, Package];
 
 /* ─── Payment Panel ─────────────────────────────────────────── */
-function PaymentPanel({
-  order,
-}: {
-  order: Order;
-}) {
+function PaymentPanel({ order }: { order: Order }) {
   const [selectedBank, setSelectedBank] = useState("NCB");
   const [loading, setLoading] = useState(false);
 
@@ -47,7 +51,11 @@ function PaymentPanel({
     setLoading(true);
     try {
       const amount = Math.round(Number(order.totalAmount)); // VNPay expects integer VND
-      const result = await orderService.createPayment(order.id, amount, selectedBank);
+      const result = await orderService.createPayment(
+        order.id,
+        amount,
+        selectedBank,
+      );
       // Redirect to VNPay — VNPay will redirect back to /payment/result?orderId=X
       window.location.href = result.paymentUrl;
     } catch (err) {
@@ -61,7 +69,9 @@ function PaymentPanel({
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-5">
       <div className="flex items-center gap-2">
         <CreditCard className="w-5 h-5 text-[#375F97]" />
-        <h2 className="font-black text-slate-900 text-base">Thanh toán đơn hàng</h2>
+        <h2 className="font-black text-slate-900 text-base">
+          Thanh toán đơn hàng
+        </h2>
       </div>
 
       {/* Amount */}
@@ -91,7 +101,9 @@ function PaymentPanel({
               <div
                 className={`w-8 h-5 rounded bg-gradient-to-r ${bank.color} mx-auto mb-1.5`}
               />
-              <p className="text-[10px] font-bold text-slate-700">{bank.name}</p>
+              <p className="text-[10px] font-bold text-slate-700">
+                {bank.name}
+              </p>
               {selectedBank === bank.code && (
                 <div className="absolute top-1.5 right-1.5 w-3 h-3 rounded-full bg-[#375F97] flex items-center justify-center">
                   <div className="w-1.5 h-1.5 rounded-full bg-white" />
@@ -135,7 +147,9 @@ function OrderTimeline({ status }: { status: Order["status"] }) {
 
   return (
     <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6">
-      <h3 className="font-black text-slate-900 text-sm mb-5">Tiến độ đơn hàng</h3>
+      <h3 className="font-black text-slate-900 text-sm mb-5">
+        Tiến độ đơn hàng
+      </h3>
       <div className="relative flex items-center justify-between">
         {/* Base track */}
         <div className="absolute left-0 right-0 top-1/2 h-1 bg-slate-100 -translate-y-1/2 rounded-full" />
@@ -143,14 +157,20 @@ function OrderTimeline({ status }: { status: Order["status"] }) {
         <div
           className="absolute left-0 top-1/2 h-1 bg-gradient-to-r from-[#375F97] to-blue-400 -translate-y-1/2 rounded-full transition-all duration-700"
           style={{
-            width: currentIdx < 0 ? "0%" : `${(currentIdx / (steps.length - 1)) * 100}%`,
+            width:
+              currentIdx < 0
+                ? "0%"
+                : `${(currentIdx / (steps.length - 1)) * 100}%`,
           }}
         />
         {steps.map((_, idx) => {
           const StepIcon = STEP_ICONS[idx + 1] ?? CheckCircle2;
           const active = idx <= currentIdx;
           return (
-            <div key={idx} className="relative z-10 flex flex-col items-center gap-2">
+            <div
+              key={idx}
+              className="relative z-10 flex flex-col items-center gap-2"
+            >
               <div
                 className={`w-9 h-9 rounded-full flex items-center justify-center border-2 transition-all ${
                   active
@@ -162,7 +182,9 @@ function OrderTimeline({ status }: { status: Order["status"] }) {
                   className={`w-4 h-4 ${active ? "text-white" : "text-slate-300"}`}
                 />
               </div>
-              <span className={`text-[10px] font-bold ${active ? "text-[#375F97]" : "text-slate-300"}`}>
+              <span
+                className={`text-[10px] font-bold ${active ? "text-[#375F97]" : "text-slate-300"}`}
+              >
                 {labels[idx]}
               </span>
             </div>
@@ -195,7 +217,6 @@ export default function BuyerOrderDetail() {
     })();
   }, [id]);
 
-
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center">
@@ -219,7 +240,7 @@ export default function BuyerOrderDetail() {
     );
   }
 
-  const isAuction = order.type === "AUCTION";
+  const isAuction = order.type === "BID";
 
   return (
     <div className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6">
@@ -262,18 +283,25 @@ export default function BuyerOrderDetail() {
               <div className="flex gap-4">
                 <div className="w-20 h-20 rounded-xl bg-slate-100 flex items-center justify-center shrink-0 overflow-hidden">
                   {order.imageUrl ? (
-                    <img src={order.imageUrl} alt="" className="w-full h-full object-cover" />
+                    <img
+                      src={order.imageUrl}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     <Package className="w-8 h-8 text-slate-300" />
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-black text-slate-900 text-base leading-snug">
-                    {order.productName ?? order.auctionTitle ?? "Đơn hàng đấu giá"}
+                    {order.productName ??
+                      order.auctionTitle ??
+                      "Đơn hàng đấu giá"}
                   </p>
                   {order.brand && (
                     <p className="text-xs text-slate-400 mt-0.5">
-                      Thương hiệu: <span className="text-slate-600">{order.brand}</span>
+                      Thương hiệu:{" "}
+                      <span className="text-slate-600">{order.brand}</span>
                     </p>
                   )}
                 </div>
@@ -285,14 +313,20 @@ export default function BuyerOrderDetail() {
 
             {/* Seller info */}
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-              <h3 className="font-black text-slate-900 text-sm mb-4">Thông tin người bán</h3>
+              <h3 className="font-black text-slate-900 text-sm mb-4">
+                Thông tin người bán
+              </h3>
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-[#375F97] flex items-center justify-center text-white font-black text-sm shrink-0">
                   {order.sellerName?.charAt(0) ?? "S"}
                 </div>
                 <div>
-                  <p className="font-bold text-slate-900 text-sm">{order.sellerName}</p>
-                  <p className="text-xs text-slate-400">ID: #{order.sellerId}</p>
+                  <p className="font-bold text-slate-900 text-sm">
+                    {order.sellerName}
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    ID: #{order.sellerId}
+                  </p>
                 </div>
               </div>
             </div>
@@ -300,7 +334,9 @@ export default function BuyerOrderDetail() {
             {/* Shipping info */}
             {(order.shippingAddress || order.buyerPhone) && (
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-3">
-                <h3 className="font-black text-slate-900 text-sm">Địa chỉ giao hàng</h3>
+                <h3 className="font-black text-slate-900 text-sm">
+                  Địa chỉ giao hàng
+                </h3>
                 {order.buyerPhone && (
                   <div className="flex items-center gap-2 text-sm text-slate-600">
                     <Phone className="w-4 h-4 text-slate-400 shrink-0" />
@@ -314,7 +350,9 @@ export default function BuyerOrderDetail() {
                   </div>
                 )}
                 {!order.shippingAddress && !order.buyerPhone && (
-                  <p className="text-xs text-slate-400 italic">Chưa có thông tin giao hàng</p>
+                  <p className="text-xs text-slate-400 italic">
+                    Chưa có thông tin giao hàng
+                  </p>
                 )}
               </div>
             )}
@@ -324,7 +362,9 @@ export default function BuyerOrderDetail() {
           <div className="space-y-5">
             {/* Price summary */}
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-3">
-              <h3 className="font-black text-slate-900 text-sm">Tổng kết đơn hàng</h3>
+              <h3 className="font-black text-slate-900 text-sm">
+                Tổng kết đơn hàng
+              </h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-slate-500">Giá sản phẩm</span>
@@ -334,7 +374,13 @@ export default function BuyerOrderDetail() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Phí vận chuyển</span>
-                  <span className={Number(order.shippingFee) === 0 ? "text-emerald-600 font-semibold" : "font-semibold text-slate-900"}>
+                  <span
+                    className={
+                      Number(order.shippingFee) === 0
+                        ? "text-emerald-600 font-semibold"
+                        : "font-semibold text-slate-900"
+                    }
+                  >
                     {Number(order.shippingFee) === 0
                       ? "Miễn phí"
                       : formatCurrency(Number(order.shippingFee))}
@@ -359,14 +405,15 @@ export default function BuyerOrderDetail() {
               <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
                 <div className="flex items-center gap-2 mb-1">
                   <User className="w-4 h-4 text-slate-400" />
-                  <h3 className="font-black text-slate-900 text-sm">Trạng thái</h3>
+                  <h3 className="font-black text-slate-900 text-sm">
+                    Trạng thái
+                  </h3>
                 </div>
                 <p className="text-sm font-bold text-slate-700 mt-2">
                   {ORDER_STATUS_LABEL[order.status]}
                 </p>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Cập nhật:{" "}
-                  {new Date(order.updatedAt).toLocaleString("vi-VN")}
+                  Cập nhật: {new Date(order.updatedAt).toLocaleString("vi-VN")}
                 </p>
               </div>
             )}

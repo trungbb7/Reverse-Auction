@@ -2,7 +2,7 @@ import { BrowserRouter, Route, Routes } from "react-router";
 import { Toaster } from "react-hot-toast";
 import Home from "./components/pages/Home";
 import CreateAuction from "./components/pages/auctions/CreateAuction";
-import MyAuctions from "./components/pages/auctions/MyAuctions";
+import MyAuctions from "./components/pages/auctions/AuctionDetail/MyAuction/MyAuctions.tsx";
 import AuctionDetail from "./components/pages/auctions/AuctionDetail/AuctionDetail";
 import Profile from "./components/pages/Profile.tsx";
 import Unauthorized from "./components/pages/Unauthorized.tsx";
