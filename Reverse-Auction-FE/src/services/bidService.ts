@@ -1,9 +1,10 @@
 import api from "@/utils/axios";
 import type { Bid } from "@/types/auction";
 import { AxiosError } from "axios";
+import type { Client } from "@stomp/stompjs";
 
 interface BidRequest {
-  auctionId: string | number;
+  auctionId: string | undefined;
   bidPrice: number;
   note?: string;
 }
@@ -20,6 +21,29 @@ export const bidService = {
   ): Promise<Bid> => {
     const response = await api.put(`/bids/${bidId}`, data);
     return response.data;
+  },
+
+  placeSocketBid: (data: BidRequest, client: Client | null) => {
+    if (client)
+      client.publish({
+        destination: `/app/place-bid/${data.auctionId}`,
+        body: JSON.stringify(data),
+      });
+  },
+
+  updateSocketBid: (
+    bidId: string | number,
+    data: BidRequest,
+    client: Client | null,
+  ) => {
+    if (client)
+      client.publish({
+        destination: `/app/update-bid/${data.auctionId}`,
+        body: JSON.stringify({
+          ...data,
+          bidId,
+        }),
+      });
   },
 
   getMyBidForAuction: async (

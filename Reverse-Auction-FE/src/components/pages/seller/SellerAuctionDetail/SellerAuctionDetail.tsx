@@ -22,7 +22,8 @@ import BidPanel from "./BidPanel";
 import BidStream from "./BidStream";
 import { useAppSelector } from "@/hooks/redux";
 import toast from "react-hot-toast";
-
+import SockJS from "sockjs-client";
+import { Client } from "@stomp/stompjs";
 export default function SellerAuctionDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -32,6 +33,7 @@ export default function SellerAuctionDetail() {
   const [mainImage, setMainImage] = useState(auction.images?.[0] ?? "");
   const countdown = useCountdown(auction.endDate || "");
   const userId = useAppSelector((state) => state.auth.user?.id);
+  const [stompClient, setStompClient] = useState<Client | null>(null);
 
   const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -54,17 +56,82 @@ export default function SellerAuctionDetail() {
     load();
   }, [id]);
 
-  const handleBidSuccess = (bid: Bid) => {
-    setMyBid(bid);
-    setBids((prev) => {
-      const existing = prev.findIndex((b) => b.id === bid.id);
-      if (existing >= 0) {
-        const next = [...prev];
-        next[existing] = bid;
-        return next;
-      }
-      return [bid, ...prev];
-    });
+  // const handleBidSuccess = (bid: Bid) => {
+  //   setMyBid(bid);
+  //   setBids((prev) => {
+  //     const existing = prev.findIndex((b) => b.id === bid.id);
+  //     if (existing >= 0) {
+  //       const next = [...prev];
+  //       next[existing] = bid;
+  //       return next;
+  //     }
+  //     return [bid, ...prev];
+  //   });
+  // };
+
+  useEffect(() => {
+    let client: Client | null = null;
+    function setupWSClient() {
+      const accessToken = localStorage.getItem("accessToken");
+
+      // Connect server
+      const socket = new SockJS("http://localhost:8080/ws-auction");
+
+      client = new Client({
+        webSocketFactory: () => socket,
+        connectHeaders: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+
+        debug: (str) => {
+          console.log(str);
+        },
+
+        onConnect: () => {
+          console.log("Connected");
+
+          setStompClient(client);
+
+          client?.subscribe(`/topic/auction/${id}`, (message) => {
+            const responseBody = JSON.parse(message.body);
+            const allBids = responseBody.bids as Bid[];
+
+            // check if seller has bid
+            const idx = allBids.findIndex((b) => b.sellerId === userId);
+            if (idx !== -1) {
+              setMyBid(allBids[idx]);
+            }
+
+            setBids(allBids);
+          });
+        },
+        onStompError: (frame) => {
+          console.error(frame);
+        },
+      });
+
+      client.activate();
+    }
+    setupWSClient();
+
+    return () => {
+      client?.deactivate();
+    };
+  }, [id, userId]);
+
+  const updateBid = (bidId: string, bidPrice: number, bidNote: string) => {
+    bidService.updateSocketBid(
+      bidId,
+      { auctionId: id, bidPrice, note: bidNote },
+      stompClient,
+    );
+  };
+
+  const placeBid = (bidPrice: number, bidNote: string) => {
+    bidService.placeSocketBid(
+      { auctionId: id, bidPrice, note: bidNote },
+      stompClient,
+    );
   };
 
   const lowestBid = Math.min(...bids.map((b) => b.bidPrice));
@@ -106,12 +173,14 @@ export default function SellerAuctionDetail() {
 
       {/* Winner / Loser result banner */}
       {iWon && (
-        <div className="mb-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 p-6 text-white shadow-lg flex items-start gap-4">
+        <div className="mb-6 rounded-2xl bg-linear-to-r from-emerald-500 to-teal-500 p-6 text-white shadow-lg flex items-start gap-4">
           <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center shrink-0">
             <Trophy className="w-6 h-6 text-white" />
           </div>
           <div className="flex-1">
-            <p className="text-lg font-black mb-0.5">🎉 Chúc mừng! Bạn đã thắng phiên đấu giá!</p>
+            <p className="text-lg font-black mb-0.5">
+              🎉 Chúc mừng! Bạn đã thắng phiên đấu giá!
+            </p>
             <p className="text-sm text-emerald-100 mb-3">
               Giá thắng của bạn:{" "}
               <span className="font-black text-white">
@@ -141,8 +210,8 @@ export default function SellerAuctionDetail() {
             <p className="text-sm text-slate-500">
               {winnerBid
                 ? `Người thắng là ${winnerBid.sellerName} với giá ${formatCurrency(winnerBid.bidPrice)}.`
-                : "Người mua đã chọn một người thắng khác."}
-              {" "}Cảm ơn bạn đã tham gia!
+                : "Người mua đã chọn một người thắng khác."}{" "}
+              Cảm ơn bạn đã tham gia!
             </p>
           </div>
         </div>
@@ -159,7 +228,7 @@ export default function SellerAuctionDetail() {
           </p>
         </div>
         <div className="flex gap-4 shrink-0">
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-6 py-4 text-center min-w-[140px]">
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-6 py-4 text-center min-w-35">
             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
               Thời gian còn lại
             </p>
@@ -167,7 +236,7 @@ export default function SellerAuctionDetail() {
               {pad(countdown.h)}:{pad(countdown.m)}:{pad(countdown.s)}
             </p>
           </div>
-          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-6 py-4 text-center min-w-[140px]">
+          <div className="bg-white rounded-2xl border border-slate-100 shadow-sm px-6 py-4 text-center min-w-35">
             <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-1">
               Giá trần đề xuất
             </p>
@@ -257,14 +326,14 @@ export default function SellerAuctionDetail() {
         </div>
 
         {/* RIGHT: Bid panel + stream */}
-        <div className="w-[320px] xl:w-[360px] shrink-0 space-y-4">
+        <div className="w-[320px] xl:w-90 shrink-0 space-y-4">
           {/* Only show bid panel if auction is still open */}
           {auction.status === "OPEN" && (
             <BidPanel
-              auctionId={auction.id}
               myBid={myBid}
               lowestBid={lowestBid}
-              onBidSuccess={handleBidSuccess}
+              placeBid={placeBid}
+              updateBid={updateBid}
             />
           )}
           <BidStream bids={bids} myId={userId} />

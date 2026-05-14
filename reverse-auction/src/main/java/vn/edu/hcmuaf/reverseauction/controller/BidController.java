@@ -19,8 +19,8 @@ public class BidController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('BUYER', 'SELLER')")
-    public ResponseEntity<GetAllBidResponseDTO> getAllBidForAuction(@RequestParam long auctionId) {
-        GetAllBidResponseDTO response = bidService.getBidsForAuction(auctionId);
+    public ResponseEntity<AllBidResponseDTO> getAllBidForAuction(@RequestParam long auctionId) {
+        AllBidResponseDTO response = bidService.getBidsForAuction(auctionId);
         return ResponseEntity.ok(response);
     }
 

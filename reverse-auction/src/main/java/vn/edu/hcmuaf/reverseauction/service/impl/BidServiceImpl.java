@@ -1,5 +1,6 @@
 package vn.edu.hcmuaf.reverseauction.service.impl;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ public class BidServiceImpl implements BidService {
     private final BidMapper bidMapper;
 
     @Override
+    @Transactional
     public BidResponseDTO update(long id, UpdateBidRequestDTO bid, long sellerId) {
         Bid existing = bidRepository.findById(id).
                 orElseThrow(() -> CustomException
@@ -58,10 +60,10 @@ public class BidServiceImpl implements BidService {
     }
 
     @Override
-    public GetAllBidResponseDTO getBidsForAuction(long auctionId) {
+    public AllBidResponseDTO getBidsForAuction(long auctionId) {
         List<Bid> bids = bidRepository.findAllByAuctionId(auctionId);
         List<BidResponseDTO> bidsDTO = bids.stream().map(bidMapper::toDTO).toList();
-        return new GetAllBidResponseDTO(bidsDTO);
+        return new AllBidResponseDTO(bidsDTO);
     }
 
     @Override

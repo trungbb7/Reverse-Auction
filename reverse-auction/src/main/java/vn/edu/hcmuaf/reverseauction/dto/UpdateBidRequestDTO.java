@@ -6,6 +6,7 @@ import java.math.BigDecimal;
 
 @Data
 public class UpdateBidRequestDTO {
+    private long bidId;
     private BigDecimal bidPrice;
     private String note;
 }

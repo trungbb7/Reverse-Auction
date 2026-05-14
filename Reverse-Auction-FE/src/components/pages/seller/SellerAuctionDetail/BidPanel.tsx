@@ -1,4 +1,3 @@
-import { bidService } from "@/services/bidService";
 import type { Bid } from "@/types/auction";
 import type { ErrorResponse } from "@/types/errorResponse";
 import { AxiosError } from "axios";
@@ -7,15 +6,15 @@ import { useState } from "react";
 import toast from "react-hot-toast";
 
 export default function BidPanel({
-  auctionId,
   myBid,
   lowestBid,
-  onBidSuccess,
+  placeBid,
+  updateBid,
 }: {
-  auctionId: number;
   myBid: Bid | null;
   lowestBid: number;
-  onBidSuccess: (bid: Bid) => void;
+  placeBid: (bidPrice: number, bidNote: string) => void;
+  updateBid: (bidId: string, bidPrice: number, bidNote: string) => void;
 }) {
   const [price, setPrice] = useState<string>(
     myBid ? String(myBid.bidPrice) : "",
@@ -44,22 +43,24 @@ export default function BidPanel({
     }
     setLoading(true);
     try {
-      let result: Bid;
+      // let result: Bid;
       if (myBid) {
-        result = await bidService.updateBid(myBid.id, {
-          bidPrice: numericPrice,
-          note,
-        });
-        toast.success("Đã cập nhật báo giá!");
+        updateBid(`${myBid.id}`, numericPrice, note);
+        // result = await bidService.updateBid(myBid.id, {
+        //   bidPrice: numericPrice,
+        //   note,
+        // });
+        // toast.success("Đã cập nhật báo giá!");
       } else {
-        result = await bidService.submitBid({
-          auctionId,
-          bidPrice: numericPrice,
-          note,
-        });
-        toast.success("Đã gửi báo giá thành công!");
+        placeBid(numericPrice, note);
+        // result = await bidService.submitBid({
+        //   auctionId,
+        //   bidPrice: numericPrice,
+        //   note,
+        // });
+        // toast.success("Đã gửi báo giá thành công!");
       }
-      onBidSuccess(result);
+      // onBidSuccess(result);
     } catch (err) {
       console.error(err);
       if (err instanceof AxiosError) {
