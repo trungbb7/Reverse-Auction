@@ -1,143 +1,153 @@
-import {CheckCircle2, Clock3, Truck, PackageCheck, XCircle, ShieldAlert, Wallet} from "lucide-react";
+import {
+  CheckCircle2,
+  Clock3,
+  Truck,
+  PackageCheck,
+  XCircle,
+  ShieldAlert,
+  Wallet,
+} from "lucide-react";
 export const ORDER_STATUS_LIST = [
-    "AWAITING_PAYMENT",
-    "PAID",
-    "PROCESSING",
-    "SHIPPED",
-    "DELIVERED",
-    "COMPLETED",
-    "DISPUTED",
-    "CANCELLED",
+  "AWAITING_PAYMENT",
+  "PAID",
+  "PROCESSING",
+  "SHIPPED",
+  "DELIVERED",
+  "COMPLETED",
+  "DISPUTED",
+  "CANCELLED",
 ] as const;
-export type OrderStatus = typeof ORDER_STATUS_LIST[number];
+export type OrderStatus = (typeof ORDER_STATUS_LIST)[number];
 
-export interface Order{
-    id: number;
-    code: string;
-    type: "NORMAL" | "AUCTION";
+export interface Order {
+  id: number;
+  code: string;
+  type: "NORMAL" | "BID";
 
-    productId: number;
-    productName: string;
-    imageUrl: string;
-    brand: string;
+  productId: number;
+  productName: string;
+  imageUrl: string;
+  brand: string;
 
-    buyerId: number;
-    buyerName: string;
+  buyerId: number;
+  buyerName: string;
 
-    sellerId: number;
-    sellerName: string;
+  sellerId: number;
+  sellerName: string;
 
-    finalPrice: number;
-    shippingFee: number;
-    totalAmount: number;
-    alreadyReviewed: boolean;
-    auctionTitle?: string;
+  finalPrice: number;
+  shippingFee: number;
+  totalAmount: number;
+  alreadyReviewed: boolean;
+  auctionTitle?: string;
 
-    status: OrderStatus
+  status: OrderStatus;
 
-    shippingAddress: string;
-    buyerPhone: string;
-    createdAt: string;
-    updatedAt: string;
+  shippingAddress: string;
+  buyerPhone: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export const ORDER_STEPS: OrderStatus[] = [
-    "PAID",
-    "PROCESSING",
-    "SHIPPED",
-    "COMPLETED",
+  "PAID",
+  "PROCESSING",
+  "SHIPPED",
+  "COMPLETED",
 ];
 
 export const ORDER_STATUS_INDEX: Record<OrderStatus, number> = {
-    AWAITING_PAYMENT: 0,
-    PAID: 0,
-    PROCESSING: 1,
-    SHIPPED: 2,
-    DELIVERED: 3,
-    COMPLETED: 3,
-    DISPUTED: -1,
-    CANCELLED: -1,
+  AWAITING_PAYMENT: 0,
+  PAID: 0,
+  PROCESSING: 1,
+  SHIPPED: 2,
+  DELIVERED: 3,
+  COMPLETED: 3,
+  DISPUTED: -1,
+  CANCELLED: -1,
 };
 export const ORDER_TRANSITION_RULE: Record<OrderStatus, OrderStatus[]> = {
-    AWAITING_PAYMENT: ["AWAITING_PAYMENT", "PAID", "CANCELLED"],
-    PAID: ["PAID", "PROCESSING", "CANCELLED"],
-    PROCESSING: ["PROCESSING", "SHIPPED", "CANCELLED"],
-    SHIPPED: ["SHIPPED","DELIVERED"],
-    DELIVERED: ["COMPLETED"],
-    COMPLETED: [],
-    DISPUTED: [],
-    CANCELLED: [],
+  AWAITING_PAYMENT: ["AWAITING_PAYMENT", "PAID", "CANCELLED"],
+  PAID: ["PAID", "PROCESSING", "CANCELLED"],
+  PROCESSING: ["PROCESSING", "SHIPPED", "CANCELLED"],
+  SHIPPED: ["SHIPPED", "DELIVERED"],
+  DELIVERED: ["COMPLETED"],
+  COMPLETED: [],
+  DISPUTED: [],
+  CANCELLED: [],
 };
 export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
-    AWAITING_PAYMENT: "Chờ thanh toán",
-    PAID: "Đã thanh toán",
-    PROCESSING: "Đang xử lý",
-    SHIPPED: "Đang giao",
-    DELIVERED: "Đã giao",
-    COMPLETED: "Hoàn tất",
-    DISPUTED: "Tranh chấp",
-    CANCELLED: "Đã huỷ",
+  AWAITING_PAYMENT: "Chờ thanh toán",
+  PAID: "Đã thanh toán",
+  PROCESSING: "Đang xử lý",
+  SHIPPED: "Đang giao",
+  DELIVERED: "Đã giao",
+  COMPLETED: "Hoàn tất",
+  DISPUTED: "Tranh chấp",
+  CANCELLED: "Đã huỷ",
 };
-export const orderStatusContent: Record<OrderStatus, {
+export const orderStatusContent: Record<
+  OrderStatus,
+  {
     title: string;
     description: string;
     icon: React.ElementType;
     color: string;
-}> = {
+  }
+> = {
+  AWAITING_PAYMENT: {
+    title: "Chờ thanh toán",
+    description: "Đơn hàng đang chờ người mua thanh toán",
+    icon: Wallet,
+    color: "text-yellow-500",
+  },
 
-    AWAITING_PAYMENT: {
-        title: "Chờ thanh toán",
-        description: "Đơn hàng đang chờ người mua thanh toán",
-        icon: Wallet,
-        color: "text-yellow-500"
-    },
+  PAID: {
+    title: "Đã thanh toán",
+    description: "Người mua đã thanh toán thành công",
+    icon: CheckCircle2,
+    color: "text-blue-500",
+  },
 
-    PAID: {
-        title: "Đã thanh toán",
-        description: "Người mua đã thanh toán thành công",
-        icon: CheckCircle2,
-        color: "text-blue-500"
-    },
+  PROCESSING: {
+    title: "Đang xử lý",
+    description: "Người bán đang chuẩn bị đơn hàng",
+    icon: Clock3,
+    color: "text-indigo-500",
+  },
 
-    PROCESSING: {
-        title: "Đang xử lý",
-        description: "Người bán đang chuẩn bị đơn hàng",
-        icon: Clock3,
-        color: "text-indigo-500"
-    },
+  SHIPPED: {
+    title: "Đang vận chuyển",
+    description: "Đơn hàng đang được giao đến khách hàng",
+    icon: Truck,
+    color: "text-blue-600",
+  },
 
-    SHIPPED: {
-        title: "Đang vận chuyển",
-        description: "Đơn hàng đang được giao đến khách hàng",
-        icon: Truck,
-        color: "text-blue-600"
-    },
+  DELIVERED: {
+    title: "Đã giao hàng",
+    description: "Khách hàng đã nhận được đơn hàng",
+    icon: PackageCheck,
+    color: "text-green-600",
+  },
 
-    DELIVERED: {
-        title: "Đã giao hàng",
-        description: "Khách hàng đã nhận được đơn hàng",
-        icon: PackageCheck,
-        color: "text-green-600"
-    },
+  COMPLETED: {
+    title: "Hoàn thành",
+    description: "Đơn hàng đã hoàn tất thành công",
+    icon: CheckCircle2,
+    color: "text-emerald-600",
+  },
 
-    COMPLETED: {
-        title: "Hoàn thành",
-        description: "Đơn hàng đã hoàn tất thành công",
-        icon: CheckCircle2,
-        color: "text-emerald-600"
-    },
+  DISPUTED: {
+    title: "Đang tranh chấp",
+    description: "Đơn hàng đang được xử lý tranh chấp",
+    icon: ShieldAlert,
+    color: "text-red-500",
+  },
 
-    DISPUTED: {
-        title: "Đang tranh chấp",
-        description: "Đơn hàng đang được xử lý tranh chấp",
-        icon: ShieldAlert,
-        color: "text-red-500"
-    },
-
-    CANCELLED: {
-        title: "Đã hủy",
-        description: "Đơn hàng đã bị hủy",
-        icon: XCircle,
-        color: "text-gray-500"
-    }
+  CANCELLED: {
+    title: "Đã hủy",
+    description: "Đơn hàng đã bị hủy",
+    icon: XCircle,
+    color: "text-gray-500",
+  },
 };

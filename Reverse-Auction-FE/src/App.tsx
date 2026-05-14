@@ -20,7 +20,7 @@ import OrderDetail from "./components/pages/seller/SellerOrders/SellerOrderDetai
 import SellerAuctionDetail from "./components/pages/seller/SellerAuctionDetail/SellerAuctionDetail.tsx";
 import ExternalChatPage from "./components/pages/chat/ExternalChatPage";
 import GlobalChatWidget from "./components/chat/GlobalChatWidget";
-import BuyerOrder from "./components/pages/buyer/BuyerOrder";
+import BuyerOrder from "./components/pages/buyer/BuyerOrder/BuyerOrder.tsx";
 import BuyerOrderDetail from "./components/pages/buyer/BuyerOrderDetail";
 import BuyerReview from "./components/pages/buyer/BuyerReview";
 import PaymentResult from "./components/pages/PaymentResult";
