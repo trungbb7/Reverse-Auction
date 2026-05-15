@@ -4,12 +4,14 @@
     <annotationProcessing>
       <profile default="true" name="Default" enabled="true" />
       <profile name="Annotation profile for reverse-auction" enabled="true">
+
         <sourceOutputDir name="../generated-sources/annotations" />
         <sourceTestOutputDir name="../generated-test-sources/test-annotations" />
         <processorPath useClasspath="false">
           <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/1.18.44/lombok-1.18.44.jar" />
           <entry name="$MAVEN_REPOSITORY$/org/mapstruct/mapstruct-processor/1.5.5.Final/mapstruct-processor-1.5.5.Final.jar" />
         </processorPath>
+
         <module name="reverse-auction.test" />
         <module name="reverse-auction.main" />
       </profile>
