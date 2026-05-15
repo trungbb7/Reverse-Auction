@@ -4,6 +4,7 @@ import Pagination from "@/components/ui/Pagination";
 import {orderService} from "@/services/orderService";
 import {type Order, type OrderStatus, ORDER_STEPS, ORDER_STATUS_INDEX, ORDER_STATUS_LABEL, ORDER_TRANSITION_RULE} from "@/types/orders";
 import {Search, Printer} from "lucide-react";
+import toast from "react-hot-toast";
 
 const statusColor = {
     AWAITING_PAYMENT: "text-yellow-700",
@@ -51,8 +52,11 @@ function OrderCard({order, onStatusUpdate,}: {
         try {
             const updated = await orderService.updateStatus(order.id, newStatus);
             onStatusUpdate(order.id, updated.status);
-        } catch {
+            toast.success(`Đã cập nhật trạng thái: ${ORDER_STATUS_LABEL[updated.status]}`);
+        } catch (err) {
+            console.error(err);
             setStatus(oldStatus);
+            toast.error("Cập nhật trạng thái thất bại. Vui lòng thử lại!");
         }
     }
     return (
@@ -181,13 +185,12 @@ export default function OrderManagement() {
     useEffect(() => {
         const fetchOrders = async () => {
             try {
-                const data = await orderService.getMyOrders();
+                const data = await orderService.getSellerOrders();
                 setOrders(data);
             } catch (err) {
                 console.error(err);
             }
         };
-
         fetchOrders();
     }, []);
     const handleStatusUpdate = (id: number, status: OrderStatus) => {

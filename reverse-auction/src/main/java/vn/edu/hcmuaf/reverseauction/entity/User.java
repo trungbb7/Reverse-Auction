@@ -31,9 +31,21 @@ public class User implements UserDetails {
     @Column(length = 20)
     private String phone;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private Double rating = 0.0;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer totalReviews = 0;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean enabled = true;
 
     @OneToMany(mappedBy = "buyer", fetch = FetchType.LAZY)
     @Builder.Default
@@ -45,7 +57,7 @@ public class User implements UserDetails {
     }
     @Override public String getUsername() { return email; }
     @Override public boolean isAccountNonExpired() { return true; }
-    @Override public boolean isAccountNonLocked() { return true; }
+    @Override public boolean isAccountNonLocked() { return enabled; }
     @Override public boolean isCredentialsNonExpired() { return true; }
-    @Override public boolean isEnabled() { return true; }
+    @Override public boolean isEnabled() { return enabled; }
 }

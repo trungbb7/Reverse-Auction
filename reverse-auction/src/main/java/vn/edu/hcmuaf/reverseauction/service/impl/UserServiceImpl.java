@@ -11,6 +11,7 @@ import vn.edu.hcmuaf.reverseauction.repository.UserRepository;
 import vn.edu.hcmuaf.reverseauction.service.UserService;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +42,22 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
 
         return mapToDTO(user);
+    }
+
+    @Override
+    public List<UserDTO> getAllUsers() {
+        return userRepository.findAll().stream()
+                .filter(user -> !vn.edu.hcmuaf.reverseauction.entity.Role.ROLE_ADMIN.equals(user.getRole()))
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public void toggleUserBlock(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        user.setEnabled(!user.isEnabled());
+        userRepository.save(user);
     }
 
     @Override

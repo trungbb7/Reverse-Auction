@@ -17,11 +17,13 @@ import vn.edu.hcmuaf.reverseauction.mapper.AuctionRequestMapper;
 import vn.edu.hcmuaf.reverseauction.repository.AuctionRequestRepository;
 import vn.edu.hcmuaf.reverseauction.repository.BidRepository;
 import vn.edu.hcmuaf.reverseauction.repository.CategoryRepository;
+import vn.edu.hcmuaf.reverseauction.repository.OrderRepository;
 import vn.edu.hcmuaf.reverseauction.repository.UserRepository;
 import vn.edu.hcmuaf.reverseauction.repository.specification.AuctionRequestSpecification;
 import vn.edu.hcmuaf.reverseauction.service.AuctionRequestService;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -32,6 +34,7 @@ public class AuctionRequestServiceImpl implements AuctionRequestService {
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
     private final AuctionRequestMapper auctionRequestMapper;
+    private final OrderRepository orderRepository;
 
     @Override
     public AuctionRequestResponseDTO createAuctionRequest(AuctionRequestCreateDTO requestDTO, String email) {
@@ -126,6 +129,24 @@ public class AuctionRequestServiceImpl implements AuctionRequestService {
         // 7. Set auction state
         auction.setStatus(AuctionStatus.COMPLETED);
         AuctionRequest saved = auctionRequestRepository.save(auction);
+
+        // 8. Create Order for buyer and seller
+        String orderCode = "AUC-" + auctionId + "-" + System.currentTimeMillis();
+        Order order = Order.builder()
+                .code(orderCode)
+                .type(OrderType.BID)
+                .auction(saved)
+                .bid(winnerBid)
+                .buyer(auction.getBuyer())
+                .seller(winnerBid.getSeller())
+                .finalPrice(winnerBid.getBidPrice())
+                .shippingFee(BigDecimal.ZERO)
+                .totalAmount(winnerBid.getBidPrice())
+                .status(OrderStatus.AWAITING_PAYMENT)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+        orderRepository.save(order);
 
         return auctionRequestMapper.toDTO(saved);
     }

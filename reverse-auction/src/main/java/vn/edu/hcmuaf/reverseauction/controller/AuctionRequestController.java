@@ -9,6 +9,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -17,6 +18,7 @@ import vn.edu.hcmuaf.reverseauction.dto.*;
 import vn.edu.hcmuaf.reverseauction.entity.AuctionStatus;
 import vn.edu.hcmuaf.reverseauction.entity.Category;
 import vn.edu.hcmuaf.reverseauction.service.AuctionRequestService;
+import vn.edu.hcmuaf.reverseauction.service.BidService;
 import vn.edu.hcmuaf.reverseauction.service.impl.AuctionService;
 
 import java.math.BigDecimal;
@@ -28,6 +30,8 @@ public class AuctionRequestController {
 
     private final AuctionRequestService auctionRequestService;
     private final AuctionService auctionService;
+    private final BidService bidService;
+    private final SimpMessagingTemplate simpMessagingTemplate;
 
     @PostMapping
     @PreAuthorize("hasRole('BUYER')")
@@ -96,7 +100,16 @@ public class AuctionRequestController {
         assert authentication != null;
         String email = authentication.getName();
 
+//        Websocket send to client
         AuctionRequestResponseDTO result = auctionRequestService.selectWinner(auctionId, bidId, email);
+        AllBidResponseDTO bids = bidService.getBidsForAuction(auctionId);
+        AuctionWSResponseDTO auctionWSResponseDTO = AuctionWSResponseDTO.builder()
+                .auction(result)
+                .bids(bids.getBids())
+                .build();
+        String destination = "/topic/auction/" + auctionId;
+        simpMessagingTemplate.convertAndSend(destination, auctionWSResponseDTO);
+
         return ResponseEntity.ok(result);
     }
 

@@ -2,7 +2,7 @@ import { BrowserRouter, Route, Routes } from "react-router";
 import { Toaster } from "react-hot-toast";
 import Home from "./components/pages/Home";
 import CreateAuction from "./components/pages/auctions/CreateAuction";
-import MyAuctions from "./components/pages/auctions/MyAuctions";
+import MyAuctions from "./components/pages/auctions/AuctionDetail/MyAuction/MyAuctions.tsx";
 import AuctionDetail from "./components/pages/auctions/AuctionDetail/AuctionDetail";
 import Profile from "./components/pages/Profile.tsx";
 import Unauthorized from "./components/pages/Unauthorized.tsx";
@@ -20,7 +20,10 @@ import OrderDetail from "./components/pages/seller/SellerOrders/SellerOrderDetai
 import SellerAuctionDetail from "./components/pages/seller/SellerAuctionDetail/SellerAuctionDetail.tsx";
 import ExternalChatPage from "./components/pages/chat/ExternalChatPage";
 import GlobalChatWidget from "./components/chat/GlobalChatWidget";
-import BuyerOrder from "./components/pages/buyer/BuyerOrder";
+import BuyerOrder from "./components/pages/buyer/BuyerOrder/BuyerOrder.tsx";
+import BuyerOrderDetail from "./components/pages/buyer/BuyerOrderDetail";
+import BuyerReview from "./components/pages/buyer/BuyerReview";
+import PaymentResult from "./components/pages/PaymentResult";
 import {
   RequireAuth,
   RequireRole,
@@ -29,6 +32,9 @@ import {
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "./hooks/redux.ts";
 import { fetchCurrentUser } from "./components/Auth/authSlice.ts";
+
+import UserManagement from "./components/pages/admin/UserManagement";
+import Demo from "./components/pages/Demo.tsx";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -63,6 +69,8 @@ function App() {
           <Route path="create-auction" element={<CreateAuction />} />
           <Route path="my-auctions" element={<MyAuctions />} />
           <Route path="auctions/:id" element={<AuctionDetail />} />
+          <Route path="buyer/orders" element={<BuyerOrder />} />
+          <Route path="buyer/orders/:id" element={<BuyerOrderDetail />} />
         </Route>
 
         {/* Any authenticated user routes */}
@@ -76,6 +84,7 @@ function App() {
         >
           <Route path="profile" element={<Profile />} />
           <Route path="orderHistory" element={<BuyerOrder />} />
+          <Route path="review/order/:id" element={<BuyerReview />} />
         </Route>
 
         {/* Auth routes */}
@@ -107,6 +116,7 @@ function App() {
           }
         >
           <Route index element={<div>Admin Dashboard (To be built)</div>} />
+          <Route path="users" element={<UserManagement />} />
         </Route>
 
         {/* Seller routes */}
@@ -125,6 +135,8 @@ function App() {
           <Route path="orders" element={<OrderManagement />} />
           <Route path="orders-detail/:id" element={<OrderDetail />} />
         </Route>
+        <Route path="/demo" element={<Demo />} />
+        <Route path="/payment/result" element={<PaymentResult />} />
       </Routes>
       <GlobalChatWidget />
     </BrowserRouter>

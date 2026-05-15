@@ -52,6 +52,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/api/public/**", "/error", "/ws/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/auctions").permitAll()
+                        .requestMatchers("/ws-auction/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

@@ -7,6 +7,6 @@ import java.util.List;
 
 @Data
 @AllArgsConstructor
-public class GetAllBidResponseDTO {
+public class AllBidResponseDTO {
     private List<BidResponseDTO> bids;
 }

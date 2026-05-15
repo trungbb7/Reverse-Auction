@@ -6,46 +6,66 @@ import vn.edu.hcmuaf.reverseauction.dto.OrderResponseDTO;
 import vn.edu.hcmuaf.reverseauction.entity.Order;
 import vn.edu.hcmuaf.reverseauction.entity.OrderStatus;
 import vn.edu.hcmuaf.reverseauction.repository.OrderRepository;
+import vn.edu.hcmuaf.reverseauction.repository.ReviewRepository;
 import vn.edu.hcmuaf.reverseauction.service.OrderService;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
+    private final ReviewRepository reviewRepository;
 
     @Override
     public List<OrderResponseDTO> getOrdersByUserId(Long uid) {
-        List<Order> orders = orderRepository.findByBuyer_IdOrSeller_Id(uid, uid);
+        List<Order> orders = orderRepository.findByBuyer_Id(uid);
         return orders.stream().map(this::toDTO).collect(Collectors.toList());
     }
+
+    @Override
+    public List<OrderResponseDTO> getOrdersBySellerId(Long sellerId) {
+        List<Order> orders = orderRepository.findBySeller_Id(sellerId);
+        return orders.stream().map(this::toDTO).collect(Collectors.toList());
+    }
+
     @Override
     public OrderResponseDTO getOrderById(Long id) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
-
         return toDTO(order);
     }
+
     @Override
     public OrderResponseDTO updateStatus(Long id, OrderStatus status) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
         order.setStatus(status);
+        order.setUpdatedAt(LocalDateTime.now());
         orderRepository.save(order);
 
         return toDTO(order);
     }
     private OrderResponseDTO toDTO(Order o) {
+        // For AUCTION orders, fallback to auction title/image when no product
+        String productName = o.getProduct() != null
+                ? o.getProduct().getName()
+                : (o.getAuction() != null ? o.getAuction().getTitle() : null);
+        String imageUrl = o.getProduct() != null
+                ? o.getProduct().getImageUrl()
+                : null;
+        String auctionTitle = o.getAuction() != null ? o.getAuction().getTitle() : null;
+
         return OrderResponseDTO.builder()
                 .id(o.getId())
                 .code(o.getCode() != null ? o.getCode() : null)
                 .type(o.getType().name())
 
                 .productId(o.getProduct() != null ? o.getProduct().getId() : null)
-                .productName(o.getProduct() != null ? o.getProduct().getName() : null)
-                .imageUrl(o.getProduct() != null ? o.getProduct().getImageUrl() : null)
+                .productName(productName)
+                .imageUrl(imageUrl)
                 .brand(o.getProduct() != null ? o.getProduct().getBrand() : null)
 
                 .buyerId(o.getBuyer().getId())
@@ -60,9 +80,11 @@ public class OrderServiceImpl implements OrderService {
                 .totalAmount(o.getTotalAmount())
 
                 .status(o.getStatus().name())
+                .alreadyReviewed(reviewRepository.existsByOrderId(o.getId()))
 
                 .auctionId(o.getAuction() != null ? o.getAuction().getId() : null)
                 .bidId(o.getBid() != null ? o.getBid().getId() : null)
+                .auctionTitle(auctionTitle)
 
                 .shippingAddress(o.getShippingAddress())
 
