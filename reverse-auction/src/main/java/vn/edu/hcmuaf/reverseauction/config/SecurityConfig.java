@@ -50,7 +50,7 @@ public class SecurityConfig {
                         .accessDeniedHandler(accessDeniedHandler)
                 )
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/api/public/**", "/error").permitAll()
+                        .requestMatchers("/api/auth/**", "/api/public/**", "/error", "/ws/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/auctions").permitAll()
                         .anyRequest().authenticated()
                 )

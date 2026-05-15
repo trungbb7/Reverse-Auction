@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useState } from "react";
 import {
   ChevronLeft,
   MessageSquare,
@@ -7,16 +7,7 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useAppSelector } from "@/hooks/redux";
-import { externalChatService } from "@/services/externalChatService";
-import type {
-  ChatUser,
-  ExternalConversation,
-  ExternalMessage,
-} from "@/types/externalChat";
-import toast from "react-hot-toast";
-
-type ChatTab = "conversations" | "contacts";
+import { useExternalChat } from "@/hooks/useExternalChat";
 
 const timeFormatter = new Intl.DateTimeFormat("vi-VN", {
   day: "2-digit",
@@ -31,10 +22,10 @@ const formatTime = (value?: string | null) => {
 };
 
 const getDisplayName = (user?: { fullName?: string; email?: string } | null) =>
-  user?.fullName || user?.email?.split("@")[0] || "Tài khoản";
+  user?.fullName || user?.email?.split("@")[0] || "Tai khoan";
 
 const getInitials = (value?: string | null) =>
-  (value || "Tài khoản")
+  (value || "Tai khoan")
     .split(" ")
     .map((word) => word[0])
     .filter(Boolean)
@@ -43,219 +34,62 @@ const getInitials = (value?: string | null) =>
     .toUpperCase();
 
 const GlobalChatWidget = () => {
-  const { user } = useAppSelector((state) => state.auth);
   const [isOpen, setIsOpen] = useState(false);
-  const [tab, setTab] = useState<ChatTab>("conversations");
-  const [search, setSearch] = useState("");
-  const [contacts, setContacts] = useState<ChatUser[]>([]);
-  const [conversations, setConversations] = useState<ExternalConversation[]>(
-    [],
-  );
-  const [messages, setMessages] = useState<ExternalMessage[]>([]);
-  const [selectedConversationId, setSelectedConversationId] = useState<
-    number | null
-  >(null);
-  const [selectedContactId, setSelectedContactId] = useState<number | null>(
-    null,
-  );
-  const [draft, setDraft] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [sending, setSending] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
-
-  const selectedConversation = useMemo(
-    () =>
-      conversations.find(
-        (conversation) => conversation.conversationId === selectedConversationId,
-      ) ?? null,
-    [conversations, selectedConversationId],
-  );
-
-  const selectedContact = useMemo(() => {
-    if (selectedConversation) {
-      return (
-        contacts.find(
-          (contact) => contact.id === selectedConversation.participantId,
-        ) ?? null
-      );
-    }
-
-    return contacts.find((contact) => contact.id === selectedContactId) ?? null;
-  }, [contacts, selectedContactId, selectedConversation]);
-
-  const activePeerName =
-    selectedConversation?.participantName ||
-    getDisplayName(selectedContact) ||
-    "Chọn người để bắt đầu";
-
-  const filteredConversations = useMemo(() => {
-    const keyword = search.trim().toLowerCase();
-    if (!keyword) return conversations;
-
-    return conversations.filter((conversation) =>
-      [conversation.participantName, conversation.participantEmail]
-        .filter(Boolean)
-        .some((field) => field!.toLowerCase().includes(keyword)),
-    );
-  }, [conversations, search]);
-
-  const filteredContacts = useMemo(() => {
-    const keyword = search.trim().toLowerCase();
-    if (!keyword) return contacts;
-
-    return contacts.filter((contact) =>
-      [contact.fullName, contact.email, contact.role]
-        .filter(Boolean)
-        .some((field) => field!.toLowerCase().includes(keyword)),
-    );
-  }, [contacts, search]);
-
-  const loadConversations = useCallback(async () => {
-    const data = await externalChatService.fetchConversations();
-    setConversations(data);
-
-    if (!selectedConversationId && data.length > 0 && !selectedContactId) {
-      setSelectedConversationId(data[0].conversationId);
-      setSelectedContactId(data[0].participantId);
-    }
-  }, [selectedConversationId, selectedContactId]);
-
-  const loadContacts = useCallback(async () => {
-    const data = await externalChatService.fetchContacts();
-    setContacts(data);
-  }, []);
-
-  const loadMessages = useCallback(async (conversationId: number) => {
-    const data = await externalChatService.fetchMessages(conversationId);
-    setMessages(data);
-  }, []);
-
-  const refreshAll = useCallback(async () => {
-    if (!user) return;
-
-    setLoading(true);
-    try {
-      await Promise.all([loadConversations(), loadContacts()]);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Không tải được dữ liệu chat";
-      toast.error(message);
-    } finally {
-      setLoading(false);
-    }
-  }, [loadConversations, loadContacts, user]);
-
-  useEffect(() => {
-    if (!isOpen || !user) return;
-    void refreshAll();
-  }, [isOpen, user?.id, refreshAll]);
-
-  useEffect(() => {
-    if (!isOpen || !user || !selectedConversationId) {
-      setMessages([]);
-      return;
-    }
-
-    void loadMessages(selectedConversationId).catch(() => {
-      toast.error("Không tải được tin nhắn");
-    });
-  }, [isOpen, user?.id, selectedConversationId, loadMessages]);
-
-  useEffect(() => {
-    if (!isOpen || !user) return;
-
-    const timer = window.setInterval(() => {
-      void loadConversations().catch(() => undefined);
-      if (selectedConversationId) {
-        void loadMessages(selectedConversationId).catch(() => undefined);
-      }
-    }, 5000);
-
-    return () => window.clearInterval(timer);
-  }, [
-    isOpen,
-    user?.id,
+  const {
+    user,
+    tab,
+    setTab,
+    search,
+    setSearch,
+    contacts,
+    conversations,
+    messages,
     selectedConversationId,
-    loadConversations,
-    loadMessages,
-  ]);
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, selectedConversationId]);
-
-  const handleSelectConversation = useCallback(
-    (conversation: ExternalConversation) => {
-      setTab("conversations");
-      setSelectedConversationId(conversation.conversationId);
-      setSelectedContactId(conversation.participantId);
-      setIsOpen(true);
-    },
-    [],
-  );
-
-  const handleSelectContact = useCallback(
-    (contact: ChatUser) => {
-      const existingConversation = conversations.find(
-        (conversation) => conversation.participantId === contact.id,
-      );
-
-      setTab("contacts");
-      setSelectedContactId(contact.id);
-      setSelectedConversationId(existingConversation?.conversationId ?? null);
-      setIsOpen(true);
-    },
-    [conversations],
-  );
-
-  const handleSend = useCallback(async () => {
-    if (!selectedContactId || !draft.trim()) return;
-
-    setSending(true);
-    try {
-      const response = await externalChatService.sendMessage({
-        receiverId: selectedContactId,
-        content: draft.trim(),
-      });
-
-      setDraft("");
-      setSelectedConversationId(response.conversationId);
-      setSelectedContactId(response.receiverId);
-      await refreshAll();
-      await loadMessages(response.conversationId);
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Không gửi được tin nhắn";
-      toast.error(message);
-    } finally {
-      setSending(false);
-    }
-  }, [draft, loadMessages, refreshAll, selectedContactId]);
+    selectedContactId,
+    selectedConversation,
+    selectedContact,
+    activePeerName,
+    filteredConversations,
+    filteredContacts,
+    draft,
+    setDraft,
+    loading,
+    sending,
+    connectionState,
+    isConnected,
+    bottomRef,
+    handleSelectConversation,
+    handleSelectContact,
+    handleSend,
+  } = useExternalChat({ enabled: isOpen });
 
   if (!user) return null;
 
   const renderConversationList = () => {
     if (loading && conversations.length === 0) {
-      return <p className="px-4 py-6 text-sm text-slate-500">Đang tải...</p>;
+      return <p className="px-4 py-6 text-sm text-slate-500">Loading...</p>;
     }
 
     if (filteredConversations.length === 0) {
       return (
         <div className="px-4 py-8 text-center text-sm text-slate-500">
-          Chưa có cuộc trò chuyện nào.
+          No conversations yet.
         </div>
       );
     }
 
     return filteredConversations.map((conversation) => {
       const isActive = conversation.conversationId === selectedConversationId;
-      const displayName = conversation.participantName || "Tài khoản";
+      const displayName = conversation.participantName || "Tai khoan";
 
       return (
         <button
           key={conversation.conversationId}
           type="button"
-          onClick={() => handleSelectConversation(conversation)}
+          onClick={() => {
+            handleSelectConversation(conversation);
+            setIsOpen(true);
+          }}
           className={`flex w-full items-start gap-3 border-b border-slate-100 px-4 py-3 text-left transition-colors hover:bg-slate-50 ${
             isActive ? "bg-primary-50" : ""
           }`}
@@ -275,10 +109,10 @@ const GlobalChatWidget = () => {
               </span>
             </div>
             <p className="truncate text-xs text-slate-500">
-              {conversation.participantRole || "Người dùng"}
+              {conversation.participantRole || "User"}
             </p>
             <p className="mt-1 truncate text-sm text-slate-600">
-              {conversation.lastMessage || "Bắt đầu cuộc trò chuyện"}
+              {conversation.lastMessage || "Start chatting"}
             </p>
           </div>
         </button>
@@ -288,13 +122,13 @@ const GlobalChatWidget = () => {
 
   const renderContactList = () => {
     if (loading && contacts.length === 0) {
-      return <p className="px-4 py-6 text-sm text-slate-500">Đang tải...</p>;
+      return <p className="px-4 py-6 text-sm text-slate-500">Loading...</p>;
     }
 
     if (filteredContacts.length === 0) {
       return (
         <div className="px-4 py-8 text-center text-sm text-slate-500">
-          Không tìm thấy người dùng phù hợp.
+          No matching users.
         </div>
       );
     }
@@ -310,7 +144,10 @@ const GlobalChatWidget = () => {
         <button
           key={contact.id}
           type="button"
-          onClick={() => handleSelectContact(contact)}
+          onClick={() => {
+            handleSelectContact(contact);
+            setIsOpen(true);
+          }}
           className={`flex w-full items-start gap-3 border-b border-slate-100 px-4 py-3 text-left transition-colors hover:bg-slate-50 ${
             isActive ? "bg-primary-50" : ""
           }`}
@@ -329,7 +166,7 @@ const GlobalChatWidget = () => {
             </div>
             <p className="truncate text-xs text-slate-500">{contact.email}</p>
             <p className="mt-1 text-sm text-slate-600">
-              {existingConversation ? "Đã có cuộc trò chuyện" : "Nhắn tin mới"}
+              {existingConversation ? "Conversation exists" : "New message"}
             </p>
           </div>
         </button>
@@ -346,9 +183,9 @@ const GlobalChatWidget = () => {
               <p className="text-xs uppercase tracking-[0.28em] text-slate-400">
                 External Chat
               </p>
-              <h2 className="mt-1 text-lg font-semibold">Tin nhắn của bạn</h2>
+              <h2 className="mt-1 text-lg font-semibold">Your chats</h2>
               <p className="text-sm text-slate-300">
-                Chat trực tiếp với mọi tài khoản trong hệ thống.
+                WebSocket only, realtime updates.
               </p>
             </div>
 
@@ -362,7 +199,7 @@ const GlobalChatWidget = () => {
                     : "bg-white text-slate-600 hover:bg-slate-100"
                 }`}
               >
-                Cuộc trò chuyện
+                Conversations
               </button>
               <button
                 type="button"
@@ -373,7 +210,7 @@ const GlobalChatWidget = () => {
                     : "bg-white text-slate-600 hover:bg-slate-100"
                 }`}
               >
-                Người dùng
+                Users
               </button>
             </div>
 
@@ -384,7 +221,7 @@ const GlobalChatWidget = () => {
                   value={search}
                   onChange={(event) => setSearch(event.target.value)}
                   className="w-full bg-transparent text-sm outline-none placeholder:text-slate-400"
-                  placeholder="Tìm kiếm..."
+                  placeholder="Search..."
                 />
               </div>
             </div>
@@ -416,18 +253,29 @@ const GlobalChatWidget = () => {
                   <p className="truncate text-xs text-slate-300">
                     {selectedConversation?.participantRole ||
                       selectedContact?.role ||
-                      "Chọn một người để chat"}
+                      "Select a user"}
                   </p>
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={() => setIsOpen(false)}
-                className="rounded-full border border-white/15 p-2 text-white transition-colors hover:bg-white/10"
-              >
-                <X size={18} />
-              </button>
+              <div className="flex items-center gap-2">
+                <span
+                  className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-wide ${
+                    connectionState === "connected"
+                      ? "bg-emerald-500/20 text-emerald-200"
+                      : "bg-amber-500/20 text-amber-200"
+                  }`}
+                >
+                  {connectionState === "connected" ? "Connected" : "Syncing"}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                  className="rounded-full border border-white/15 p-2 text-white transition-colors hover:bg-white/10"
+                >
+                  <X size={18} />
+                </button>
+              </div>
             </div>
 
             <div className="flex min-h-0 flex-1 flex-col bg-[radial-gradient(circle_at_top_left,_rgba(37,99,235,0.08),_transparent_35%),linear-gradient(to_bottom,_#ffffff,_#f8fafc)]">
@@ -439,11 +287,10 @@ const GlobalChatWidget = () => {
                         <div className="max-w-sm rounded-3xl border border-dashed border-slate-200 bg-white/80 px-6 py-8 text-center shadow-sm">
                           <Users className="mx-auto mb-3 text-slate-400" size={24} />
                           <p className="text-sm font-medium text-slate-700">
-                            Bắt đầu cuộc trò chuyện
+                            Start chatting
                           </p>
                           <p className="mt-1 text-sm text-slate-500">
-                            Gửi tin nhắn đầu tiên để tạo cuộc trò chuyện với{" "}
-                            {activePeerName}.
+                            Send the first message to {activePeerName}.
                           </p>
                         </div>
                       </div>
@@ -474,7 +321,7 @@ const GlobalChatWidget = () => {
                                   }`}
                                 >
                                   {formatTime(message.time)}{" "}
-                                  {isMine ? "Bạn" : message.senderName}
+                                  {isMine ? "You" : message.senderName}
                                 </p>
                               </div>
                             </div>
@@ -492,10 +339,10 @@ const GlobalChatWidget = () => {
                         size={26}
                       />
                       <p className="text-sm font-semibold text-slate-800">
-                        Chọn một cuộc trò chuyện
+                        Pick a conversation
                       </p>
                       <p className="mt-1 text-sm text-slate-500">
-                        Bấm vào danh sách bên trái để xem tin nhắn hoặc bắt đầu chat mới.
+                        Open a chat from the left to see messages or start a new one.
                       </p>
                     </div>
                   </div>
@@ -519,21 +366,30 @@ const GlobalChatWidget = () => {
                     }}
                     placeholder={
                       selectedContactId
-                        ? `Nhắn cho ${activePeerName}...`
-                        : "Chọn người dùng để bắt đầu chat"
+                        ? `Message ${activePeerName}...`
+                        : "Select a user to start chatting"
                     }
-                    disabled={!selectedContactId || sending}
+                    disabled={
+                      !selectedContactId ||
+                      sending ||
+                      !isConnected
+                    }
                     rows={2}
                     className="min-h-12 max-h-32 flex-1 resize-none bg-transparent px-1 py-1 text-sm outline-none placeholder:text-slate-400 disabled:cursor-not-allowed"
                   />
                   <button
                     type="button"
                     onClick={() => void handleSend()}
-                    disabled={!selectedContactId || !draft.trim() || sending}
+                    disabled={
+                      !selectedContactId ||
+                      !draft.trim() ||
+                      sending ||
+                      !isConnected
+                    }
                     className="inline-flex h-11 items-center gap-2 rounded-2xl bg-slate-900 px-4 text-sm font-semibold text-white transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-400"
                   >
                     <Send size={16} />
-                    Gửi
+                    Send
                   </button>
                 </div>
               </div>
@@ -545,7 +401,7 @@ const GlobalChatWidget = () => {
           type="button"
           onClick={() => setIsOpen(true)}
           className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-slate-950 to-slate-700 text-white shadow-[0_18px_40px_rgba(15,23,42,0.35)] transition-transform hover:scale-105"
-          aria-label="Mở chat"
+          aria-label="Open chat"
         >
           <MessageSquare size={22} />
         </button>

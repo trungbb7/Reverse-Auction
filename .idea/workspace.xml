@@ -4,7 +4,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="9de83c95-66f7-4a7d-af9b-f4ac4a01fad1" name="Changes" comment="" />
+    <list default="true" id="9de83c95-66f7-4a7d-af9b-f4ac4a01fad1" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/impl/ChatMessageService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/websocket/ChatWebSocketHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/chat/GlobalChatWidget.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/chat/GlobalChatWidget.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/chat/ExternalChatPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/chat/ExternalChatPage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/config/SecurityConfig.java" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -43,6 +52,7 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "Maven.reverse-auction [clean].executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.MCP Project settings loaded": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
