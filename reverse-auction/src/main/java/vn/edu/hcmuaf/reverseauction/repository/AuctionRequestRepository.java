@@ -11,10 +11,12 @@ import vn.edu.hcmuaf.reverseauction.entity.User;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface AuctionRequestRepository extends JpaRepository<AuctionRequest, Long>, JpaSpecificationExecutor<AuctionRequest> {
     Page<AuctionRequest> findByBuyer(User buyer, Pageable pageable);
+    Optional<AuctionRequest> findByTitle(String title);
 
     List<AuctionRequest> findByStatusAndEndDateBefore(AuctionStatus status, LocalDateTime dateTime);
 }

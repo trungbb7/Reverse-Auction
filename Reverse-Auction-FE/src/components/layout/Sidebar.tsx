@@ -10,7 +10,8 @@ import {
   FileText,
   Search,
   TriangleAlert,
-  MessageSquare
+  MessageSquare,
+  LayoutGrid
 } from "lucide-react";
 
 interface SidebarProps {
@@ -24,7 +25,8 @@ const Sidebar = ({ role = "admin" }: SidebarProps) => {
   const adminNavLinks = [
     { name: "Tổng quan", path: "/admin", icon: <LayoutDashboard size={20} /> },
     { name: "Quản lý đơn hàng", path: "/admin/orders", icon: <ShoppingCart size={20} /> },
-    { name: "Quản lý sản phẩm", path: "/admin/products", icon: <Package size={20} /> },
+    { name: "Quản lý đấu giá", path: "/admin/auctions", icon: <Package size={20} /> },
+    { name: "Danh mục", path: "/admin/categories", icon: <LayoutGrid size={20} /> },
     { name: "Người dùng", path: "/admin/users", icon: <Users size={20} /> },
     { name: "Doanh thu", path: "/admin/revenue", icon: <TrendingUp size={20} /> },
     { name: "Chính sách", path: "/admin/policies", icon: <FileText size={20} /> },
