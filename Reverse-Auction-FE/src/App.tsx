@@ -34,6 +34,8 @@ import { useAppDispatch, useAppSelector } from "./hooks/redux.ts";
 import { fetchCurrentUser } from "./components/Auth/authSlice.ts";
 
 import UserManagement from "./components/pages/admin/UserManagement";
+import CategoryManagement from "./components/pages/admin/CategoryManagement";
+import AuctionManagement from "./components/pages/admin/AuctionManagement";
 import Demo from "./components/pages/Demo.tsx";
 
 function App() {
@@ -117,6 +119,8 @@ function App() {
         >
           <Route index element={<div>Admin Dashboard (To be built)</div>} />
           <Route path="users" element={<UserManagement />} />
+          <Route path="categories" element={<CategoryManagement />} />
+          <Route path="auctions" element={<AuctionManagement />} />
         </Route>
 
         {/* Seller routes */}

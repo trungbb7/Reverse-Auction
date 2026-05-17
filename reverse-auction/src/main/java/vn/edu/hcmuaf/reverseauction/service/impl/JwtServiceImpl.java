@@ -16,14 +16,18 @@ import java.util.function.Function;
 
 @Service
 public class JwtServiceImpl implements JwtService {
-    private static final String SECRET_KEY = "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970";
+    @org.springframework.beans.factory.annotation.Value("${app.jwt.secret}")
+    private String secretKey;
+
+    @org.springframework.beans.factory.annotation.Value("${app.jwt.expiration-ms}")
+    private long jwtExpiration;
 
     @Override
     public String generateToken(UserDetails userDetails) {
         var builder = Jwts.builder()
                 .setSubject(userDetails.getUsername())
                 .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)); // 60 mins
+                .setExpiration(new Date(System.currentTimeMillis() + jwtExpiration));
 
         if (userDetails instanceof User user) {
             builder.claim("id", user.getId());
@@ -72,7 +76,7 @@ public class JwtServiceImpl implements JwtService {
     }
 
     private Key getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
+        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 

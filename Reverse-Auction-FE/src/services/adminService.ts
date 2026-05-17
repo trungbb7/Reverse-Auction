@@ -1,5 +1,6 @@
 import api from "@/utils/axios";
 import type { User } from "@/types/user";
+import type { Category } from "@/types/category";
 
 export const adminService = {
     getAllUsers: async (): Promise<User[]> => {
@@ -9,5 +10,31 @@ export const adminService = {
 
     toggleUserBlock: async (userId: number): Promise<void> => {
         await api.patch(`/admin/users/${userId}/toggle-block`);
+    },
+
+    // Category Management
+    getAllCategories: async (): Promise<Category[]> => {
+        const res = await api.get("/admin/categories");
+        return res.data;
+    },
+
+    createCategory: async (category: Omit<Category, "id">): Promise<Category> => {
+        const res = await api.post("/admin/categories", category);
+        return res.data;
+    },
+
+    updateCategory: async (id: number, category: Omit<Category, "id">): Promise<Category> => {
+        const res = await api.put(`/admin/categories/${id}`, category);
+        return res.data;
+    },
+
+    deleteCategory: async (id: number): Promise<void> => {
+        await api.delete(`/admin/categories/${id}`);
+    },
+
+    // Auction Management
+    getAllAuctions: async (page = 0, size = 10): Promise<any> => {
+        const res = await api.get(`/admin/auctions?page=${page}&size=${size}`);
+        return res.data;
     },
 };

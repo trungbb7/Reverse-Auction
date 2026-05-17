@@ -29,10 +29,11 @@ export default function Login() {
       dispatch(
         loginUser({
           user: {
-            id: Number(decoded.id),
-            email: decoded.sub || email,
-            role: decoded.role || "ROLE_BUYER",
-            fullName: decoded.fullName || email.split("@")[0],
+              id: Number(decoded.id),
+              email: decoded.sub || email,
+              role: decoded.role || "ROLE_BUYER",
+              fullName: decoded.fullName || email.split("@")[0],
+              enabled: false
           },
           accessToken,
           refreshToken,

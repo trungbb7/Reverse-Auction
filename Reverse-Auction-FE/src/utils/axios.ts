@@ -53,7 +53,7 @@ api.interceptors.response.use(
     const originalRequest = error.config as InternalAxiosRequestConfig;
     const requestUrl = originalRequest.url || "";
 
-    if (requestUrl.includes("/auth/refresh-token")) {
+    if (requestUrl.includes("/auth/refresh-token") || requestUrl.includes("/auth/login")) {
       return Promise.reject(error);
     }
 
