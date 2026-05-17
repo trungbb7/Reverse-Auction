@@ -17,10 +17,11 @@ import ResetPassword from "./components/pages/auth/ResetPassword";
 import SellerSearch from "./components/pages/seller/SellerSearch/SellerSearch";
 import OrderManagement from "./components/pages/seller/SellerOrders/SellerOrders";
 import OrderDetail from "./components/pages/seller/SellerOrders/SellerOrderDetail";
-import SellerAuctionDetail from "./components/pages/seller/SellerAuctionDetail/SellerAuctionDetail.tsx";
+import SellerProduct from "./components/pages/seller/SellerProduct/SellerProduct";
+import SellerAuctionDetail from "./components/pages/seller/SellerAuctionDetail/SellerAuctionDetail";
 import ExternalChatPage from "./components/pages/chat/ExternalChatPage";
 import GlobalChatWidget from "./components/chat/GlobalChatWidget";
-import BuyerOrder from "./components/pages/buyer/BuyerOrder/BuyerOrder.tsx";
+import BuyerOrder from "./components/pages/buyer/BuyerOrder/BuyerOrder";
 import BuyerOrderDetail from "./components/pages/buyer/BuyerOrderDetail";
 import BuyerReview from "./components/pages/buyer/BuyerReview";
 import PaymentResult from "./components/pages/PaymentResult";
@@ -137,6 +138,7 @@ function App() {
           <Route path="chat" element={<ExternalChatPage />} />
           <Route path="auctions/:id" element={<SellerAuctionDetail />} />
           <Route path="orders" element={<OrderManagement />} />
+          <Route path="products" element={<SellerProduct />} />
           <Route path="orders-detail/:id" element={<OrderDetail />} />
         </Route>
         <Route path="/demo" element={<Demo />} />
