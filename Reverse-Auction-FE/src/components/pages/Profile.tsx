@@ -18,6 +18,7 @@ const defaultUser: User = {
     email: "nguyenA@gmail.com",
     phone: "+84 90 123 4567",
     role: "ROLE_BUYER",
+    enabled: true,
 };
 
 export default function Profile() {
