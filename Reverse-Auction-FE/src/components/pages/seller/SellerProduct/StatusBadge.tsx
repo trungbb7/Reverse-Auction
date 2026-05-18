@@ -2,8 +2,14 @@ interface StatusBadgeProps {
     status: string;
 }
 
-export default function StatusBadge({status,}: StatusBadgeProps) {
-    const isActive = status === "ĐANG BÁN";
+const ProductStatusLabel: Record<string, string> = {
+    ACTIVE: "Đang bán",
+    HIDDEN: "Đã ẩn",
+    OUT_OF_STOCK: "Hết hàng",
+};
+
+export default function StatusBadge({ status }: StatusBadgeProps) {
+    const isActive = status === "ACTIVE";
 
     return (
         <span
@@ -13,7 +19,7 @@ export default function StatusBadge({status,}: StatusBadgeProps) {
                     : "bg-slate-200 text-slate-600"
             }`}
         >
-      {status}
-    </span>
+            {ProductStatusLabel[status] || status}
+        </span>
     );
 }

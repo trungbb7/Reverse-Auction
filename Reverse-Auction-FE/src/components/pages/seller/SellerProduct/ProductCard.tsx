@@ -4,8 +4,10 @@ import type { Product } from "@/types/product.ts";
 
 interface ProductRowProps {
     product: Product;
+    onEdit: (product: Product) => void;
+    onDelete: (id: number) => void;
 }
-export default function ProductRow({product,}: ProductRowProps) {
+export default function ProductRow({product, onEdit, onDelete}: ProductRowProps) {
     return (
         <tr className="border-b border-slate-100 hover:bg-slate-50 transition-all duration-200">
             <td className="py-5 px-6">
@@ -20,14 +22,14 @@ export default function ProductRow({product,}: ProductRowProps) {
                             {product.name}
                         </h3>
                         <p className="text-xs text-slate-400 mt-1">
-                            SKU: {product.sku}
+                            {product.sku}
                         </p>
                     </div>
                 </div>
             </td>
             <td className="py-5 px-4">
         <span className="bg-slate-100 text-slate-600 px-3 py-2 rounded-lg text-sm font-medium">
-          {product.category.name}
+          {product.categoryName}
         </span>
             </td>
             <td className="py-5 px-4 font-bold text-slate-800">
@@ -64,11 +66,19 @@ export default function ProductRow({product,}: ProductRowProps) {
 
             <td className="py-5 px-4">
                 <div className="flex items-center gap-4 text-slate-400">
-                    <button className="hover:text-indigo-600 transition-all duration-200">
+                    <button className="hover:text-indigo-600 transition-all duration-200"
+                            onClick={() => onEdit(product)}>
                         <Pencil size={18} />
                     </button>
 
-                    <button className="hover:text-red-500 transition-all duration-200">
+                    <button
+                        onClick={() => {
+                            if (confirm("Bạn có chắc muốn xóa sản phẩm này không?")) {
+                                onDelete(product.id);
+                            }
+                        }}
+                        className="hover:text-red-500 transition-all duration-200"
+                    >
                         <Trash2 size={18} />
                     </button>
                 </div>
