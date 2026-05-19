@@ -24,11 +24,14 @@ export const bidService = {
   },
 
   placeSocketBid: (data: BidRequest, client: Client | null) => {
-    if (client)
+    if (client) {
       client.publish({
         destination: `/app/place-bid/${data.auctionId}`,
         body: JSON.stringify(data),
       });
+    } else {
+      console.log("client not found");
+    }
   },
 
   updateSocketBid: (
