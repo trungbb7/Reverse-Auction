@@ -56,6 +56,9 @@ function PaymentPanel({ order }: { order: Order }) {
         amount,
         selectedBank,
       );
+
+      console.log(result);
+
       // Redirect to VNPay — VNPay will redirect back to /payment/result?orderId=X
       window.location.href = result.paymentUrl;
     } catch (err) {

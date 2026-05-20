@@ -1,23 +1,26 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { UploadCloud, CheckCircle2, ShieldCheck, Zap, X } from "lucide-react";
 import api from "@/utils/axios";
 import toast from "react-hot-toast";
 import { AxiosError } from "axios";
 import type { ErrorResponse } from "@/types/errorResponse";
+import type { Category } from "@/types/category";
+import { categoryService } from "@/services/categoryService";
 
-const CATEGORIES = [
-  { id: 1, name: "CPU - Bộ vi xử lý" },
-  { id: 2, name: "VGA - Card màn hình" },
-  { id: 3, name: "RAM - Bộ nhớ trong" },
-  { id: 4, name: "Ổ cứng (SSD/HDD)" },
-  { id: 5, name: "Mainboard - Bo mạch chủ" },
-  { id: 6, name: "Nguồn (PSU)" },
-  { id: 7, name: "Khác" },
-];
+// const CATEGORIES = [
+//   { id: 1, name: "CPU - Bộ vi xử lý" },
+//   { id: 2, name: "VGA - Card màn hình" },
+//   { id: 3, name: "RAM - Bộ nhớ trong" },
+//   { id: 4, name: "Ổ cứng (SSD/HDD)" },
+//   { id: 5, name: "Mainboard - Bo mạch chủ" },
+//   { id: 6, name: "Nguồn (PSU)" },
+//   { id: 7, name: "Khác" },
+// ];
 
 const CreateAuction = () => {
   const navigate = useNavigate();
+  const [categories, setCategories] = useState<Category[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     title: "",
@@ -66,6 +69,19 @@ const CreateAuction = () => {
   const removeImage = (index: number) => {
     setPreviewImages((prev) => prev.filter((_, i) => i !== index));
   };
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const categoriesRes = await categoryService.getCategories();
+        setCategories(categoriesRes);
+      } catch (err) {
+        console.error(err);
+        toast.error("Đã xảy ra lỗi khi lấy danh sách danh mục");
+      }
+    };
+    fetchCategories();
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto py-10 px-4 sm:px-6">
@@ -168,7 +184,7 @@ const CreateAuction = () => {
                   <option value="" disabled>
                     -- Chọn danh mục --
                   </option>
-                  {CATEGORIES.map((cat) => (
+                  {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>
                       {cat.name}
                     </option>
