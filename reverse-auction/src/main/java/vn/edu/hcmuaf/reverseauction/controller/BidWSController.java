@@ -2,23 +2,20 @@ package vn.edu.hcmuaf.reverseauction.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.handler.annotation.SendTo;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Controller;
-import vn.edu.hcmuaf.reverseauction.dto.*;
+import vn.edu.hcmuaf.reverseauction.dto.request.CreateBidRequestDTO;
+import vn.edu.hcmuaf.reverseauction.dto.request.UpdateBidRequestDTO;
+import vn.edu.hcmuaf.reverseauction.dto.response.AllBidResponseDTO;
+import vn.edu.hcmuaf.reverseauction.dto.response.AuctionWSResponseDTO;
 import vn.edu.hcmuaf.reverseauction.entity.User;
 import vn.edu.hcmuaf.reverseauction.service.BidService;
-import vn.edu.hcmuaf.reverseauction.service.UserService;
 
 import java.security.Principal;
-import java.util.List;
 
 @Controller
 @RequiredArgsConstructor

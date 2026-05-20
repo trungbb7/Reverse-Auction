@@ -1,4 +1,4 @@
-package vn.edu.hcmuaf.reverseauction.dto;
+package vn.edu.hcmuaf.reverseauction.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

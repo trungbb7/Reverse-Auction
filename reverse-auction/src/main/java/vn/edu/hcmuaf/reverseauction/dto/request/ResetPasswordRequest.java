@@ -1,4 +1,4 @@
-package vn.edu.hcmuaf.reverseauction.dto;
+package vn.edu.hcmuaf.reverseauction.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

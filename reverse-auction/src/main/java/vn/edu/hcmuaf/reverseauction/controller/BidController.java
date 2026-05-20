@@ -7,6 +7,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.hcmuaf.reverseauction.dto.*;
+import vn.edu.hcmuaf.reverseauction.dto.request.CreateBidRequestDTO;
+import vn.edu.hcmuaf.reverseauction.dto.request.UpdateBidRequestDTO;
+import vn.edu.hcmuaf.reverseauction.dto.response.AllBidResponseDTO;
 import vn.edu.hcmuaf.reverseauction.entity.User;
 import vn.edu.hcmuaf.reverseauction.service.BidService;
 

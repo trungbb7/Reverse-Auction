@@ -1,6 +1,7 @@
 package vn.edu.hcmuaf.reverseauction.service;
 
-import vn.edu.hcmuaf.reverseauction.dto.*;
+import vn.edu.hcmuaf.reverseauction.dto.request.*;
+import vn.edu.hcmuaf.reverseauction.dto.response.AuthenticationResponse;
 
 public interface AuthService {
     String register(RegisterRequest request);

@@ -11,7 +11,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import vn.edu.hcmuaf.reverseauction.dto.ErrorResponse;
+import vn.edu.hcmuaf.reverseauction.dto.response.ErrorResponse;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;

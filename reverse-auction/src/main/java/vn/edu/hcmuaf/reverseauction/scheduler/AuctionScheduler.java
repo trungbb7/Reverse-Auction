@@ -7,7 +7,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.hcmuaf.reverseauction.dto.AuctionRequestResponseDTO;
-import vn.edu.hcmuaf.reverseauction.dto.AuctionWSResponseDTO;
+import vn.edu.hcmuaf.reverseauction.dto.response.AuctionWSResponseDTO;
 import vn.edu.hcmuaf.reverseauction.entity.AuctionRequest;
 import vn.edu.hcmuaf.reverseauction.entity.AuctionStatus;
 import vn.edu.hcmuaf.reverseauction.mapper.AuctionRequestMapper;
