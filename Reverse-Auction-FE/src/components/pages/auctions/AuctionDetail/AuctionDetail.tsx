@@ -29,7 +29,7 @@ export default function AuctionDetail() {
   const [bids, setBids] = useState<Bid[]>([]);
   const [lowestBid, setLowestBid] = useState<number>(0);
   const [lastOffer, setLastOffer] = useState<string | undefined>();
-  const [selectedImages] = useState<string[]>([]);
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [mainImage, setMainImage] = useState(selectedImages[0] ?? "");
   const [winner, setWinner] = useState<number | null>(null);
   const currentUser = useAppSelector((state) => state.auth.user);
@@ -66,6 +66,7 @@ export default function AuctionDetail() {
       try {
         const { data } = await api.get(`/auctions/${id}`);
         const auc = data as Auction;
+        setSelectedImages(auc.imageUrls || []);
         setAuction(auc);
       } catch (err) {
         toast.error("Đã xảy ra lỗi khi lấy dữ liệu phiên đấu giá");

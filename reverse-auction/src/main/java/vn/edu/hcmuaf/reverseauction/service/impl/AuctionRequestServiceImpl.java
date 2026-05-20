@@ -14,11 +14,7 @@ import vn.edu.hcmuaf.reverseauction.entity.*;
 import vn.edu.hcmuaf.reverseauction.exception.CustomException;
 import vn.edu.hcmuaf.reverseauction.exception.ResourceNotFoundException;
 import vn.edu.hcmuaf.reverseauction.mapper.AuctionRequestMapper;
-import vn.edu.hcmuaf.reverseauction.repository.AuctionRequestRepository;
-import vn.edu.hcmuaf.reverseauction.repository.BidRepository;
-import vn.edu.hcmuaf.reverseauction.repository.CategoryRepository;
-import vn.edu.hcmuaf.reverseauction.repository.OrderRepository;
-import vn.edu.hcmuaf.reverseauction.repository.UserRepository;
+import vn.edu.hcmuaf.reverseauction.repository.*;
 import vn.edu.hcmuaf.reverseauction.repository.specification.AuctionRequestSpecification;
 import vn.edu.hcmuaf.reverseauction.service.AuctionRequestService;
 
@@ -35,8 +31,10 @@ public class AuctionRequestServiceImpl implements AuctionRequestService {
     private final CategoryRepository categoryRepository;
     private final AuctionRequestMapper auctionRequestMapper;
     private final OrderRepository orderRepository;
+    private final AuctionImageRepository auctionImageRepository;
 
     @Override
+    @Transactional
     public AuctionRequestResponseDTO createAuctionRequest(AuctionRequestCreateDTO requestDTO, String email) {
         User buyer = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
@@ -54,6 +52,15 @@ public class AuctionRequestServiceImpl implements AuctionRequestService {
                 .endDate(requestDTO.getEndDate())
                 .status(AuctionStatus.OPEN)
                 .build();
+
+        for (String imageUrl: requestDTO.getImageUrls()) {
+            AuctionImage auctionImage = AuctionImage.builder()
+                    .imageUrl(imageUrl)
+                    .auction(auctionRequest)
+                    .build();
+
+            auctionRequest.getAuctionImages().add(auctionImage);
+        }
 
         AuctionRequest savedAuctionRequest = auctionRequestRepository.save(auctionRequest);
 

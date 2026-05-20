@@ -23,6 +23,7 @@ public interface AuctionRequestMapper {
     @Mapping(target = "categoryName", expression = "java(aucRe.getCategory().getName())")
     @Mapping(target = "lowestPrice", source = "aucRe", qualifiedByName = "calculateLowestBidPrice")
     @Mapping(target = "totalBids", source = "aucRe", qualifiedByName = "calculateTotalBids")
+    @Mapping(target = "imageUrls", expression = "java(aucRe.getAuctionImages().stream().map(i -> i.getImageUrl()).toList())")
     AuctionRequestResponseDTO toDTO(AuctionRequest aucRe);
 
     default PageResponse<AuctionRequestResponseDTO> toPageResponse(Page<AuctionRequest> page) {

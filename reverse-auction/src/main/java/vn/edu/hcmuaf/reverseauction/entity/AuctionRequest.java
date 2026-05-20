@@ -31,6 +31,10 @@ public class AuctionRequest {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "auction")
     private List<Bid> bids;
 
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "auction", cascade = CascadeType.ALL)
+    @Builder.Default
+    private List<AuctionImage> auctionImages = new ArrayList<>();
+
 
     @Column(nullable = false)
     private String title;

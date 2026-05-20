@@ -8,6 +8,7 @@ import vn.edu.hcmuaf.reverseauction.entity.AuctionStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -27,5 +28,6 @@ public class AuctionRequestResponseDTO {
     private int totalBids;
     private LocalDateTime endDate;
     private AuctionStatus status;
+    private List<String> imageUrls;
     private LocalDateTime createdAt;
 }
