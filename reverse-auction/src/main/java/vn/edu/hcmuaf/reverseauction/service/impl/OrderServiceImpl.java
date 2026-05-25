@@ -2,6 +2,7 @@ package vn.edu.hcmuaf.reverseauction.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import vn.edu.hcmuaf.reverseauction.dto.OrderResponseDTO;
 import vn.edu.hcmuaf.reverseauction.entity.Order;
 import vn.edu.hcmuaf.reverseauction.entity.OrderStatus;
@@ -19,25 +20,29 @@ public class OrderServiceImpl implements OrderService {
     private final ReviewRepository reviewRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public List<OrderResponseDTO> getOrdersByUserId(Long uid) {
         List<Order> orders = orderRepository.findByBuyer_Id(uid);
         return orders.stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<OrderResponseDTO> getOrdersBySellerId(Long sellerId) {
         List<Order> orders = orderRepository.findBySeller_Id(sellerId);
         return orders.stream().map(this::toDTO).collect(Collectors.toList());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public OrderResponseDTO getOrderById(Long id) {
-        Order order = orderRepository.findById(id)
+        Order order = orderRepository.findWithDetailsById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
         return toDTO(order);
     }
 
     @Override
+    @Transactional
     public OrderResponseDTO updateStatus(Long id, OrderStatus status) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found"));

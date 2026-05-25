@@ -5,6 +5,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.hcmuaf.reverseauction.dto.request.ExternalMessageRequest;
+import vn.edu.hcmuaf.reverseauction.dto.request.EnsureConversationRequest;
 import vn.edu.hcmuaf.reverseauction.dto.response.ExternalConversationResponse;
 import vn.edu.hcmuaf.reverseauction.dto.response.ExternalMessageResponse;
 import vn.edu.hcmuaf.reverseauction.entity.ExternalConversation;
@@ -14,6 +15,7 @@ import vn.edu.hcmuaf.reverseauction.repository.ExternalConversationRepository;
 import vn.edu.hcmuaf.reverseauction.repository.ExternalMessageRepository;
 import vn.edu.hcmuaf.reverseauction.repository.UserRepository;
 
+import java.lang.reflect.Method;
 import java.time.Instant;
 import java.util.List;
 
@@ -47,7 +49,10 @@ public class ExternalChatService {
 
     @Transactional
     public ExternalMessageResponse sendMessage(Authentication authentication, ExternalMessageRequest request) {
-        if (request == null || request.receiverId() == null) {
+        if (request == null) {
+            throw new IllegalArgumentException("Message request is required");
+        }
+        if (request.receiverId() == null) {
             throw new IllegalArgumentException("Receiver is required");
         }
         if (request.content() == null || request.content().isBlank()) {
@@ -62,7 +67,18 @@ public class ExternalChatService {
             throw new IllegalArgumentException("Cannot send a message to yourself");
         }
 
-        ExternalConversation conversation = resolveOrCreateConversation(sender, receiver);
+        // Determine conversation: if conversationId provided, resolve it; otherwise create/resolve considering complaint flag from request
+        ExternalConversation conversation;
+        if (request.conversationId() != null) {
+            conversation = resolveConversationForUser(request.conversationId(), sender);
+        } else {
+            boolean complaint = extractComplaintFlag(request);
+            conversation = resolveOrCreateConversation(sender, receiver, complaint);
+        }
+
+        if (conversation.getUser1() == null || conversation.getUser2() == null) {
+            conversation = resolveOrCreateConversation(sender, receiver, conversation.isComplaintChat());
+        }
 
         ExternalMessage message = new ExternalMessage();
         message.setConversation(conversation);
@@ -78,8 +94,35 @@ public class ExternalChatService {
         return toMessageResponse(message);
     }
 
+    @Transactional
+    public ExternalConversationResponse ensureConversation(Authentication authentication, EnsureConversationRequest request) {
+        if (request == null || request.receiverId() == null) {
+            throw new IllegalArgumentException("Receiver is required");
+        }
+
+        User sender = resolveCurrentUser(authentication);
+        User receiver = userRepository.findById(request.receiverId())
+                .orElseThrow(() -> new IllegalArgumentException("Receiver not found: " + request.receiverId()));
+
+        if (sender.getId().equals(receiver.getId())) {
+            throw new IllegalArgumentException("Cannot create a conversation with yourself");
+        }
+
+        // extract complaint flag (if DTO provides it). default false
+        boolean complaint = extractComplaintFlag(request);
+
+        ExternalConversation conversation = resolveOrCreateConversation(sender, receiver, complaint);
+        return toConversationResponse(conversation, sender);
+    }
+
+    // Keep existing default behavior (non-complaint)
     private ExternalConversation resolveOrCreateConversation(User sender, User receiver) {
-        String hash = buildParticipantsHash(sender.getId(), receiver.getId());
+        return resolveOrCreateConversation(sender, receiver, false);
+    }
+
+    // New overload: create or resolve conversation considering complaint flag.
+    private ExternalConversation resolveOrCreateConversation(User sender, User receiver, boolean complaint) {
+        String hash = buildParticipantsHash(sender.getId(), receiver.getId(), complaint);
         return conversationRepository.findByParticipantsHash(hash)
                 .orElseGet(() -> {
                     ExternalConversation conversation = new ExternalConversation();
@@ -92,6 +135,7 @@ public class ExternalChatService {
                         conversation.setUser1(receiver);
                         conversation.setUser2(sender);
                     }
+                    conversation.setComplaintChat(complaint);
                     Instant now = Instant.now();
                     conversation.setCreatedDate(now);
                     conversation.setUpdatedDate(now);
@@ -129,7 +173,8 @@ public class ExternalChatService {
                 lastMessage == null ? null : lastMessage.getMessage(),
                 lastMessage == null ? null : lastMessage.getCreatedDate(),
                 conversation.getCreatedDate(),
-                conversation.getUpdatedDate()
+                conversation.getUpdatedDate(),
+                conversation.isComplaintChat()
         );
     }
 
@@ -146,10 +191,16 @@ public class ExternalChatService {
         );
     }
 
-    private String buildParticipantsHash(Long firstUserId, Long secondUserId) {
+    // New: build participants hash including complaint flag so complaint conversations don't collide with normal ones
+    private String buildParticipantsHash(Long firstUserId, Long secondUserId, boolean complaint) {
         long low = Math.min(firstUserId, secondUserId);
         long high = Math.max(firstUserId, secondUserId);
-        return low + ":" + high;
+        return low + ":" + high + (complaint ? ":C" : "");
+    }
+
+    // Backwards-compatible method
+    private String buildParticipantsHash(Long firstUserId, Long secondUserId) {
+        return buildParticipantsHash(firstUserId, secondUserId, false);
     }
 
     private boolean isParticipant(ExternalConversation conversation, User user) {
@@ -164,5 +215,29 @@ public class ExternalChatService {
 
         return userRepository.findByEmail(authentication.getName())
                 .orElseThrow(() -> new IllegalArgumentException("Authenticated user not found"));
+    }
+
+    // Helper: try to extract a boolean "complaint" flag from request DTO via reflection.
+    // This allows existing DTOs to be left unchanged, but if they provide a boolean field like
+    // isComplaint(), getComplaint(), complaint(), isComplaintChat() etc. it will be honored.
+    private boolean extractComplaintFlag(Object request) {
+        if (request == null) return false;
+        String[] candidateMethods = new String[] {
+                "isComplaint", "getComplaint", "complaint", "isComplaintChat", "getComplaintChat", "complaintChat"
+        };
+        for (String mName : candidateMethods) {
+            try {
+                Method m = request.getClass().getMethod(mName);
+                if (m.getReturnType() == boolean.class || m.getReturnType() == Boolean.class) {
+                    Object val = m.invoke(request);
+                    if (val instanceof Boolean) return (Boolean) val;
+                }
+            } catch (NoSuchMethodException nsme) {
+                // ignore and try next
+            } catch (Exception e) {
+                // ignore reflection errors and continue
+            }
+        }
+        return false;
     }
 }

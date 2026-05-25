@@ -3,6 +3,8 @@ package vn.edu.hcmuaf.reverseauction.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "product")
 @Getter
@@ -26,5 +28,20 @@ public class Product {
 
     @Column
     private String brand;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
+    @Column
+    private Integer stock;
+    @Column
+    private Byte rating;
+    @Column
+    private BigDecimal price;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean listedForSale = true;
+
 
 }

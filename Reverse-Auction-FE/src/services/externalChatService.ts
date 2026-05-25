@@ -7,6 +7,15 @@ import type {
 } from "@/types/externalChat";
 
 export const externalChatService = {
+  ensureConversation: async (
+    receiverId: number,
+  ): Promise<ExternalConversation> => {
+    const res = await api.post("/external-chats/conversations/ensure", {
+      receiverId,
+    });
+    return res.data;
+  },
+
   fetchContacts: async (): Promise<ChatUser[]> => {
     const res = await api.get("/users/chat-contacts");
     return res.data;

@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import vn.edu.hcmuaf.reverseauction.entity.*;
 import vn.edu.hcmuaf.reverseauction.repository.AuctionRequestRepository;
 import vn.edu.hcmuaf.reverseauction.repository.CategoryRepository;
+import vn.edu.hcmuaf.reverseauction.repository.ProductRepository;
 import vn.edu.hcmuaf.reverseauction.repository.UserRepository;
 
 import java.math.BigDecimal;
@@ -22,6 +23,7 @@ public class DataInitializer implements CommandLineRunner {
     private final UserRepository userRepository;
     private final AuctionRequestRepository auctionRequestRepository;
     private final vn.edu.hcmuaf.reverseauction.repository.BidRepository bidRepository;
+    private final ProductRepository productRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -48,6 +50,9 @@ public class DataInitializer implements CommandLineRunner {
 
         // 3. Seed Auction Requests & Bids
         seedAuctionsAndBids();
+
+        // 4. Seed Seller Products
+        seedProducts();
     }
 
     private void seedUsers() {
@@ -187,5 +192,54 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         System.out.println("Seeded PC component auction requests and bids.");
+    }
+
+    private void seedProducts() {
+        if (productRepository.count() > 0) {
+            return;
+        }
+
+        User seller = userRepository.findByEmail("seller@gmail.com").orElse(null);
+        if (seller == null) {
+            return;
+        }
+
+        productRepository.saveAll(List.of(
+                Product.builder()
+                        .name("ASUS TUF Gaming GeForce RTX 4070 SUPER")
+                        .brand("ASUS")
+                        .description("Card đồ họa hiệu năng cao cho gaming 2K/4K, tản nhiệt tốt, phù hợp build PC cao cấp.")
+                        .imageUrl(null)
+                        .stock(8)
+                        .rating((byte) 5)
+                        .price(new BigDecimal("18500000"))
+                        .listedForSale(true)
+                        .seller(seller)
+                        .build(),
+                Product.builder()
+                        .name("Intel Core i5-13600K")
+                        .brand("Intel")
+                        .description("CPU 14 nhân mạnh mẽ cho gaming và làm việc đa nhiệm, hỗ trợ ép xung nhẹ.")
+                        .imageUrl(null)
+                        .stock(15)
+                        .rating((byte) 5)
+                        .price(new BigDecimal("7200000"))
+                        .listedForSale(true)
+                        .seller(seller)
+                        .build(),
+                Product.builder()
+                        .name("Corsair Vengeance DDR5 32GB 6000MHz")
+                        .brand("Corsair")
+                        .description("Bộ RAM DDR5 tốc độ cao 32GB, tối ưu cho gaming và sáng tạo nội dung.")
+                        .imageUrl(null)
+                        .stock(12)
+                        .rating((byte) 4)
+                        .price(new BigDecimal("3600000"))
+                        .listedForSale(true)
+                        .seller(seller)
+                        .build()
+        ));
+
+        System.out.println("Seeded seller products.");
     }
 }

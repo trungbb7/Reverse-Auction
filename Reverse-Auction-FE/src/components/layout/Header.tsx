@@ -9,6 +9,7 @@ import {
   LogOut,
   UserCircle,
   ChevronDown,
+  TriangleAlert,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router";
 import { useAppSelector, useAppDispatch } from "@/hooks/redux";
@@ -25,13 +26,9 @@ const Header = ({ isAdmin = false }: HeaderProps) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(e.target as Node)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setDropdownOpen(false);
       }
     };
@@ -45,11 +42,8 @@ const Header = ({ isAdmin = false }: HeaderProps) => {
     navigate("/auth/login");
   };
 
-  // Get display name: fullName from store, fallback to email prefix
-  const displayName =
-    user?.fullName || user?.email?.split("@")[0] || "Tài khoản";
+  const displayName = user?.fullName || user?.email?.split("@")[0] || "Tai khoan";
 
-  // Generate avatar initials
   const initials = displayName
     .split(" ")
     .map((w) => w[0])
@@ -59,13 +53,11 @@ const Header = ({ isAdmin = false }: HeaderProps) => {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-200 bg-white shadow-sm">
-      <div className="flex h-16 items-center px-4 md:px-6 lg:px-8 max-w-7xl mx-auto w-full">
-        {/* Mobile menu button */}
+      <div className="mx-auto flex h-16 w-full max-w-7xl items-center px-4 md:px-6 lg:px-8">
         <button className="mr-4 md:hidden text-slate-500 hover:text-slate-900">
           <Menu className="h-6 w-6" />
         </button>
 
-        {/* Logo */}
         <div className="flex items-center gap-2">
           {!isAdmin && (
             <Link to="/" className="flex items-center gap-2">
@@ -76,67 +68,70 @@ const Header = ({ isAdmin = false }: HeaderProps) => {
           )}
         </div>
 
-        {/* Search Bar (Only for non-admin) */}
         {!isAdmin && (
-          <div className="hidden md:flex flex-1 items-center justify-center px-8">
+          <div className="hidden flex-1 items-center justify-center px-8 md:flex">
             <div className="relative w-full max-w-md">
               <input
                 type="text"
-                placeholder="Tìm kiếm linh kiện PC..."
-                className="w-full rounded-full border border-slate-300 bg-slate-50 px-4 py-2 pl-10 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+                placeholder="Tim kiem linh kien PC..."
+                className="w-full rounded-full border border-slate-300 bg-slate-50 py-2 pl-10 pr-4 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
               />
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
             </div>
           </div>
         )}
 
-        {/* Right Actions */}
         <div className="ml-auto flex items-center gap-3">
           {!isAdmin && logged && (
             <Link
               to="/cart"
-              className="text-slate-500 hover:text-primary-600 transition-colors relative"
+              className="relative text-slate-500 transition-colors hover:text-primary-600"
             >
               <ShoppingCart className="h-5 w-5" />
-              <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+              <span className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
                 0
               </span>
             </Link>
           )}
 
           {logged && (
-            <button className="text-slate-500 hover:text-primary-600 transition-colors relative">
+            <button className="relative text-slate-500 transition-colors hover:text-primary-600">
               <Bell className="h-5 w-5" />
-              <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
+              <span className="absolute right-0 top-0 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white" />
             </button>
           )}
 
           {!isAdmin && logged && (
             <>
-              <div className="h-6 w-px bg-slate-200 mx-1 hidden sm:block"></div>
+              <div className="mx-1 hidden h-6 w-px bg-slate-200 sm:block" />
               <Link
                 to="/my-auctions"
-                className="hidden md:flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-primary-600 transition-colors"
+                className="hidden items-center gap-2 text-sm font-medium text-slate-700 transition-colors hover:text-primary-600 md:flex"
               >
                 Đấu giá của tôi
+              </Link>
+              <Link
+                to="/buyer/complaints"
+                className="hidden items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-sm font-semibold text-amber-700 transition-colors hover:border-amber-300 hover:bg-amber-100 md:flex"
+              >
+                <TriangleAlert className="h-4 w-4" />
+                Khiếu nại
               </Link>
             </>
           )}
 
-          <div className="h-6 w-px bg-slate-200 mx-1 hidden sm:block"></div>
+          <div className="mx-1 hidden h-6 w-px bg-slate-200 sm:block" />
 
-          {/* Auth section */}
           {logged ? (
-            /* Logged in: Avatar + dropdown */
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setDropdownOpen((prev) => !prev)}
-                className="flex items-center gap-2 rounded-full px-2 py-1 hover:bg-slate-100 transition-colors"
+                className="flex items-center gap-2 rounded-full px-2 py-1 transition-colors hover:bg-slate-100"
               >
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-600 text-white text-xs font-bold select-none">
+                <div className="flex h-8 w-8 select-none items-center justify-center rounded-full bg-primary-600 text-xs font-bold text-white">
                   {initials}
                 </div>
-                <span className="hidden sm:inline-block text-sm font-medium text-slate-700 max-w-[120px] truncate">
+                <span className="hidden max-w-[120px] truncate text-sm font-medium text-slate-700 sm:inline-block">
                   {displayName}
                 </span>
                 <ChevronDown
@@ -144,15 +139,13 @@ const Header = ({ isAdmin = false }: HeaderProps) => {
                 />
               </button>
 
-              {/* Dropdown menu */}
               {dropdownOpen && (
-                <div className="absolute right-0 mt-2 w-52 rounded-xl border border-slate-200 bg-white shadow-lg py-1 animate-in fade-in slide-in-from-top-2 duration-150">
-                  {/* User info header */}
-                  <div className="px-4 py-3 border-b border-slate-100">
-                    <p className="text-sm font-semibold text-slate-800 truncate">
+                <div className="absolute right-0 mt-2 w-52 rounded-xl border border-slate-200 bg-white py-1 shadow-lg animate-in fade-in slide-in-from-top-2 duration-150">
+                  <div className="border-b border-slate-100 px-4 py-3">
+                    <p className="truncate text-sm font-semibold text-slate-800">
                       {displayName}
                     </p>
-                    <p className="text-xs text-slate-400 truncate mt-0.5">
+                    <p className="mt-0.5 truncate text-xs text-slate-400">
                       {user?.email}
                     </p>
                   </div>
@@ -160,28 +153,38 @@ const Header = ({ isAdmin = false }: HeaderProps) => {
                   <Link
                     to="/profile"
                     onClick={() => setDropdownOpen(false)}
-                    className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 hover:text-primary-600 transition-colors"
+                    className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 transition-colors hover:bg-slate-50 hover:text-primary-600"
                   >
                     <UserCircle className="h-4 w-4" />
                     Hồ sơ của tôi
                   </Link>
 
                   {user?.role === "ROLE_BUYER" && (
-                    <Link
-                      to="/buyer/orders"
-                      onClick={() => setDropdownOpen(false)}
-                      className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 hover:text-primary-600 transition-colors"
-                    >
-                      <ShoppingCart className="h-4 w-4" />
-                      Đơn hàng
-                    </Link>
+                    <>
+                      <Link
+                        to="/buyer/complaints"
+                        onClick={() => setDropdownOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 transition-colors hover:bg-slate-50 hover:text-primary-600"
+                      >
+                        <TriangleAlert className="h-4 w-4" />
+                        Khiếu nại
+                      </Link>
+                      <Link
+                        to="/buyer/orders"
+                        onClick={() => setDropdownOpen(false)}
+                        className="flex items-center gap-2.5 px-4 py-2.5 text-sm text-slate-700 transition-colors hover:bg-slate-50 hover:text-primary-600"
+                      >
+                        <ShoppingCart className="h-4 w-4" />
+                        Đơn hàng
+                      </Link>
+                    </>
                   )}
 
-                  <div className="border-t border-slate-100 my-1"></div>
+                  <div className="my-1 border-t border-slate-100" />
 
                   <button
                     onClick={handleLogout}
-                    className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors"
+                    className="flex w-full items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 transition-colors hover:bg-red-50"
                   >
                     <LogOut className="h-4 w-4" />
                     Đăng xuất
@@ -190,18 +193,17 @@ const Header = ({ isAdmin = false }: HeaderProps) => {
               )}
             </div>
           ) : (
-            /* Not logged in: Login + Register buttons */
             <div className="flex items-center gap-2">
               <Link
                 to="/auth/login"
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium text-slate-700 border border-slate-200 hover:border-primary-500 hover:text-primary-600 transition-all"
+                className="flex items-center gap-1.5 rounded-full border border-slate-200 px-4 py-1.5 text-sm font-medium text-slate-700 transition-all hover:border-primary-500 hover:text-primary-600"
               >
                 <LogIn className="h-4 w-4" />
                 <span className="hidden sm:inline">Đăng nhập</span>
               </Link>
               <Link
                 to="/auth/register"
-                className="flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 transition-all shadow-sm"
+                className="flex items-center gap-1.5 rounded-full bg-primary-600 px-4 py-1.5 text-sm font-medium text-white transition-all shadow-sm hover:bg-primary-700"
               >
                 <UserPlus className="h-4 w-4" />
                 <span className="hidden sm:inline">Đăng ký</span>

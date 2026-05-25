@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   ArrowRight,
   Cpu,
@@ -12,8 +13,16 @@ import {
 import { CategoryCard } from "../ui/CategoryCard";
 import { ProductCard } from "../ui/ProductCard";
 import { AuctionCard } from "../ui/AuctionCard";
+import Pagination from "../ui/Pagination";
+import { productService } from "@/services/productService";
+import type { Product } from "@/types/product";
 
 export default function Home() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [productPage, setProductPage] = useState(1);
+  const [productTotalPages, setProductTotalPages] = useState(1);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+
   const categories = [
     { title: "CPU", icon: Cpu, desc: "Vi xử lý" },
     { title: "VGA", icon: GpuIcon, desc: "Card đồ họa" },
@@ -23,33 +32,6 @@ export default function Home() {
     { title: "Màn hình", icon: Monitor, desc: "LCD / OLED" },
     { title: "Phụ kiện", icon: Mouse, desc: "Chuột, Bàn phím" },
     { title: "Khác", icon: ShieldAlert, desc: "Tản nhiệt, Case..." },
-  ];
-
-  const trendingProducts = [
-    {
-      name: "CPU Intel Core i9-14900K",
-      price: "14.500.000đ",
-      rating: 4.9,
-      sold: 128,
-    },
-    {
-      name: "VGA NVIDIA RTX 4070 Ti Super",
-      price: "22.300.000đ",
-      rating: 4.8,
-      sold: 85,
-    },
-    {
-      name: "RAM Corsair Vengeance RGB 32GB DDR5",
-      price: "3.200.000đ",
-      rating: 5.0,
-      sold: 342,
-    },
-    {
-      name: "SSD Samsung 990 Pro 2TB",
-      price: "4.100.000đ",
-      rating: 4.9,
-      sold: 215,
-    },
   ];
 
   const recentAuctions = [
@@ -82,6 +64,23 @@ export default function Home() {
     },
   ];
 
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoadingProducts(true);
+      try {
+        const data = await productService.getPublicProducts(productPage - 1, 8);
+        setProducts(data.content);
+        setProductTotalPages(Math.max(1, data.totalPages));
+      } catch (error) {
+        console.error("Failed to load public products", error);
+      } finally {
+        setLoadingProducts(false);
+      }
+    };
+
+    fetchProducts();
+  }, [productPage]);
+
   return (
     <div className="space-y-16 pb-12">
       {/* Hero Section */}
@@ -105,8 +104,7 @@ export default function Home() {
             </div>
             <div className="flex max-w-[512px] pb-4 flex-col items-start w-[512px]">
               <p className="flex flex-col justify-center text-[#CBD5E1] font-inter text-lg leading-7 w-[499px] h-14">
-                Thử Trợ lý AI của chúng tôi để nhận danh sách cấu hình tối ưu
-                chỉ trong 30 giây.
+                Thử Trợ lý AI của chúng tôi để nhận danh sách cấu hình tối ưu chỉ trong 30 giây.
               </p>
             </div>
             <div className="flex py-3 px-8 items-center gap-2 rounded-full bg-[#FFF] w-fit">
@@ -180,8 +178,7 @@ export default function Home() {
               </div>
               <div className="flex flex-col items-start w-full">
                 <p className="text-[#475569] font-inter text-sm leading-5 w-full">
-                  Tiết kiệm thời gian và ngân sách với hệ thống đấu thầu tự
-                  động.
+                  Tiết kiệm thời gian và ngân sách với hệ thống đấu thầu tự động.
                 </p>
               </div>
             </div>
@@ -304,12 +301,8 @@ export default function Home() {
       <section>
         <div className="flex items-end justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-bold text-slate-800">
-              Danh mục nổi bật
-            </h2>
-            <p className="text-slate-500 mt-2">
-              Tìm kiếm linh kiện theo nhu cầu của bạn
-            </p>
+            <h2 className="text-2xl font-bold text-slate-800">Danh mục nổi bật</h2>
+            <p className="text-slate-500 mt-2">Tìm kiếm linh kiện theo nhu cầu của bạn</p>
           </div>
           <button className="text-primary-600 font-medium hover:text-primary-700 hidden sm:flex items-center">
             Xem tất cả <ArrowRight className="ml-1" size={16} />
@@ -328,30 +321,39 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Trending Products Section */}
+      {/* Products Section */}
       <section>
         <div className="flex items-end justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-bold text-slate-800">
-              Linh kiện đang Hot
-            </h2>
-            <p className="text-slate-500 mt-2">
-              Các sản phẩm được tìm kiếm và yêu cầu nhiều nhất
-            </p>
+            <h2 className="text-2xl font-bold text-slate-800">Sản phẩm đăng bán</h2>
+            <p className="text-slate-500 mt-2">Tất cả sản phẩm từ các shop đang bán trên sàn</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {trendingProducts.map((prod, idx) => (
-            <ProductCard
-              key={idx}
-              name={prod.name}
-              price={prod.price}
-              rating={prod.rating}
-              sold={prod.sold}
+        {loadingProducts ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {Array.from({ length: 8 }).map((_, idx) => (
+              <div
+                key={idx}
+                className="h-[370px] rounded-2xl border border-slate-100 bg-white animate-pulse"
+              />
+            ))}
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {products.map((product) => (
+                <ProductCard key={product.id} product={product} />
+              ))}
+            </div>
+
+            <Pagination
+              currentPage={productPage}
+              totalPages={productTotalPages}
+              setCurrentPage={setProductPage}
             />
-          ))}
-        </div>
+          </>
+        )}
       </section>
 
       {/* Recent Auctions Section */}
@@ -359,9 +361,7 @@ export default function Home() {
         <div className="flex items-end justify-between mb-8">
           <div>
             <div className="flex items-center space-x-3">
-              <h2 className="text-2xl font-bold text-slate-800">
-                Phiên đấu giá đang mở
-              </h2>
+              <h2 className="text-2xl font-bold text-slate-800">Phiên đấu giá đang mở</h2>
               <span className="flex h-3 w-3 relative">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>

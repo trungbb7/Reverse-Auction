@@ -18,17 +18,21 @@ import SellerSearch from "./components/pages/seller/SellerSearch/SellerSearch";
 import OrderManagement from "./components/pages/seller/SellerOrders/SellerOrders";
 import OrderDetail from "./components/pages/seller/SellerOrders/SellerOrderDetail";
 import SellerAuctionDetail from "./components/pages/seller/SellerAuctionDetail/SellerAuctionDetail.tsx";
+import SellerProducts from "./components/pages/seller/ProductManagement/SellerProducts";
+import ProductDetail from "./components/pages/products/ProductDetail";
 import ExternalChatPage from "./components/pages/chat/ExternalChatPage";
 import GlobalChatWidget from "./components/chat/GlobalChatWidget";
 import BuyerOrder from "./components/pages/buyer/BuyerOrder/BuyerOrder.tsx";
 import BuyerOrderDetail from "./components/pages/buyer/BuyerOrderDetail";
 import BuyerReview from "./components/pages/buyer/BuyerReview";
+import BuyerComplaint from "./components/pages/buyer/BuyerComplaint/BuyerComplaint";
 import PaymentResult from "./components/pages/PaymentResult";
 import {
   RequireAuth,
   RequireRole,
   GuestOnly,
 } from "./components/Auth/ProtectedRoute";
+import { Navigate } from "react-router";
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "./hooks/redux.ts";
 import { fetchCurrentUser } from "./components/Auth/authSlice.ts";
@@ -37,6 +41,8 @@ import UserManagement from "./components/pages/admin/UserManagement";
 import CategoryManagement from "./components/pages/admin/CategoryManagement";
 import AuctionManagement from "./components/pages/admin/AuctionManagement";
 import Demo from "./components/pages/Demo.tsx";
+import AdminComplaintManagement from "./components/pages/admin/AdminComplaintManagement";
+import ComplaintDetailPage from "./components/pages/buyer/BuyerComplaint/ComplaintDetailPage";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -57,6 +63,7 @@ function App() {
         {/* Public home route */}
         <Route path="/" element={<MainLayout />}>
           <Route index element={<Home />} />
+          <Route path="products/:id" element={<ProductDetail scope="public" />} />
         </Route>
 
         {/* Buyer-only routes */}
@@ -73,6 +80,8 @@ function App() {
           <Route path="auctions/:id" element={<AuctionDetail />} />
           <Route path="buyer/orders" element={<BuyerOrder />} />
           <Route path="buyer/orders/:id" element={<BuyerOrderDetail />} />
+          <Route path="buyer/complaints" element={<BuyerComplaint />} />
+          <Route path="buyer/complaints/:id" element={<ComplaintDetailPage />} />
         </Route>
 
         {/* Any authenticated user routes */}
@@ -121,6 +130,8 @@ function App() {
           <Route path="users" element={<UserManagement />} />
           <Route path="categories" element={<CategoryManagement />} />
           <Route path="auctions" element={<AuctionManagement />} />
+          <Route path="complaints" element={<AdminComplaintManagement />} />
+          <Route path="complaints/:id" element={<ComplaintDetailPage />} />
         </Route>
 
         {/* Seller routes */}
@@ -132,7 +143,9 @@ function App() {
             </RequireRole>
           }
         >
-          <Route index element={<div>Seller Dashboard (To be built)</div>} />
+          <Route index element={<Navigate to="products" replace />} />
+          <Route path="products" element={<SellerProducts />} />
+          <Route path="products/:id" element={<ProductDetail scope="seller" />} />
           <Route path="search" element={<SellerSearch />} />
           <Route path="chat" element={<ExternalChatPage />} />
           <Route path="auctions/:id" element={<SellerAuctionDetail />} />

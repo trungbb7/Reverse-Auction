@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import vn.edu.hcmuaf.reverseauction.dto.request.ExternalMessageRequest;
+import vn.edu.hcmuaf.reverseauction.dto.request.EnsureConversationRequest;
 import vn.edu.hcmuaf.reverseauction.dto.response.ExternalConversationResponse;
 import vn.edu.hcmuaf.reverseauction.dto.response.ExternalMessageResponse;
 import vn.edu.hcmuaf.reverseauction.service.impl.ExternalChatService;
@@ -27,6 +28,14 @@ public class ExternalChatController {
     @GetMapping("/conversations")
     public ResponseEntity<List<ExternalConversationResponse>> listConversations(Authentication authentication) {
         return ResponseEntity.ok(externalChatService.listConversations(authentication));
+    }
+
+    @PostMapping("/conversations/ensure")
+    public ResponseEntity<ExternalConversationResponse> ensureConversation(
+            Authentication authentication,
+            @RequestBody EnsureConversationRequest request
+    ) {
+        return ResponseEntity.ok(externalChatService.ensureConversation(authentication, request));
     }
 
     @GetMapping("/conversations/{conversationId}/messages")

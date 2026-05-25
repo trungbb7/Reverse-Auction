@@ -13,6 +13,7 @@ import {
   Gavel,
   ExternalLink,
   Loader2,
+  TriangleAlert,
 } from "lucide-react";
 import {
   type Order,
@@ -271,6 +272,14 @@ export default function BuyerOrderDetail() {
                 {new Date(order.createdAt).toLocaleString("vi-VN")}
               </span>
             </div>
+            <button
+              type="button"
+              onClick={() => navigate(`/buyer/complaints?orderId=${order.id}`)}
+              className="mt-4 inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-700 transition hover:border-amber-300 hover:bg-amber-100"
+            >
+              <TriangleAlert className="w-4 h-4" />
+              Khiếu nại đơn hàng
+            </button>
           </div>
         </div>
 

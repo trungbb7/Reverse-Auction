@@ -90,11 +90,18 @@ const ExternalChatPage = () => {
               <p className="truncate text-sm font-semibold text-slate-900">
                 {displayName}
               </p>
-              <span className="shrink-0 text-[11px] text-slate-400">
-                {formatTime(
-                  conversation.lastMessageAt || conversation.updatedDate,
+              <div className="flex shrink-0 items-center gap-2">
+                {conversation.complaintChat && (
+                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700">
+                    Complaint
+                  </span>
                 )}
-              </span>
+                <span className="text-[11px] text-slate-400">
+                  {formatTime(
+                    conversation.lastMessageAt || conversation.updatedDate,
+                  )}
+                </span>
+              </div>
             </div>
             <p className="truncate text-xs text-slate-500">
               {conversation.participantRole || "User"}

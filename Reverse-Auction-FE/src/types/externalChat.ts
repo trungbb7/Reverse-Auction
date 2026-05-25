@@ -16,6 +16,7 @@ export interface ExternalConversation {
   lastMessageAt?: string | null;
   createdDate: string;
   updatedDate: string;
+  complaintChat?: boolean;
 }
 
 export interface ExternalMessage {
@@ -30,6 +31,7 @@ export interface ExternalMessage {
 }
 
 export interface SendExternalMessageRequest {
+  conversationId?: number | null;
   receiverId: number;
   content: string;
 }

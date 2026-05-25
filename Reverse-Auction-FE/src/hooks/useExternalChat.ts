@@ -14,12 +14,16 @@ type ConnectionState = "idle" | "connecting" | "connected" | "reconnecting";
 
 type UseExternalChatOptions = {
   enabled: boolean;
+  initialConversationId?: number | null;
 };
 
 const formatChatError = (error: unknown, fallback: string) =>
   error instanceof Error ? error.message : fallback;
 
-export const useExternalChat = ({ enabled }: UseExternalChatOptions) => {
+export const useExternalChat = ({
+  enabled,
+  initialConversationId = null,
+}: UseExternalChatOptions) => {
   const { user } = useAppSelector((state) => state.auth);
   const [tab, setTab] = useState<ChatTab>("conversations");
   const [search, setSearch] = useState("");
@@ -47,6 +51,7 @@ export const useExternalChat = ({ enabled }: UseExternalChatOptions) => {
   const reconnectAttemptsRef = useRef(0);
   const manualCloseRef = useRef(false);
   const connectSocketRef = useRef<(() => void) | null>(null);
+  const ensuringConversationRef = useRef<number | null>(null);
 
   const selectedConversation = useMemo(
     () =>
@@ -113,6 +118,17 @@ export const useExternalChat = ({ enabled }: UseExternalChatOptions) => {
     const data = await externalChatService.fetchConversations();
     setConversations(data);
 
+    if (initialConversationId != null) {
+      const target = data.find(
+        (conversation) => conversation.conversationId === initialConversationId,
+      );
+      if (target) {
+        setSelectedConversationId(target.conversationId);
+        setSelectedContactId(target.participantId);
+        return;
+      }
+    }
+
     setSelectedConversationId((currentConversationId) => {
       if (currentConversationId || data.length === 0) {
         return currentConversationId;
@@ -125,7 +141,7 @@ export const useExternalChat = ({ enabled }: UseExternalChatOptions) => {
     if (!selectedConversationId && data.length > 0 && !selectedContactId) {
       setSelectedContactId(data[0].participantId);
     }
-  }, [selectedConversationId, selectedContactId]);
+  }, [initialConversationId, selectedConversationId, selectedContactId]);
 
   const loadContacts = useCallback(async () => {
     const data = await externalChatService.fetchContacts();
@@ -136,6 +152,41 @@ export const useExternalChat = ({ enabled }: UseExternalChatOptions) => {
     const data = await externalChatService.fetchMessages(conversationId);
     setMessages(data);
   }, []);
+
+  useEffect(() => {
+    if (!enabled || !user || !selectedContactId || selectedConversationId != null) {
+      return;
+    }
+
+    if (ensuringConversationRef.current === selectedContactId) {
+      return;
+    }
+
+    ensuringConversationRef.current = selectedContactId;
+    void externalChatService
+      .ensureConversation(selectedContactId)
+      .then((conversation) => {
+        setConversations((current) => {
+          const exists = current.some(
+            (item) => item.conversationId === conversation.conversationId,
+          );
+          if (exists) {
+            return current.map((item) =>
+              item.conversationId === conversation.conversationId ? conversation : item,
+            );
+          }
+          return [conversation, ...current];
+        });
+        setSelectedConversationId(conversation.conversationId);
+        setSelectedContactId(conversation.participantId);
+      })
+      .catch((error) => {
+        toast.error(formatChatError(error, "Không thể tạo cuộc trò chuyện"));
+      })
+      .finally(() => {
+        ensuringConversationRef.current = null;
+      });
+  }, [enabled, selectedContactId, selectedConversationId, user]);
 
   const refreshAll = useCallback(async () => {
     if (!user) return;
@@ -317,6 +368,7 @@ export const useExternalChat = ({ enabled }: UseExternalChatOptions) => {
     setSending(true);
     try {
       socketRef.current.send({
+        conversationId: selectedConversationId,
         receiverId: selectedContactId,
         content: draft.trim(),
       });
@@ -328,7 +380,7 @@ export const useExternalChat = ({ enabled }: UseExternalChatOptions) => {
     } finally {
       setSending(false);
     }
-  }, [draft, selectedContactId]);
+  }, [draft, selectedContactId, selectedConversationId]);
 
   return {
     user,

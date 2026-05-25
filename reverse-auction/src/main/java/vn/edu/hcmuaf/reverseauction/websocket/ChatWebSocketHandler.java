@@ -171,7 +171,6 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                 return URLDecoder.decode(keyValue[1], StandardCharsets.UTF_8);
             }
         }
-
         return null;
     }
 }

@@ -11,6 +11,7 @@ public record ExternalConversationResponse(
         String lastMessage,
         Instant lastMessageAt,
         Instant createdDate,
-        Instant updatedDate
+        Instant updatedDate,
+        boolean complaintChat
 ) {
 }
