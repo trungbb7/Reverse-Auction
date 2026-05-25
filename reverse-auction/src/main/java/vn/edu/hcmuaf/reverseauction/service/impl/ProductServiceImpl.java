@@ -76,6 +76,18 @@ public class ProductServiceImpl implements ProductService {
                 .map(this::toResponse)
                 .toList();
     }
+
+    @Override
+    public List<ProductResponse> getListProducts(int limit) {
+        List<Product> products = productRepository.findAll()
+                .stream()
+                .limit(limit)
+                .toList();
+        return products.stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     private void mapCreate(CreateProductRequest r, Product p) {
         p.setName(r.name());
         p.setDescription(r.description());
@@ -124,6 +136,7 @@ public class ProductServiceImpl implements ProductService {
                 p.getStatus().name(),
                 p.getCategory().getId(),
                 p.getCategory().getName(),
+                p.getRatingAverage(),
                 p.getSeller().getId(),
                 p.getSeller().getFullName(),
                 p.getCreatedAt(),

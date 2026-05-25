@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import vn.edu.hcmuaf.reverseauction.entity.*;
 import vn.edu.hcmuaf.reverseauction.repository.AuctionRequestRepository;
 import vn.edu.hcmuaf.reverseauction.repository.CategoryRepository;
+import vn.edu.hcmuaf.reverseauction.repository.ProductRepository;
 import vn.edu.hcmuaf.reverseauction.repository.UserRepository;
 
 import java.math.BigDecimal;
@@ -20,6 +21,7 @@ public class DataInitializer implements CommandLineRunner {
 
     private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
+    private final ProductRepository productRepository;
     private final AuctionRequestRepository auctionRequestRepository;
     private final vn.edu.hcmuaf.reverseauction.repository.BidRepository bidRepository;
     private final PasswordEncoder passwordEncoder;
@@ -48,6 +50,9 @@ public class DataInitializer implements CommandLineRunner {
 
         // 3. Seed Auction Requests & Bids
         seedAuctionsAndBids();
+
+        // 4. Seed product
+        seedProduct();
     }
 
     private void seedUsers() {
@@ -187,5 +192,96 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         System.out.println("Seeded PC component auction requests and bids.");
+    }
+    private void seedProduct() {
+        User seller = userRepository.findByEmail("seller@gmail.com")
+                .orElseGet(() -> userRepository.save(
+                        User.builder()
+                                .email("seller@gmail.com")
+                                .password(passwordEncoder.encode("123456"))
+                                .fullName("John Seller")
+                                .role(Role.ROLE_SELLER)
+                                .enabled(true)
+                                .build()
+                ));
+
+        List<Product> products = List.of(
+                Product.builder()
+                        .name("ASUS ROG STRIX RTX 4090")
+                        .description("GPU high-end cho gaming và AI")
+                        .specifications("24GB GDDR6X, 16384 CUDA cores")
+                        .brand("ASUS")
+                        .model("ROG STRIX 4090")
+                        .imageUrl("https://via.placeholder.com/300x200")
+                        .price(new BigDecimal("48500000"))
+                        .stockQuantity(5)
+                        .status(ProductStatus.ACTIVE)
+                        .seller(seller)
+                        .createdAt(LocalDateTime.now())
+                        .updatedAt(LocalDateTime.now())
+                        .build(),
+
+                Product.builder()
+                        .name("Intel Core i9-14900K")
+                        .description("CPU hiệu năng cao cho gaming & workstation")
+                        .specifications("24 cores, 32 threads")
+                        .brand("Intel")
+                        .model("i9-14900K")
+                        .imageUrl("https://via.placeholder.com/300x200")
+                        .price(new BigDecimal("15990000"))
+                        .stockQuantity(12)
+                        .status(ProductStatus.ACTIVE)
+                        .seller(seller)
+                        .createdAt(LocalDateTime.now())
+                        .updatedAt(LocalDateTime.now())
+                        .build(),
+
+                Product.builder()
+                        .name("Samsung 990 Pro 2TB NVMe")
+                        .description("SSD tốc độ cao cho hệ thống AI & gaming")
+                        .specifications("PCIe 4.0, 7450MB/s")
+                        .brand("Samsung")
+                        .model("990 Pro")
+                        .imageUrl("https://via.placeholder.com/300x200")
+                        .price(new BigDecimal("4250000"))
+                        .stockQuantity(20)
+                        .status(ProductStatus.ACTIVE)
+                        .seller(seller)
+                        .createdAt(LocalDateTime.now())
+                        .updatedAt(LocalDateTime.now())
+                        .build(),
+
+                Product.builder()
+                        .name("ROG Maximus Z790 Hero")
+                        .description("Mainboard cao cấp Intel Z790")
+                        .specifications("DDR5, PCIe 5.0")
+                        .brand("ASUS")
+                        .model("Z790 Hero")
+                        .imageUrl("https://via.placeholder.com/300x200")
+                        .price(new BigDecimal("18450000"))
+                        .stockQuantity(8)
+                        .status(ProductStatus.ACTIVE)
+                        .seller(seller)
+                        .createdAt(LocalDateTime.now())
+                        .updatedAt(LocalDateTime.now())
+                        .build(),
+
+                Product.builder()
+                        .name("Corsair Vengeance 32GB DDR5")
+                        .description("RAM hiệu năng cao cho gaming & AI")
+                        .specifications("32GB (2x16GB), 6000MHz")
+                        .brand("Corsair")
+                        .model("Vengeance DDR5")
+                        .imageUrl("https://via.placeholder.com/300x200")
+                        .price(new BigDecimal("3200000"))
+                        .stockQuantity(30)
+                        .status(ProductStatus.ACTIVE)
+                        .seller(seller)
+                        .createdAt(LocalDateTime.now())
+                        .updatedAt(LocalDateTime.now())
+                        .build()
+        );
+
+        productRepository.saveAll(products);
     }
 }

@@ -130,9 +130,9 @@ export default function Profile() {
                                 onChange={handleChange}
                             />
                             <Input
-                                label="Tên hiển thị"
-                                name="username"
-                                value={""}
+                                label="Địa chỉ"
+                                name="address"
+                                value={form.address || ""}
                                 onChange={handleChange}
                             />
                             <Input

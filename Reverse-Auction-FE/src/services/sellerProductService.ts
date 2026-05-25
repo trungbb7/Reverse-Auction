@@ -2,9 +2,9 @@ import type { Product, ProductRequest } from "@/types/product";
 import api from "@/utils/axios";
 import type {Category} from "@/types/category.ts";
 
-export const productService = {
+export const sellerProductService = {
     fetchMyProducts: async (): Promise<Product[]> => {
-        const res = await api.get("/products/list");
+        const res = await api.get("/seller/products/list");
         return res.data;
     },
     getAllCategories: async (): Promise<Category[]> => {
@@ -12,16 +12,16 @@ export const productService = {
         return res.data;
     },
     createProduct: async (data: ProductRequest) => {
-        const res = await api.post("/products", data);
+        const res = await api.post("/seller/products", data);
         return res.data;
     },
 
     updateProduct: async (id: number, data: ProductRequest): Promise<Product> => {
-        const res = await api.put(`/products/${id}`, data);
+        const res = await api.put(`/seller/products/${id}`, data);
         return res.data;
     },
 
     deleteProduct: async (id: number): Promise<void> => {
-        await api.delete(`/products/${id}`);
+        await api.delete(`/seller/products/${id}`);
     },
 };
