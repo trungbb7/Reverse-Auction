@@ -7,7 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.hcmuaf.reverseauction.dto.AuctionRequestResponseDTO;
-import vn.edu.hcmuaf.reverseauction.dto.PageResponse;
+import vn.edu.hcmuaf.reverseauction.dto.response.PageResponse;
 import vn.edu.hcmuaf.reverseauction.service.AuctionRequestService;
 
 @RestController

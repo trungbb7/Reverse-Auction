@@ -4,7 +4,7 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.springframework.data.domain.Page;
 import vn.edu.hcmuaf.reverseauction.dto.BidResponseDTO;
-import vn.edu.hcmuaf.reverseauction.dto.PageResponse;
+import vn.edu.hcmuaf.reverseauction.dto.response.PageResponse;
 import vn.edu.hcmuaf.reverseauction.entity.Bid;
 
 import java.util.List;

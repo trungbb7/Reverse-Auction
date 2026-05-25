@@ -37,6 +37,7 @@ const Sidebar = ({ role = "admin" }: SidebarProps) => {
     { name: "Quản lý đấu giá", path: "/seller", icon: <LayoutDashboard size={20} /> },
     { name: "Tìm kiếm", path: "/seller/search", icon: <Search size={20} /> },
     { name: "Đơn hàng", path: "/seller/orders", icon: <ShoppingCart size={20} /> },
+    { name: "Sản phẩm", path: "/seller/products", icon: <Package size={20} /> },
     { name: "Thống kê", path: "/seller/stats", icon: <TrendingUp size={20} /> },
     { name: "Khiếu nại", path: "/seller/complaints", icon: <TriangleAlert size={20} /> },
     { name: "Trò chuyện", path: "/seller/chat", icon: <MessageSquare size={20} /> },

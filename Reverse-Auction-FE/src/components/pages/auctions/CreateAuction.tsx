@@ -1,23 +1,34 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { UploadCloud, CheckCircle2, ShieldCheck, Zap, X } from "lucide-react";
+import {
+  UploadCloud,
+  CheckCircle2,
+  ShieldCheck,
+  Zap,
+  X,
+  LoaderCircle,
+} from "lucide-react";
 import api from "@/utils/axios";
 import toast from "react-hot-toast";
 import { AxiosError } from "axios";
 import type { ErrorResponse } from "@/types/errorResponse";
+import type { Category } from "@/types/category";
+import { categoryService } from "@/services/categoryService";
+import { cloudinaryService } from "@/services/cloudinaryService";
 
-const CATEGORIES = [
-  { id: 1, name: "CPU - Bộ vi xử lý" },
-  { id: 2, name: "VGA - Card màn hình" },
-  { id: 3, name: "RAM - Bộ nhớ trong" },
-  { id: 4, name: "Ổ cứng (SSD/HDD)" },
-  { id: 5, name: "Mainboard - Bo mạch chủ" },
-  { id: 6, name: "Nguồn (PSU)" },
-  { id: 7, name: "Khác" },
-];
+// const CATEGORIES = [
+//   { id: 1, name: "CPU - Bộ vi xử lý" },
+//   { id: 2, name: "VGA - Card màn hình" },
+//   { id: 3, name: "RAM - Bộ nhớ trong" },
+//   { id: 4, name: "Ổ cứng (SSD/HDD)" },
+//   { id: 5, name: "Mainboard - Bo mạch chủ" },
+//   { id: 6, name: "Nguồn (PSU)" },
+//   { id: 7, name: "Khác" },
+// ];
 
 const CreateAuction = () => {
   const navigate = useNavigate();
+  const [categories, setCategories] = useState<Category[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [formData, setFormData] = useState({
     title: "",
@@ -26,8 +37,10 @@ const CreateAuction = () => {
     budgetMax: "",
     endDate: "",
     description: "",
+    imageUrls: [],
   });
   const [previewImages, setPreviewImages] = useState<string[]>([]);
+  const [creating, setCreating] = useState<boolean>(false);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -40,7 +53,17 @@ const CreateAuction = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post("/auctions", formData);
+      setCreating(true);
+      let imageUrls;
+      if (fileInputRef.current && fileInputRef.current.files) {
+        const data = await cloudinaryService.uploadMultiImages(
+          fileInputRef.current.files,
+        );
+        imageUrls = data;
+      }
+
+      await api.post("/auctions", { ...formData, imageUrls });
+      setCreating(false);
       toast.success("Đăng yêu cầu thành công!");
       navigate("/my-auctions");
     } catch (err) {
@@ -66,6 +89,19 @@ const CreateAuction = () => {
   const removeImage = (index: number) => {
     setPreviewImages((prev) => prev.filter((_, i) => i !== index));
   };
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const categoriesRes = await categoryService.getCategories();
+        setCategories(categoriesRes);
+      } catch (err) {
+        console.error(err);
+        toast.error("Đã xảy ra lỗi khi lấy danh sách danh mục");
+      }
+    };
+    fetchCategories();
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto py-10 px-4 sm:px-6">
@@ -168,7 +204,7 @@ const CreateAuction = () => {
                   <option value="" disabled>
                     -- Chọn danh mục --
                   </option>
-                  {CATEGORIES.map((cat) => (
+                  {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>
                       {cat.name}
                     </option>
@@ -316,7 +352,11 @@ const CreateAuction = () => {
                 type="submit"
                 className="w-full sm:w-auto px-10 py-4 rounded-full font-bold text-white bg-blue-600 hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-600/20 active:scale-[0.98] transition-all"
               >
-                Bắt đầu đấu giá
+                {!creating ? (
+                  "Bắt đầu đấu giá"
+                ) : (
+                  <LoaderCircle className="animate-spin" />
+                )}
               </button>
             </div>
           </form>

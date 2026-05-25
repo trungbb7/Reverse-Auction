@@ -51,7 +51,7 @@ public class PaymentUtils {
 
         vnp_Params.put("vnp_ReturnUrl", "http://localhost:5173/payment/result?orderId=" + orderId);
         vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
-        Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("Etc/GMT+7"));
+        Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("GMT+7"));
 
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMddHHmmss");
         String vnp_CreateDate = formatter.format(cld.getTime());
@@ -74,11 +74,11 @@ public class PaymentUtils {
                 //Build hash data
                 hashData.append(fieldName);
                 hashData.append('=');
-                hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII));
+                hashData.append(URLEncoder.encode(fieldValue, StandardCharsets.UTF_8));
                 //Build query
-                query.append(URLEncoder.encode(fieldName, StandardCharsets.US_ASCII));
+                query.append(URLEncoder.encode(fieldName, StandardCharsets.UTF_8));
                 query.append('=');
-                query.append(URLEncoder.encode(fieldValue, StandardCharsets.US_ASCII));
+                query.append(URLEncoder.encode(fieldValue, StandardCharsets.UTF_8));
                 if (itr.hasNext()) {
                     query.append('&');
                     hashData.append('&');

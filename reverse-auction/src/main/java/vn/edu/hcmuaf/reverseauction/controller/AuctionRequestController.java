@@ -1,9 +1,7 @@
 package vn.edu.hcmuaf.reverseauction.controller;
 
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -15,8 +13,11 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.hcmuaf.reverseauction.dto.*;
+import vn.edu.hcmuaf.reverseauction.dto.request.AuctionRequestCreateDTO;
+import vn.edu.hcmuaf.reverseauction.dto.response.AllBidResponseDTO;
+import vn.edu.hcmuaf.reverseauction.dto.response.AuctionWSResponseDTO;
+import vn.edu.hcmuaf.reverseauction.dto.response.PageResponse;
 import vn.edu.hcmuaf.reverseauction.entity.AuctionStatus;
-import vn.edu.hcmuaf.reverseauction.entity.Category;
 import vn.edu.hcmuaf.reverseauction.service.AuctionRequestService;
 import vn.edu.hcmuaf.reverseauction.service.BidService;
 import vn.edu.hcmuaf.reverseauction.service.impl.AuctionService;

@@ -15,3 +15,10 @@ export interface ReviewRequest {
     rating: number;
     comment: string;
 }
+export interface Review {
+    id: string;
+    name: string;
+    content: string;
+    rating: number;
+    createdAt: string;
+}

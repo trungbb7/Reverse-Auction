@@ -7,7 +7,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import vn.edu.hcmuaf.reverseauction.dto.*;
+import vn.edu.hcmuaf.reverseauction.dto.request.*;
+import vn.edu.hcmuaf.reverseauction.dto.response.AuthenticationResponse;
 import vn.edu.hcmuaf.reverseauction.entity.PasswordResetToken;
 import vn.edu.hcmuaf.reverseauction.entity.RefreshToken;
 import vn.edu.hcmuaf.reverseauction.entity.Role;

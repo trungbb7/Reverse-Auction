@@ -30,6 +30,10 @@ public class User implements UserDetails {
     private String fullName;
     @Column(length = 20)
     private String phone;
+    @Column
+    private String address;
+    @Column
+    private String imageUrl;
 
     @Column(nullable = false)
     @Builder.Default

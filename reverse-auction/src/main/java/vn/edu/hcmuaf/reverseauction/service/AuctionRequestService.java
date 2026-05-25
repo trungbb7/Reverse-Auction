@@ -1,9 +1,9 @@
 package vn.edu.hcmuaf.reverseauction.service;
 
 import org.springframework.data.domain.Pageable;
-import vn.edu.hcmuaf.reverseauction.dto.AuctionRequestCreateDTO;
+import vn.edu.hcmuaf.reverseauction.dto.request.AuctionRequestCreateDTO;
 import vn.edu.hcmuaf.reverseauction.dto.AuctionRequestResponseDTO;
-import vn.edu.hcmuaf.reverseauction.dto.PageResponse;
+import vn.edu.hcmuaf.reverseauction.dto.response.PageResponse;
 import vn.edu.hcmuaf.reverseauction.entity.AuctionStatus;
 
 import java.math.BigDecimal;

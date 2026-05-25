@@ -1,9 +1,9 @@
-package vn.edu.hcmuaf.reverseauction.dto;
+package vn.edu.hcmuaf.reverseauction.dto.response;
 
 import lombok.Builder;
 import lombok.Data;
-import vn.edu.hcmuaf.reverseauction.entity.AuctionStatus;
-import vn.edu.hcmuaf.reverseauction.entity.Bid;
+import vn.edu.hcmuaf.reverseauction.dto.AuctionRequestResponseDTO;
+import vn.edu.hcmuaf.reverseauction.dto.BidResponseDTO;
 
 import java.util.List;
 

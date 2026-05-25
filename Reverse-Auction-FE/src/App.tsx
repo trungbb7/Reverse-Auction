@@ -17,10 +17,11 @@ import ResetPassword from "./components/pages/auth/ResetPassword";
 import SellerSearch from "./components/pages/seller/SellerSearch/SellerSearch";
 import OrderManagement from "./components/pages/seller/SellerOrders/SellerOrders";
 import OrderDetail from "./components/pages/seller/SellerOrders/SellerOrderDetail";
-import SellerAuctionDetail from "./components/pages/seller/SellerAuctionDetail/SellerAuctionDetail.tsx";
+import SellerProduct from "./components/pages/seller/SellerProduct/SellerProduct";
+import SellerAuctionDetail from "./components/pages/seller/SellerAuctionDetail/SellerAuctionDetail";
 import ExternalChatPage from "./components/pages/chat/ExternalChatPage";
 import GlobalChatWidget from "./components/chat/GlobalChatWidget";
-import BuyerOrder from "./components/pages/buyer/BuyerOrder/BuyerOrder.tsx";
+import BuyerOrder from "./components/pages/buyer/BuyerOrder/BuyerOrder";
 import BuyerOrderDetail from "./components/pages/buyer/BuyerOrderDetail";
 import BuyerReview from "./components/pages/buyer/BuyerReview";
 import PaymentResult from "./components/pages/PaymentResult";
@@ -37,6 +38,7 @@ import UserManagement from "./components/pages/admin/UserManagement";
 import CategoryManagement from "./components/pages/admin/CategoryManagement";
 import AuctionManagement from "./components/pages/admin/AuctionManagement";
 import Demo from "./components/pages/Demo.tsx";
+import ShopPage from "@/components/pages/shopPage";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -87,6 +89,7 @@ function App() {
           <Route path="profile" element={<Profile />} />
           <Route path="orderHistory" element={<BuyerOrder />} />
           <Route path="review/order/:id" element={<BuyerReview />} />
+          <Route path="shopPage/:id" element={<ShopPage />} />
         </Route>
 
         {/* Auth routes */}
@@ -137,6 +140,7 @@ function App() {
           <Route path="chat" element={<ExternalChatPage />} />
           <Route path="auctions/:id" element={<SellerAuctionDetail />} />
           <Route path="orders" element={<OrderManagement />} />
+          <Route path="products" element={<SellerProduct />} />
           <Route path="orders-detail/:id" element={<OrderDetail />} />
         </Route>
         <Route path="/demo" element={<Demo />} />

@@ -24,7 +24,7 @@ export interface Auction {
   quantity?: number;
   location?: string;
   paymentMethod?: string;
-  images?: string[];
+  imageUrls?: string[];
 }
 
 export interface Bid {
@@ -57,5 +57,5 @@ export const auctionEmpty: Auction = {
   quantity: 0,
   location: "",
   paymentMethod: "",
-  images: [],
+  imageUrls: [],
 };

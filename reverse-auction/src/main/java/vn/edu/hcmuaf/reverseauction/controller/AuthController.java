@@ -4,7 +4,8 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import vn.edu.hcmuaf.reverseauction.dto.*;
+import vn.edu.hcmuaf.reverseauction.dto.request.*;
+import vn.edu.hcmuaf.reverseauction.dto.response.AuthenticationResponse;
 import vn.edu.hcmuaf.reverseauction.service.impl.AuthServiceImpl;
 
 @RestController

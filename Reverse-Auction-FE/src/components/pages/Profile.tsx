@@ -18,6 +18,7 @@ const defaultUser: User = {
     email: "nguyenA@gmail.com",
     phone: "+84 90 123 4567",
     role: "ROLE_BUYER",
+    enabled: true,
 };
 
 export default function Profile() {
@@ -129,9 +130,9 @@ export default function Profile() {
                                 onChange={handleChange}
                             />
                             <Input
-                                label="Tên hiển thị"
-                                name="username"
-                                value={""}
+                                label="Địa chỉ"
+                                name="address"
+                                value={form.address || ""}
                                 onChange={handleChange}
                             />
                             <Input
