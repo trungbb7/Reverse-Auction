@@ -9,9 +9,15 @@ import {
   Cpu as GpuIcon,
   Box,
 } from "lucide-react";
+import {useEffect, useState} from "react";
+import {productService} from "@/services/productsService.ts";
+import {shopService} from "@/services/shopService.ts";
 import { CategoryCard } from "../ui/CategoryCard";
 import { ProductCard } from "../ui/ProductCard";
 import { AuctionCard } from "../ui/AuctionCard";
+import { ShopCard } from "../ui/ShopCard";
+import type {Product} from "@/types/product.ts";
+import type {ShopDetail} from "@/types/shopDetail.ts";
 
 export default function Home() {
   const categories = [
@@ -24,33 +30,57 @@ export default function Home() {
     { title: "Phụ kiện", icon: Mouse, desc: "Chuột, Bàn phím" },
     { title: "Khác", icon: ShieldAlert, desc: "Tản nhiệt, Case..." },
   ];
+    const [products, setProducts] = useState<Product[]>([]);
+    const [shops, setShops] = useState<ShopDetail[]>([]);
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const data = await shopService.getListShops();
+                setShops(data);
+            } catch (err) {
+                console.error(err);
+            }
+        };
 
-  const trendingProducts = [
-    {
-      name: "CPU Intel Core i9-14900K",
-      price: "14.500.000đ",
-      rating: 4.9,
-      sold: 128,
-    },
-    {
-      name: "VGA NVIDIA RTX 4070 Ti Super",
-      price: "22.300.000đ",
-      rating: 4.8,
-      sold: 85,
-    },
-    {
-      name: "RAM Corsair Vengeance RGB 32GB DDR5",
-      price: "3.200.000đ",
-      rating: 5.0,
-      sold: 342,
-    },
-    {
-      name: "SSD Samsung 990 Pro 2TB",
-      price: "4.100.000đ",
-      rating: 4.9,
-      sold: 215,
-    },
-  ];
+        load();
+    }, []);
+
+    useEffect(() => {
+        const load = async () => {
+            const data = await productService.fetchProducts();
+            console.log(data);
+            setProducts(data);
+        };
+
+        load();
+    }, []);
+
+  // const trendingProducts = [
+  //   {
+  //     name: "CPU Intel Core i9-14900K",
+  //     price: "14.500.000đ",
+  //     rating: 4.9,
+  //     sold: 128,
+  //   },
+  //   {
+  //     name: "VGA NVIDIA RTX 4070 Ti Super",
+  //     price: "22.300.000đ",
+  //     rating: 4.8,
+  //     sold: 85,
+  //   },
+  //   {
+  //     name: "RAM Corsair Vengeance RGB 32GB DDR5",
+  //     price: "3.200.000đ",
+  //     rating: 5.0,
+  //     sold: 342,
+  //   },
+  //   {
+  //     name: "SSD Samsung 990 Pro 2TB",
+  //     price: "4.100.000đ",
+  //     rating: 4.9,
+  //     sold: 215,
+  //   },
+  // ];
 
   const recentAuctions = [
     {
@@ -342,17 +372,31 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {trendingProducts.map((prod, idx) => (
-            <ProductCard
-              key={idx}
-              name={prod.name}
-              price={prod.price}
-              rating={prod.rating}
-              sold={prod.sold}
-            />
-          ))}
+            {products.map((prod) => (
+                <ProductCard key={prod.id} product={prod} />
+            ))}
         </div>
       </section>
+
+        {/* Shop Section */}
+        <section>
+            <div className="flex items-end justify-between mb-8">
+                <div>
+                    <h2 className="text-2xl font-bold text-slate-800">
+                        Cửa hàng uy tín hàng đầu
+                    </h2>
+                    <p className="text-slate-500 mt-2">
+                        Đối tác được xác thực bởi HardwareBid
+                    </p>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {shops.map((prod) => (
+                    <ShopCard key={prod.id} shop={prod} />
+                ))}
+            </div>
+        </section>
 
       {/* Recent Auctions Section */}
       <section>

@@ -38,6 +38,7 @@ import UserManagement from "./components/pages/admin/UserManagement";
 import CategoryManagement from "./components/pages/admin/CategoryManagement";
 import AuctionManagement from "./components/pages/admin/AuctionManagement";
 import Demo from "./components/pages/Demo.tsx";
+import ShopPage from "@/components/pages/shopPage";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -88,6 +89,7 @@ function App() {
           <Route path="profile" element={<Profile />} />
           <Route path="orderHistory" element={<BuyerOrder />} />
           <Route path="review/order/:id" element={<BuyerReview />} />
+          <Route path="shopPage/:id" element={<ShopPage />} />
         </Route>
 
         {/* Auth routes */}

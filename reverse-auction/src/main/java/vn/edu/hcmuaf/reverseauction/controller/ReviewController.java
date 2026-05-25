@@ -5,8 +5,11 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.hcmuaf.reverseauction.dto.request.ReviewRequest;
 import vn.edu.hcmuaf.reverseauction.dto.response.ReviewContextResponse;
+import vn.edu.hcmuaf.reverseauction.dto.response.ReviewResponse;
 import vn.edu.hcmuaf.reverseauction.entity.User;
 import vn.edu.hcmuaf.reverseauction.service.ReviewService;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/reviews")
@@ -29,5 +32,9 @@ public class ReviewController {
             @AuthenticationPrincipal User user
     ) {
         reviewService.submitReview(user.getId(), req);
+    }
+    @GetMapping("/shop/{sellerId}")
+    public List<ReviewResponse> getShopReviews(@PathVariable Long sellerId) {
+        return reviewService.getShopReviews(sellerId);
     }
 }

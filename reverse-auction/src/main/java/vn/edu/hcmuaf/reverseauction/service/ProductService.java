@@ -16,4 +16,5 @@ public interface ProductService {
 
     ProductResponse getById(Long id);
     List<ProductResponse> getProductsBySeller(Long sellerId);
+    List<ProductResponse> getListProducts(int limit);
 }

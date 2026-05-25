@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import type { Category } from "@/types/category";
 import type { ProductRequest, Product } from "@/types/product";
-import { productService } from "@/services/productService";
+import { sellerProductService } from "@/services/sellerProductService.ts";
+import { cloudinaryService } from "@/services/cloudinaryService";
 import toast from "react-hot-toast";
 
 interface Props {
@@ -28,7 +29,7 @@ const emptyForm: ProductRequest = {
 };
 
 export default function AddProductModal({open, onClose, categories, mode, initialData, onSuccess,}: Props) {
-
+    const [imageFile, setImageFile] = useState<FileList | null>(null);
     const [loading, setLoading] = useState(false);
     const [preview, setPreview] = useState<string>("");
 
@@ -51,9 +52,12 @@ export default function AddProductModal({open, onClose, categories, mode, initia
             });
 
             setPreview(initialData.imageUrl ?? "");
+            setImageFile(null);
+
         } else {
             setForm(emptyForm);
             setPreview("");
+            setImageFile(null);
         }
     }, [open, mode]);
 
@@ -72,27 +76,34 @@ export default function AddProductModal({open, onClose, categories, mode, initia
     };
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+        if (!e.target.files) return;
 
-        setPreview(URL.createObjectURL(file));
+        setImageFile(e.target.files);
+        setPreview(URL.createObjectURL(e.target.files[0]));
     };
 
     const handleSubmit = async () => {
         try {
             setLoading(true);
 
+            let imageUrl = form.imageUrl;
+
+            if (imageFile && imageFile.length > 0) {
+                const uploadedUrls = await cloudinaryService.uploadMultiImages(imageFile);
+                imageUrl = uploadedUrls[0];
+            }
+
             const payload: ProductRequest = {
                 ...form,
-                imageUrl: preview,
+                imageUrl,
             };
 
             let res;
 
             if (mode === "create") {
-                res = await productService.createProduct(payload);
+                res = await sellerProductService.createProduct(payload);
             } else {
-                res = await productService.updateProduct(
+                res = await sellerProductService.updateProduct(
                     initialData!.id,
                     payload
                 );

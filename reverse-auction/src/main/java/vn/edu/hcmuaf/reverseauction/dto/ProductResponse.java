@@ -21,6 +21,7 @@ public record ProductResponse(
 
         Long categoryId,
         String categoryName,
+        Double rating,
 
         Long sellerId,
         String sellerName,

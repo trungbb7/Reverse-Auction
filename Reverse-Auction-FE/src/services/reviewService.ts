@@ -1,4 +1,4 @@
-import type { ReviewContextResponse, ReviewRequest } from "@/types/review";
+import type {Review, ReviewContextResponse, ReviewRequest} from "@/types/review";
 import api from "@/utils/axios";
 
 export const reviewService = {
@@ -14,6 +14,11 @@ export const reviewService = {
         data: ReviewRequest
     ): Promise<void> => {
         await api.post("/reviews", data);
-    }
+    },
+    getShopReviews: async (shopId: string) : Promise<Review[]> => {
+        const res = await api.get(`/reviews/shop/${shopId}`);
+        return res.data;
+    },
+
 
 };
