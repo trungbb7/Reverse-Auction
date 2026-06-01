@@ -52,7 +52,9 @@ public class DataInitializer implements CommandLineRunner {
         seedAuctionsAndBids();
 
         // 4. Seed product
-        seedProduct();
+        if (productRepository.count() == 0) {
+            seedProduct();
+        }
     }
 
     private void seedUsers() {
