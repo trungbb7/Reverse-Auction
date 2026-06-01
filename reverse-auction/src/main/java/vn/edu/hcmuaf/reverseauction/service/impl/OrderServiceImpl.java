@@ -2,6 +2,7 @@ package vn.edu.hcmuaf.reverseauction.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import vn.edu.hcmuaf.reverseauction.dto.OrderResponseDTO;
 import vn.edu.hcmuaf.reverseauction.entity.Order;
 import vn.edu.hcmuaf.reverseauction.entity.OrderStatus;
@@ -12,6 +13,8 @@ import vn.edu.hcmuaf.reverseauction.service.OrderService;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+
+@Transactional(readOnly = true)
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
@@ -38,6 +41,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public OrderResponseDTO updateStatus(Long id, OrderStatus status) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found"));

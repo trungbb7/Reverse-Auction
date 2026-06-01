@@ -11,9 +11,11 @@ import vn.edu.hcmuaf.reverseauction.dto.RespondComplaintRequest;
 import vn.edu.hcmuaf.reverseauction.dto.RespondComplaintResponse;
 import vn.edu.hcmuaf.reverseauction.dto.ResolveComplaintRequest;
 import vn.edu.hcmuaf.reverseauction.dto.ResolveComplaintResponse;
+import vn.edu.hcmuaf.reverseauction.dto.response.FileResponse;
 import vn.edu.hcmuaf.reverseauction.entity.Complaint;
 import vn.edu.hcmuaf.reverseauction.repository.ComplaintRepository;
 import vn.edu.hcmuaf.reverseauction.repository.OrderRepository;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.util.List;
@@ -24,16 +26,33 @@ import java.util.Locale;
 public class ComplaintService {
     private final ComplaintRepository complaintRepository;
     private final OrderRepository orderRepository;
+    private final FileService fileService;
 
     @Transactional
     public CreateComplaintResponse createComplaint(CreateComplaintRequest request) {
-        var order = orderRepository.findById(request.orderId())
-                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + request.orderId()));
+        return createComplaint(request.orderId(), request.reason(), request.evidenceUrls());
+    }
+
+    @Transactional
+    public CreateComplaintResponse createComplaint(Long orderId, String reason, MultipartFile[] evidenceImages) {
+        List<String> evidenceUrls = evidenceImages == null || evidenceImages.length == 0
+                ? List.of()
+                : fileService.uploadMultipleFiles(evidenceImages).stream()
+                .map(FileResponse::getUrl)
+                .toList();
+
+        return createComplaint(orderId, reason, evidenceUrls);
+    }
+
+    @Transactional
+    public CreateComplaintResponse createComplaint(Long orderId, String reason, List<String> evidenceUrls) {
+        var order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
 
         Complaint complaint = new Complaint();
         complaint.setOrder(order);
-        complaint.setReason(request.reason());
-        complaint.setEvidenceUrls(request.evidenceUrls() == null ? List.of() : List.copyOf(request.evidenceUrls()));
+        complaint.setReason(reason);
+        complaint.setEvidenceUrls(evidenceUrls == null ? List.of() : List.copyOf(evidenceUrls));
         complaint.setStatus("PENDING_SELLER");
         complaint.setCreatedAt(Instant.now());
         complaint.setUpdatedAt(complaint.getCreatedAt());
