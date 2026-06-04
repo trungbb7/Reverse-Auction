@@ -17,6 +17,7 @@ import vn.edu.hcmuaf.reverseauction.mapper.AuctionRequestMapper;
 import vn.edu.hcmuaf.reverseauction.repository.*;
 import vn.edu.hcmuaf.reverseauction.repository.specification.AuctionRequestSpecification;
 import vn.edu.hcmuaf.reverseauction.service.AuctionRequestService;
+import vn.edu.hcmuaf.reverseauction.service.NotificationService;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -32,6 +33,7 @@ public class AuctionRequestServiceImpl implements AuctionRequestService {
     private final AuctionRequestMapper auctionRequestMapper;
     private final OrderRepository orderRepository;
     private final AuctionImageRepository auctionImageRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -154,6 +156,12 @@ public class AuctionRequestServiceImpl implements AuctionRequestService {
                 .updatedAt(LocalDateTime.now())
                 .build();
         orderRepository.save(order);
+
+        // Notify the winning seller
+        String title = "Đề nghị đấu giá của bạn đã thắng!";
+        String content = String.format("Chúc mừng! Đề nghị đấu giá với giá %,.0fđ cho \"%s\" đã được chọn làm người thắng. Đơn hàng %s đã được tạo.",
+                winnerBid.getBidPrice(), auction.getTitle(), orderCode);
+        notificationService.createAndSendNotification(winnerBid.getSeller(), title, content, "AUCTION_WON", auction.getId());
 
         return auctionRequestMapper.toDTO(saved);
     }

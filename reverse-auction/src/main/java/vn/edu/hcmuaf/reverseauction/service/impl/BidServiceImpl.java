@@ -18,6 +18,7 @@ import vn.edu.hcmuaf.reverseauction.repository.AuctionRequestRepository;
 import vn.edu.hcmuaf.reverseauction.repository.BidRepository;
 import vn.edu.hcmuaf.reverseauction.repository.UserRepository;
 import vn.edu.hcmuaf.reverseauction.service.BidService;
+import vn.edu.hcmuaf.reverseauction.service.NotificationService;
 
 import java.util.List;
 
@@ -28,6 +29,7 @@ public class BidServiceImpl implements BidService {
     private final AuctionRequestRepository auctionRequestRepository;
     private final UserRepository userRepository;
     private final BidMapper bidMapper;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -59,6 +61,13 @@ public class BidServiceImpl implements BidService {
 
         existing.setBidPrice(bid.getBidPrice());
         Bid saved = bidRepository.save(existing);
+
+        // Notify the buyer of updated bid
+        String title = "Cập nhật đề nghị đấu giá";
+        String content = String.format("Người bán %s đã cập nhật giá đề nghị thành %,.0fđ cho đấu giá \"%s\"",
+                existing.getSeller().getFullName(), bid.getBidPrice(), auc.getTitle());
+        notificationService.createAndSendNotification(auc.getBuyer(), title, content, "BID_UPDATED", auc.getId());
+
         return bidMapper.toDTO(saved);
     }
 
@@ -88,6 +97,7 @@ public class BidServiceImpl implements BidService {
     }
 
     @Override
+    @Transactional
     public BidResponseDTO create(CreateBidRequestDTO requestDTO, long sellerId) {
         AuctionRequest auc = auctionRequestRepository.findById(requestDTO.getAuctionId())
                 .orElseThrow(() -> CustomException.builder()
@@ -130,6 +140,13 @@ public class BidServiceImpl implements BidService {
                 .note(requestDTO.getNote())
                 .build();
         Bid saved = bidRepository.save(bid);
+
+        // Notify the buyer of new bid
+        String title = "Đề nghị mới cho đấu giá của bạn";
+        String content = String.format("Người bán %s đã gửi đề nghị với giá %,.0fđ cho đấu giá \"%s\"",
+                seller.getFullName(), requestDTO.getBidPrice(), auc.getTitle());
+        notificationService.createAndSendNotification(auc.getBuyer(), title, content, "NEW_BID", auc.getId());
+
         return bidMapper.toDTO(saved);
     }
 }

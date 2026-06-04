@@ -2,11 +2,9 @@ import {useEffect, useState} from "react";
 import {useParams} from "react-router";
 import {Star, MapPin, ShoppingCart } from "lucide-react";
 import {shopService} from "@/services/shopService.ts";
-import {productService} from "@/services/productsService.ts";
 import {reviewService} from "@/services/reviewService.ts";
 import type {Product} from "@/types/product.ts";
 import toast from "react-hot-toast";
-import type {Category} from "@/types/category.ts";
 import type {ShopDetail} from "@/types/shopDetail.ts";
 import type {Review} from "@/types/review.ts";
 
@@ -14,7 +12,6 @@ export default function ShopPage() {
     const {id} = useParams();
     const [follow, setFollow] = useState(false);
     const [products, setProducts] = useState<Product[]>([]);
-    const [categories, setCategories] = useState<Category[]>([]);
     const [shop, setShop] = useState<ShopDetail | null>(null);
     const [reviews, setReviews] = useState<Review[]>([]);
     const [loading, setLoading] = useState(false);
@@ -24,15 +21,13 @@ export default function ShopPage() {
             setLoading(true);
 
             try {
-                const [shopData, productsData, categoriesData, reviewData] = await Promise.all([
+                const [shopData, productsData, reviewData] = await Promise.all([
                     shopService.getShopDetail(id),
                     shopService.getShopProducts(id),
-                    productService.getAllCategories(),
                     reviewService.getShopReviews(id),
                 ]);
                 setShop(shopData);
                 setProducts(productsData);
-                setCategories(categoriesData);
                 setReviews(reviewData);
             } catch (err) {
                 console.error(err);

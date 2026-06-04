@@ -12,6 +12,7 @@ import vn.edu.hcmuaf.reverseauction.entity.AuctionRequest;
 import vn.edu.hcmuaf.reverseauction.entity.AuctionStatus;
 import vn.edu.hcmuaf.reverseauction.mapper.AuctionRequestMapper;
 import vn.edu.hcmuaf.reverseauction.repository.AuctionRequestRepository;
+import vn.edu.hcmuaf.reverseauction.service.NotificationService;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,6 +25,7 @@ public class AuctionScheduler {
     private final AuctionRequestRepository auctionRequestRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final AuctionRequestMapper auctionRequestMapper;
+    private final NotificationService notificationService;
     /**
      * Automatically change auction status from OPEN to CLOSED when endDate has passed
      * Run every 1 second.
@@ -49,6 +51,12 @@ public class AuctionScheduler {
             AuctionRequestResponseDTO auctionRequestResponseDTO = auctionRequestMapper.toDTO(auction);
             AuctionWSResponseDTO message = AuctionWSResponseDTO.builder().auction(auctionRequestResponseDTO).build();
             messagingTemplate.convertAndSend(destination, message);
+
+            // Notify buyer that their auction has expired/closed
+            String title = "Phiên đấu giá đã kết thúc";
+            String content = String.format("Phiên đấu giá \"%s\" của bạn đã kết thúc vì hết thời hạn đặt giá. Bạn có thể xem các đề nghị và chọn người thắng.",
+                    auction.getTitle());
+            notificationService.createAndSendNotification(auction.getBuyer(), title, content, "AUCTION_CLOSED", auction.getId());
 
             log.info("[Scheduler] Auction id={} '{}' → CLOSED", auction.getId(), auction.getTitle());
         }
