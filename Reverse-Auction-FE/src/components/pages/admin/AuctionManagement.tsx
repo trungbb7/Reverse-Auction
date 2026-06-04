@@ -13,8 +13,11 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { useConfirm } from "@/context/ConfirmContext";
+
 
 export default function AuctionManagement() {
+  const { confirm } = useConfirm();
   const [auctions, setAuctions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -64,12 +67,15 @@ export default function AuctionManagement() {
   };
 
   const handleCancelAuction = async (auctionId: number) => {
-    if (
-      !window.confirm(
-        "Bạn có chắc chắn muốn HỦY phiên đấu giá này không? Thao tác này sẽ dừng phiên đấu giá ngay lập tức và không thể khôi phục.",
-      )
-    )
-      return;
+    const isConfirmed = await confirm({
+      title: "Hủy phiên đấu giá",
+      message: "Bạn có chắc chắn muốn HỦY phiên đấu giá này không? Thao tác này sẽ dừng phiên đấu giá ngay lập tức và không thể khôi phục.",
+      type: "danger",
+      confirmText: "Hủy phiên đấu",
+      cancelText: "Hủy bỏ",
+    });
+
+    if (!isConfirmed) return;
     try {
       await adminService.cancelAuction(auctionId);
       toast.success("Đã hủy phiên đấu giá thành công!");

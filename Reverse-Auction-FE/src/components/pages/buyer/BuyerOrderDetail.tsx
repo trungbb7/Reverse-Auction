@@ -22,6 +22,8 @@ import {
 } from "@/types/orders";
 import { orderService } from "@/services/orderService";
 import toast from "react-hot-toast";
+import { useConfirm } from "@/context/ConfirmContext";
+
 
 /* ─── helpers ─────────────────────────────────────────────────── */
 function formatCurrency(n: number) {
@@ -200,6 +202,7 @@ function OrderTimeline({ status }: { status: Order["status"] }) {
 
 /* ─── Main Page ─────────────────────────────────────────────── */
 export default function BuyerOrderDetail() {
+  const { confirm } = useConfirm();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [order, setOrder] = useState<Order | null>(null);
@@ -207,12 +210,15 @@ export default function BuyerOrderDetail() {
 
   const handleConfirmReceipt = async () => {
     if (!order) return;
-    if (
-      !window.confirm(
-        "Bạn xác nhận đã nhận được hàng đầy đủ và đúng mô tả? Thao tác này sẽ hoàn tất đơn hàng và không thể hoàn tác.",
-      )
-    )
-      return;
+    const isConfirmed = await confirm({
+      title: "Xác nhận nhận hàng",
+      message: "Bạn xác nhận đã nhận được hàng đầy đủ và đúng mô tả? Thao tác này sẽ hoàn tất đơn hàng và không thể hoàn tác.",
+      type: "success",
+      confirmText: "Xác nhận nhận hàng",
+      cancelText: "Hủy",
+    });
+
+    if (!isConfirmed) return;
     try {
       const updatedOrder = await orderService.updateStatus(
         order.id,

@@ -34,6 +34,7 @@ import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "./hooks/redux.ts";
 import { fetchCurrentUser } from "./components/Auth/authSlice.ts";
 import { NotificationProvider } from "./context/NotificationContext.tsx";
+import { ConfirmProvider } from "./context/ConfirmContext.tsx";
 
 import UserManagement from "./components/pages/admin/UserManagement";
 import CategoryManagement from "./components/pages/admin/CategoryManagement";
@@ -55,8 +56,10 @@ function App() {
 
   return (
     <NotificationProvider>
-      <BrowserRouter>
-        <Toaster position="top-right" />
+      <ConfirmProvider>
+        <BrowserRouter>
+          <Toaster position="top-right" />
+
         <Routes>
           {/* Public home route */}
           <Route path="/" element={<MainLayout />}>
@@ -150,6 +153,7 @@ function App() {
         </Routes>
         <GlobalChatWidget />
       </BrowserRouter>
+      </ConfirmProvider>
     </NotificationProvider>
   );
 }

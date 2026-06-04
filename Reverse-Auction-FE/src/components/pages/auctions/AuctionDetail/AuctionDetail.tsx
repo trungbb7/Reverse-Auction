@@ -18,10 +18,13 @@ import toast from "react-hot-toast";
 import { bidService } from "@/services/bidService";
 import { auctionService } from "@/services/auctionService";
 import { useAppSelector } from "@/hooks/redux";
+import { useConfirm } from "@/context/ConfirmContext";
+
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 
 export default function AuctionDetail() {
+  const { confirm } = useConfirm();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [auction, setAuction] = useState<Auction>();
@@ -65,12 +68,15 @@ export default function AuctionDetail() {
 
   const handleCloseEarly = async () => {
     if (!auction) return;
-    if (
-      !window.confirm(
-        "Bạn có chắc chắn muốn đóng sớm phiên đấu giá này không? Sau khi đóng, người bán không thể gửi đề xuất thầu mới và bạn có thể chọn người thắng.",
-      )
-    )
-      return;
+    const isConfirmed = await confirm({
+      title: "Đóng sớm phiên đấu giá",
+      message: "Bạn có chắc chắn muốn đóng sớm phiên đấu giá này không? Sau khi đóng, người bán không thể gửi đề xuất thầu mới và bạn có thể chọn người thắng.",
+      type: "warning",
+      confirmText: "Đóng sớm",
+      cancelText: "Hủy",
+    });
+
+    if (!isConfirmed) return;
 
     try {
       const updated = await auctionService.updateAuctionStatus(
