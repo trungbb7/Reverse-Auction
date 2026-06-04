@@ -1,6 +1,7 @@
 package vn.edu.hcmuaf.reverseauction.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -29,6 +30,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -59,6 +61,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthenticationResponse login(LoginRequest request) {
+
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
@@ -97,12 +100,9 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public String forgotPassword(ForgotPasswordRequest request) {
-        // Luôn trả về thành công để tránh lộ thông tin email tồn tại hay không
         userRepository.findByEmail(request.getEmail()).ifPresent(user -> {
-            // Xóa token cũ nếu có
             passwordResetTokenRepository.deleteByUser(user);
 
-            // Tạo token mới hết hạn sau 15 phút
             String token = UUID.randomUUID().toString();
             PasswordResetToken resetToken = PasswordResetToken.builder()
                     .token(token)
@@ -111,7 +111,6 @@ public class AuthServiceImpl implements AuthService {
                     .build();
             passwordResetTokenRepository.save(resetToken);
 
-            // Gửi email
             emailService.sendPasswordResetEmail(user.getEmail(), token);
         });
 
@@ -226,7 +225,7 @@ public class AuthServiceImpl implements AuthService {
                 throw CustomException.builder()
                         .status(HttpStatus.FORBIDDEN)
                         .error("Forbidden")
-                        .message("Tài khoản này đã bị vô hiệu hóa!")
+                        .message("Tài khoản này đã bị khóa!")
                         .build();
             }
 

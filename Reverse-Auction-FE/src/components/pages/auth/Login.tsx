@@ -136,7 +136,14 @@ export default function Login() {
       handleAuthSuccess(accessToken, refreshToken);
     } catch (error) {
       console.log(error);
-      toast.error("Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");
+      if (axios.isAxiosError<ErrorResponse>(error)) {
+        toast.error(
+          error.response?.data.message ||
+            "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.",
+        );
+      } else {
+        toast.error("Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");
+      }
     } finally {
       setIsLoading(false);
     }

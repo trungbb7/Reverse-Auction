@@ -39,7 +39,9 @@ public class OrdersController {
     ) {
         String token = authHeader.substring(7);
         Long userId = jwtService.extractUserId(token);
-        return ResponseEntity.ok(orderServiceImpl.getOrdersBySellerId(userId));
+        List<OrderResponseDTO> orders = orderServiceImpl.getOrdersBySellerId(userId);
+        orders.sort((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt()));
+        return ResponseEntity.ok(orders);
     }
 
     @PutMapping("/{id}/status")
