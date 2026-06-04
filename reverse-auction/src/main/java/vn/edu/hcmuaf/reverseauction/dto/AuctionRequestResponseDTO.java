@@ -29,5 +29,6 @@ public class AuctionRequestResponseDTO {
     private LocalDateTime endDate;
     private AuctionStatus status;
     private List<String> imageUrls;
+    private Long orderId;
     private LocalDateTime createdAt;
 }

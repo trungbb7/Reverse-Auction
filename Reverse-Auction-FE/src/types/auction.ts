@@ -25,6 +25,7 @@ export interface Auction {
   location?: string;
   paymentMethod?: string;
   imageUrls?: string[];
+  orderId?: number;
 }
 
 export interface Bid {

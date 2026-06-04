@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router";
+import { useParams, useNavigate, Link } from "react-router";
 import {
   Clock,
   Users,
@@ -32,11 +32,14 @@ export default function AuctionDetail() {
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [mainImage, setMainImage] = useState(selectedImages[0] ?? "");
   const [winner, setWinner] = useState<number | null>(null);
+  const [orderId, setOrderId] = useState<number | undefined>(undefined);
   const currentUser = useAppSelector((state) => state.auth.user);
 
   const handleSelectWinner = async (bidId: number) => {
     try {
-      await auctionService.selectWinner(id || "", bidId);
+      const newOrderId = (await auctionService.selectWinner(id || "", bidId))
+        .orderId;
+      setOrderId(newOrderId);
       setWinner(bidId);
 
       setBids((prev) =>
@@ -414,11 +417,14 @@ export default function AuctionDetail() {
                   </p>
                   <p className="text-xs text-green-600 mt-1">
                     {bids.find((b) => b.id === winner)?.sellerName} đã được
-                    chọn. Phiên đấu giá sẽ kết thúc sớm.
+                    chọn. Phiên đấu giá hoàn thành.
                   </p>
-                  <button className="mt-3 flex items-center gap-1 text-xs font-bold text-green-700 hover:text-green-900 transition-colors">
-                    Xem hợp đồng <ChevronRight className="w-3 h-3" />
-                  </button>
+                  <Link
+                    to={`/buyer/orders/${orderId}`}
+                    className="mt-3 flex items-center gap-1 text-xs font-bold text-green-700 hover:text-green-900 transition-colors"
+                  >
+                    Xem đơn hàng <ChevronRight className="w-3 h-3" />
+                  </Link>
                 </div>
               </div>
             </div>

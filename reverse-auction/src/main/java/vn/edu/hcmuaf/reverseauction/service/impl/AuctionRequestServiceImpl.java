@@ -155,7 +155,7 @@ public class AuctionRequestServiceImpl implements AuctionRequestService {
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
-        orderRepository.save(order);
+        Order savedOder = orderRepository.save(order);
 
         // Notify the winning seller
         String title = "Đề nghị đấu giá của bạn đã thắng!";
@@ -163,7 +163,9 @@ public class AuctionRequestServiceImpl implements AuctionRequestService {
                 winnerBid.getBidPrice(), auction.getTitle(), orderCode);
         notificationService.createAndSendNotification(winnerBid.getSeller(), title, content, "AUCTION_WON", auction.getId());
 
-        return auctionRequestMapper.toDTO(saved);
+        AuctionRequestResponseDTO dto = auctionRequestMapper.toDTO(saved);
+        dto.setOrderId(savedOder.getId());
+        return dto;
     }
 
     @Override
