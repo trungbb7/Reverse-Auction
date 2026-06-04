@@ -100,7 +100,7 @@ public class AuctionRequestServiceImpl implements AuctionRequestService {
         // 2. Check: auction must be CLOSED to select winner
         if (auction.getStatus() != AuctionStatus.CLOSED) {
             throw CustomException.builder()
-                    .statusCode(HttpStatus.BAD_REQUEST)
+                    .status(HttpStatus.BAD_REQUEST)
                     .error("Invalid status")
                     .message("Chỉ có thể chọn winner khi auction đã CLOSED. Trạng thái hiện tại: " + auction.getStatus())
                     .build();
@@ -109,7 +109,7 @@ public class AuctionRequestServiceImpl implements AuctionRequestService {
         // 3. Check: API requester must be owner of auction
         if (!auction.getBuyer().getEmail().equals(buyerEmail)) {
             throw CustomException.builder()
-                    .statusCode(HttpStatus.FORBIDDEN)
+                    .status(HttpStatus.FORBIDDEN)
                     .error("Forbidden")
                     .message("Bạn không có quyền chọn winner cho auction này")
                     .build();
@@ -122,7 +122,7 @@ public class AuctionRequestServiceImpl implements AuctionRequestService {
         // 5. Check if bid along with auction
         if (winnerBid.getAuction().getId() != auctionId) {
             throw CustomException.builder()
-                    .statusCode(HttpStatus.BAD_REQUEST)
+                    .status(HttpStatus.BAD_REQUEST)
                     .error("Invalid bid")
                     .message("Bid này không thuộc auction id: " + auctionId)
                     .build();

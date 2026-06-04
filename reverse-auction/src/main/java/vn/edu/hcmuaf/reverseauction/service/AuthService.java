@@ -9,5 +9,6 @@ public interface AuthService {
     AuthenticationResponse refreshToken(RefreshTokenRequest request);
     String forgotPassword(ForgotPasswordRequest request);
     String resetPassword(ResetPasswordRequest request);
+    AuthenticationResponse googleLogin(GoogleLoginRequest request);
 }
 

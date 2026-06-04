@@ -1,12 +1,15 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { Mail, Lock, ArrowRight, Loader2 } from "lucide-react";
+import { Mail, Lock, ArrowRight, Loader2, User, Store, X } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { loginUser } from "@/components/Auth/authSlice";
 import api from "@/utils/axios";
 import { jwtDecode } from "jwt-decode";
 import toast from "react-hot-toast";
 import type { MyJwtPayload } from "@/types/jwtPayload";
+import { useGoogleLogin } from "@react-oauth/google";
+import type { ErrorResponse } from "@/types/errorResponse";
+import axios from "axios";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -15,42 +18,122 @@ export default function Login() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  // Google Login and Registration States
+  const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
+  const [googleAccessToken, setGoogleAccessToken] = useState("");
+  const [googleUserInfo, setGoogleUserInfo] = useState<{
+    email: string;
+    fullName: string;
+    imageUrl: string;
+  } | null>(null);
+  const [selectedRole, setSelectedRole] = useState<
+    "ROLE_BUYER" | "ROLE_SELLER" | ""
+  >("");
+  const [isRegistering, setIsRegistering] = useState(false);
+
+  const handleAuthSuccess = (accessToken: string, refreshToken: string) => {
+    const decoded = jwtDecode(accessToken) as MyJwtPayload;
+    dispatch(
+      loginUser({
+        user: {
+          id: Number(decoded.id),
+          email: decoded.sub || "",
+          role: decoded.role || "ROLE_BUYER",
+          fullName: decoded.fullName || "",
+          enabled: true,
+        },
+        accessToken,
+        refreshToken,
+      }),
+    );
+
+    toast.success("Đăng nhập thành công!");
+
+    // Điều hướng theo vai trò
+    const role = decoded.role;
+    if (role === "ROLE_ADMIN") {
+      navigate("/admin");
+    } else if (role === "ROLE_SELLER") {
+      navigate("/seller");
+    } else {
+      navigate("/");
+    }
+  };
+
+  const loginWithGoogle = useGoogleLogin({
+    onSuccess: async (tokenResponse) => {
+      try {
+        setIsLoading(true);
+        const response = await api.post("/auth/google", {
+          accessToken: tokenResponse.access_token,
+        });
+
+        const data = response.data;
+        if (!data.registered) {
+          setGoogleAccessToken(tokenResponse.access_token);
+          setGoogleUserInfo({
+            email: data.email,
+            fullName: data.fullName,
+            imageUrl: data.imageUrl,
+          });
+          setIsRoleModalOpen(true);
+        } else {
+          handleAuthSuccess(data.accessToken, data.refreshToken);
+        }
+      } catch (error) {
+        console.error(error);
+        if (axios.isAxiosError<ErrorResponse>(error)) {
+          const errMsg =
+            error.response?.data.message || "Đăng nhập bằng Google thất bại.";
+          toast.error(errMsg);
+        } else {
+          toast.error("Đăng nhập bằng Google thất bại.");
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    onError: () => {
+      toast.error("Đăng nhập bằng Google thất bại.");
+    },
+  });
+
+  const handleRegisterWithRole = async () => {
+    if (!selectedRole) {
+      toast.error("Vui lòng chọn vai trò trước khi tiếp tục!");
+      return;
+    }
+    try {
+      setIsRegistering(true);
+      const response = await api.post("/auth/google", {
+        accessToken: googleAccessToken,
+        role: selectedRole,
+      });
+
+      const data = response.data;
+      if (data.registered) {
+        handleAuthSuccess(data.accessToken, data.refreshToken);
+        setIsRoleModalOpen(false);
+      } else {
+        toast.error("Đăng ký vai trò thất bại. Vui lòng thử lại.");
+      }
+    } catch (error: any) {
+      console.error(error);
+      const errMsg =
+        error.response?.data?.message || "Đăng ký vai trò thất bại.";
+      toast.error(errMsg);
+    } finally {
+      setIsRegistering(false);
+    }
+  };
+
+  const handleLogin = async (e: React.SubmitEvent) => {
     e.preventDefault();
     try {
       setIsLoading(true);
       const response = await api.post("/auth/login", { email, password });
-
       const { accessToken, refreshToken } = response.data;
-
-      // Decode token to get user info
-      const decoded = jwtDecode(accessToken) as MyJwtPayload;
-
-      dispatch(
-        loginUser({
-          user: {
-              id: Number(decoded.id),
-              email: decoded.sub || email,
-              role: decoded.role || "ROLE_BUYER",
-              fullName: decoded.fullName || email.split("@")[0],
-              enabled: false
-          },
-          accessToken,
-          refreshToken,
-        }),
-      );
-
-      toast.success("Đăng nhập thành công!");
-
-      // Điều hướng theo vai trò
-      const role = decoded.role;
-      if (role === "ROLE_ADMIN") {
-        navigate("/admin");
-      } else if (role === "ROLE_SELLER") {
-        navigate("/seller");
-      } else {
-        navigate("/");
-      }
+      handleAuthSuccess(accessToken, refreshToken);
     } catch (error) {
       console.log(error);
       toast.error("Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.");
@@ -164,7 +247,11 @@ export default function Login() {
       </div>
 
       <div className="mt-6 flex gap-4">
-        <button className="flex-1 py-3 px-4 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors flex items-center justify-center space-x-2">
+        <button
+          type="button"
+          onClick={() => loginWithGoogle()}
+          className="flex-1 py-3 px-4 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors flex items-center justify-center space-x-2 cursor-pointer"
+        >
           <img
             src="https://www.svgrepo.com/show/475656/google-color.svg"
             className="w-5 h-5"
@@ -181,6 +268,144 @@ export default function Login() {
           <span className="text-slate-700 font-medium text-sm">Facebook</span>
         </button>
       </div>
+
+      {/* Role Selection Modal */}
+      {isRoleModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300 p-4">
+          <div className="bg-white rounded-3xl p-6 md:p-8 max-w-lg w-full shadow-2xl border border-slate-100 flex flex-col relative animate-in zoom-in-95 duration-300">
+            {/* Close Button */}
+            <button
+              onClick={() => {
+                setIsRoleModalOpen(false);
+                setSelectedRole("");
+              }}
+              className="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors cursor-pointer"
+            >
+              <X size={20} />
+            </button>
+
+            {/* Header info */}
+            <div className="flex flex-col items-center mb-6">
+              {googleUserInfo?.imageUrl ? (
+                <img
+                  src={googleUserInfo.imageUrl}
+                  alt="Google Avatar"
+                  className="w-16 h-16 rounded-full border-2 border-primary-500 shadow-md mb-3 object-cover"
+                />
+              ) : (
+                <div className="w-16 h-16 rounded-full bg-primary-50 text-primary-600 flex items-center justify-center font-bold text-2xl mb-3 shadow-inner">
+                  {googleUserInfo?.fullName?.[0]?.toUpperCase()}
+                </div>
+              )}
+              <h2 className="text-xl font-bold text-slate-800 text-center">
+                Chào mừng, {googleUserInfo?.fullName}!
+              </h2>
+              <p className="text-sm text-slate-500 text-center mt-2 leading-relaxed">
+                Tài khoản Google{" "}
+                <span className="font-semibold text-slate-700">
+                  {googleUserInfo?.email}
+                </span>{" "}
+                chưa được đăng ký trên hệ thống. Vui lòng chọn vai trò hoạt động
+                của bạn.
+              </p>
+            </div>
+
+            {/* Role Options */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+              {/* Buyer Option */}
+              <button
+                type="button"
+                onClick={() => setSelectedRole("ROLE_BUYER")}
+                className={`flex flex-col items-center justify-center p-5 rounded-2xl border-2 transition-all duration-300 group cursor-pointer text-center ${
+                  selectedRole === "ROLE_BUYER"
+                    ? "border-primary-600 bg-primary-50/40 shadow-md shadow-primary-500/10 scale-[1.02]"
+                    : "border-slate-100 bg-slate-50/50 hover:border-slate-300 hover:bg-slate-50 hover:scale-[1.01]"
+                }`}
+              >
+                <div
+                  className={`p-3 rounded-xl mb-3 transition-colors ${
+                    selectedRole === "ROLE_BUYER"
+                      ? "bg-primary-600 text-white"
+                      : "bg-slate-100 text-slate-500 group-hover:bg-slate-200 group-hover:text-slate-600"
+                  }`}
+                >
+                  <User size={24} />
+                </div>
+                <h3
+                  className={`font-bold text-sm mb-1 ${
+                    selectedRole === "ROLE_BUYER"
+                      ? "text-primary-950"
+                      : "text-slate-700"
+                  }`}
+                >
+                  Người mua
+                </h3>
+                <p className="text-xs text-slate-400 leading-normal">
+                  Đăng yêu cầu đấu giá ngược & chọn thầu tốt nhất
+                </p>
+              </button>
+
+              {/* Seller Option */}
+              <button
+                type="button"
+                onClick={() => setSelectedRole("ROLE_SELLER")}
+                className={`flex flex-col items-center justify-center p-5 rounded-2xl border-2 transition-all duration-300 group cursor-pointer text-center ${
+                  selectedRole === "ROLE_SELLER"
+                    ? "border-primary-600 bg-primary-50/40 shadow-md shadow-primary-500/10 scale-[1.02]"
+                    : "border-slate-100 bg-slate-50/50 hover:border-slate-300 hover:bg-slate-50 hover:scale-[1.01]"
+                }`}
+              >
+                <div
+                  className={`p-3 rounded-xl mb-3 transition-colors ${
+                    selectedRole === "ROLE_SELLER"
+                      ? "bg-primary-600 text-white"
+                      : "bg-slate-100 text-slate-500 group-hover:bg-slate-200 group-hover:text-slate-600"
+                  }`}
+                >
+                  <Store size={24} />
+                </div>
+                <h3
+                  className={`font-bold text-sm mb-1 ${
+                    selectedRole === "ROLE_SELLER"
+                      ? "text-primary-950"
+                      : "text-slate-700"
+                  }`}
+                >
+                  Người bán
+                </h3>
+                <p className="text-xs text-slate-400 leading-normal">
+                  Chào thầu các yêu cầu đấu giá & bán hàng
+                </p>
+              </button>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsRoleModalOpen(false);
+                  setSelectedRole("");
+                }}
+                className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-all cursor-pointer text-center text-sm"
+              >
+                Hủy bỏ
+              </button>
+              <button
+                type="button"
+                onClick={handleRegisterWithRole}
+                disabled={!selectedRole || isRegistering}
+                className="flex-1 py-3 bg-primary-600 hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-xl transition-all shadow-md shadow-primary-500/20 flex items-center justify-center cursor-pointer text-sm"
+              >
+                {isRegistering ? (
+                  <Loader2 size={16} className="animate-spin mr-2" />
+                ) : null}
+                Xác nhận
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

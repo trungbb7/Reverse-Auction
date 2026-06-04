@@ -101,10 +101,10 @@ public class GlobalExceptionHandler {
         ErrorResponse error = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .error(ex.getError())
-                .status(ex.getStatusCode().value())
+                .status(ex.getStatus().value())
                 .message(ex.getMessage())
                 .build();
-        return new ResponseEntity<>(error, ex.getStatusCode());
+        return new ResponseEntity<>(error, ex.getStatus());
     }
 
     @ExceptionHandler(RuntimeException.class)
