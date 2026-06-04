@@ -37,4 +37,16 @@ export const adminService = {
         const res = await api.get(`/admin/auctions?page=${page}&size=${size}`);
         return res.data;
     },
+
+    getAuctionDetail: async (id: number): Promise<any> => {
+        const res = await api.get(`/admin/auctions/${id}`);
+        return res.data;
+    },
+
+    cancelAuction: async (auctionId: number): Promise<any> => {
+        const res = await api.patch(`/auctions/${auctionId}/status`, null, {
+            params: { status: "CANCELLED" }
+        });
+        return res.data;
+    },
 };

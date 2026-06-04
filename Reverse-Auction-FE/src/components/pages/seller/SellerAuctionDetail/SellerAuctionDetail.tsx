@@ -31,7 +31,11 @@ export default function SellerAuctionDetail() {
   const [bids, setBids] = useState<Bid[]>([]);
   const [myBid, setMyBid] = useState<Bid | null>(null);
   const [mainImage, setMainImage] = useState(auction.imageUrls?.[0] ?? "");
-  const countdown = useCountdown(auction.endDate || "");
+  const countdown = useCountdown(
+    auction?.status !== "OPEN"
+      ? new Date().toISOString()
+      : (auction?.endDate ?? new Date().toISOString()),
+  );
   const userId = useAppSelector((state) => state.auth.user?.id);
   const [stompClient, setStompClient] = useState<Client | null>(null);
 

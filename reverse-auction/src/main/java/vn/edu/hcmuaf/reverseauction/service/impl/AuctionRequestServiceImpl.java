@@ -169,6 +169,40 @@ public class AuctionRequestServiceImpl implements AuctionRequestService {
     }
 
     @Override
+    @Transactional
+    public AuctionRequestResponseDTO updateAuctionStatus(long auctionId, AuctionStatus status, Long buyerId) {
+        AuctionRequest auction = auctionRequestRepository.findById(auctionId).orElseThrow(
+                () -> new ResourceNotFoundException("Không tìm thấy auction Id: " + auctionId));
+
+        User user = userRepository.findById(buyerId).orElseThrow(
+                () -> new ResourceNotFoundException("Không tìm thấy người dùng: " + buyerId));
+
+        boolean isBuyer = auction.getBuyer().getId().equals(buyerId);
+        boolean isAdmin = user.getRole() == Role.ROLE_ADMIN;
+        if (!isBuyer && !isAdmin) {
+            throw CustomException.builder()
+                    .error("Forbidden")
+                    .message("Bạn không có quyền cập nhật trạng thái phiên đấu giá này")
+                    .status(HttpStatus.FORBIDDEN)
+                    .build();
+        }
+
+        if (auction.getStatus() == AuctionStatus.COMPLETED || auction.getStatus() == AuctionStatus.CANCELLED) {
+            throw CustomException.builder()
+                    .error("Bad Request")
+                    .message("Không thể cập nhật trạng thái cho phiên đấu giá đã kết thúc hoặc đã hủy")
+                    .status(HttpStatus.BAD_REQUEST)
+                    .build();
+        }
+
+        auction.setStatus(status);
+
+        auctionRequestRepository.save(auction);
+
+        return auctionRequestMapper.toDTO(auction);
+    }
+
+    @Override
     public PageResponse<AuctionRequestResponseDTO> getFilteredAuction(String keyword, String categoryName, AuctionStatus status, BigDecimal minBudget, BigDecimal maxBudget, Pageable pageable) {
         Specification<AuctionRequest> spec = Specification.where(AuctionRequestSpecification.hasCategoryName(categoryName))
                 .and(AuctionRequestSpecification.hasStatus(status))

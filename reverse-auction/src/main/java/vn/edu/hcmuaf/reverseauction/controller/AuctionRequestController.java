@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.hcmuaf.reverseauction.dto.*;
@@ -18,6 +19,7 @@ import vn.edu.hcmuaf.reverseauction.dto.response.AllBidResponseDTO;
 import vn.edu.hcmuaf.reverseauction.dto.response.AuctionWSResponseDTO;
 import vn.edu.hcmuaf.reverseauction.dto.response.PageResponse;
 import vn.edu.hcmuaf.reverseauction.entity.AuctionStatus;
+import vn.edu.hcmuaf.reverseauction.entity.User;
 import vn.edu.hcmuaf.reverseauction.service.AuctionRequestService;
 import vn.edu.hcmuaf.reverseauction.service.BidService;
 import vn.edu.hcmuaf.reverseauction.service.impl.AuctionService;
@@ -103,6 +105,28 @@ public class AuctionRequestController {
 
 //        Websocket send to client
         AuctionRequestResponseDTO result = auctionRequestService.selectWinner(auctionId, bidId, email);
+        AllBidResponseDTO bids = bidService.getBidsForAuction(auctionId);
+        AuctionWSResponseDTO auctionWSResponseDTO = AuctionWSResponseDTO.builder()
+                .auction(result)
+                .bids(bids.getBids())
+                .build();
+        String destination = "/topic/auction/" + auctionId;
+        simpMessagingTemplate.convertAndSend(destination, auctionWSResponseDTO);
+
+        return ResponseEntity.ok(result);
+    }
+
+    @PatchMapping("/{auctionId}/status")
+    @PreAuthorize("hasAnyRole('BUYER', 'ADMIN')")
+    public ResponseEntity<AuctionRequestResponseDTO> updateAuctionStatus(
+            @AuthenticationPrincipal User user,
+            @PathVariable Long auctionId,
+            @RequestParam String status) {
+        Long userId = user.getId();
+        AuctionStatus auctionStatus = AuctionStatus.valueOf(status);
+
+        AuctionRequestResponseDTO result = auctionRequestService.updateAuctionStatus(auctionId, auctionStatus, userId);
+
         AllBidResponseDTO bids = bidService.getBidsForAuction(auctionId);
         AuctionWSResponseDTO auctionWSResponseDTO = AuctionWSResponseDTO.builder()
                 .auction(result)

@@ -205,6 +205,27 @@ export default function BuyerOrderDetail() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const handleConfirmReceipt = async () => {
+    if (!order) return;
+    if (
+      !window.confirm(
+        "Bạn xác nhận đã nhận được hàng đầy đủ và đúng mô tả? Thao tác này sẽ hoàn tất đơn hàng và không thể hoàn tác.",
+      )
+    )
+      return;
+    try {
+      const updatedOrder = await orderService.updateStatus(
+        order.id,
+        "COMPLETED",
+      );
+      setOrder(updatedOrder);
+      toast.success("Đã hoàn tất đơn hàng thành công!");
+    } catch (err) {
+      toast.error("Không thể xác nhận nhận hàng. Vui lòng thử lại!");
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     (async () => {
       try {
@@ -405,19 +426,39 @@ export default function BuyerOrderDetail() {
 
             {/* Status info for non-payment states */}
             {order.status !== "AWAITING_PAYMENT" && (
-              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-                <div className="flex items-center gap-2 mb-1">
-                  <User className="w-4 h-4 text-slate-400" />
-                  <h3 className="font-black text-slate-900 text-sm">
-                    Trạng thái
-                  </h3>
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 space-y-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <User className="w-4 h-4 text-slate-400" />
+                    <h3 className="font-black text-slate-900 text-sm">
+                      Trạng thái
+                    </h3>
+                  </div>
+                  <p className="text-sm font-bold text-slate-700 mt-2">
+                    {ORDER_STATUS_LABEL[order.status]}
+                  </p>
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Cập nhật: {new Date(order.updatedAt).toLocaleString("vi-VN")}
+                  </p>
                 </div>
-                <p className="text-sm font-bold text-slate-700 mt-2">
-                  {ORDER_STATUS_LABEL[order.status]}
-                </p>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Cập nhật: {new Date(order.updatedAt).toLocaleString("vi-VN")}
-                </p>
+
+                {(order.status === "SHIPPED" || order.status === "DELIVERED") && (
+                  <button
+                    onClick={handleConfirmReceipt}
+                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-green-500 hover:from-emerald-700 hover:to-green-600 text-white font-black text-sm transition-all shadow-sm hover:shadow active:scale-98"
+                  >
+                    Xác nhận đã nhận hàng
+                  </button>
+                )}
+
+                {order.status === "COMPLETED" && !order.alreadyReviewed && (
+                  <button
+                    onClick={() => navigate(`/review/order/${order.id}`)}
+                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#375F97] to-blue-500 hover:from-[#2d4f80] hover:to-blue-600 text-white font-black text-sm transition-all shadow-sm hover:shadow active:scale-98"
+                  >
+                    Đánh giá dịch vụ
+                  </button>
+                )}
               </div>
             )}
           </div>

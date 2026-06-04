@@ -25,7 +25,11 @@ export default function AuctionDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [auction, setAuction] = useState<Auction>();
-  const countdown = useCountdown(auction?.endDate ?? new Date().toISOString());
+  const countdown = useCountdown(
+    auction?.status !== "OPEN"
+      ? new Date().toISOString()
+      : (auction?.endDate ?? new Date().toISOString()),
+  );
   const [bids, setBids] = useState<Bid[]>([]);
   const [lowestBid, setLowestBid] = useState<number>(0);
   const [lastOffer, setLastOffer] = useState<string | undefined>();
@@ -55,6 +59,28 @@ export default function AuctionDetail() {
       toast.success("Đã chọn người thắng thành công!");
     } catch (err) {
       toast.error("Không thể chọn người thắng. Vui lòng thử lại.");
+      console.error(err);
+    }
+  };
+
+  const handleCloseEarly = async () => {
+    if (!auction) return;
+    if (
+      !window.confirm(
+        "Bạn có chắc chắn muốn đóng sớm phiên đấu giá này không? Sau khi đóng, người bán không thể gửi đề xuất thầu mới và bạn có thể chọn người thắng.",
+      )
+    )
+      return;
+
+    try {
+      const updated = await auctionService.updateAuctionStatus(
+        auction.id,
+        "CLOSED",
+      );
+      setAuction(updated);
+      toast.success("Đã đóng sớm phiên đấu giá thành công!");
+    } catch (err) {
+      toast.error("Không thể đóng sớm phiên đấu giá. Vui lòng thử lại.");
       console.error(err);
     }
   };
@@ -194,8 +220,17 @@ export default function AuctionDetail() {
             onClick={() => navigate(-1)}
             className="px-5 py-2 rounded-xl border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors"
           >
-            Huỷ phiên đấu
+            Quay lại
           </button>
+          {currentUser?.id === auction?.buyerId &&
+            auction?.status === "OPEN" && (
+              <button
+                onClick={handleCloseEarly}
+                className="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white text-sm font-semibold hover:from-amber-600 hover:to-orange-700 shadow-md hover:shadow-lg transition-all"
+              >
+                Đóng sớm phiên đấu
+              </button>
+            )}
           <button className="w-9 h-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-colors">
             <MoreHorizontal className="w-5 h-5" />
           </button>
