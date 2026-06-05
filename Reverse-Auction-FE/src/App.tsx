@@ -98,7 +98,7 @@ function App() {
             <Route path="shopPage/:id" element={<ShopPage />} />
           </Route>
 
-          {/* Auth routes */}
+          {/* Guest-only auth routes */}
           <Route
             path="/auth"
             element={
@@ -109,10 +109,30 @@ function App() {
           >
             <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />
+          </Route>
+
+          {/* Public auth routes (accessible by guests & logged in users) */}
+          <Route
+            path="/auth"
+            element={
+              <AuthLayout />
+            }
+          >
             <Route path="forgot-password" element={<ForgotPassword />} />
-            <Route path="change-password" element={<ChangePassword />} />
             <Route path="reset-password" element={<ResetPassword />} />
             <Route path="verify-email" element={<VerifyEmail />} />
+          </Route>
+
+          {/* Authenticated-only auth routes */}
+          <Route
+            path="/auth"
+            element={
+              <RequireAuth>
+                <AuthLayout />
+              </RequireAuth>
+            }
+          >
+            <Route path="change-password" element={<ChangePassword />} />
           </Route>
 
           {/* Unauthorized page */}
