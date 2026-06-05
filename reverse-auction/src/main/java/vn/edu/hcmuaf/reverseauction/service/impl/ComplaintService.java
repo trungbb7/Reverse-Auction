@@ -12,6 +12,7 @@ import vn.edu.hcmuaf.reverseauction.dto.RespondComplaintResponse;
 import vn.edu.hcmuaf.reverseauction.dto.ResolveComplaintRequest;
 import vn.edu.hcmuaf.reverseauction.dto.ResolveComplaintResponse;
 import vn.edu.hcmuaf.reverseauction.entity.Complaint;
+import vn.edu.hcmuaf.reverseauction.entity.OrderStatus;
 import vn.edu.hcmuaf.reverseauction.repository.ComplaintRepository;
 import vn.edu.hcmuaf.reverseauction.repository.OrderRepository;
 
@@ -29,6 +30,9 @@ public class ComplaintService {
     public CreateComplaintResponse createComplaint(CreateComplaintRequest request) {
         var order = orderRepository.findById(request.orderId())
                 .orElseThrow(() -> new IllegalArgumentException("Order not found: " + request.orderId()));
+
+        order.setStatus(OrderStatus.DISPUTED);
+        orderRepository.save(order);
 
         Complaint complaint = new Complaint();
         complaint.setOrder(order);
@@ -83,13 +87,40 @@ public class ComplaintService {
         complaint.setUpdatedAt(complaint.getResolvedAt());
         complaint = complaintRepository.save(complaint);
 
+        var order = complaint.getOrder();
+        if ("REFUND_TO_BUYER".equals(complaint.getVerdict())) {
+            order.setStatus(OrderStatus.CANCELLED);
+        } else {
+            order.setStatus(OrderStatus.COMPLETED);
+        }
+        orderRepository.save(order);
+
         return new ResolveComplaintResponse(complaint.getId(), complaint.getStatus(), complaint.getFinalAction(), complaint.getResolvedAt());
     }
 
     private ComplaintResponse toComplaintSummary(Complaint complaint) {
+        var order = complaint.getOrder();
+        String productName = order.getProduct() != null
+                ? order.getProduct().getName()
+                : (order.getAuction() != null ? order.getAuction().getTitle() : "Sản phẩm đấu giá");
+
         return new ComplaintResponse(
                 complaint.getId(),
-                complaint.getOrder().getId(),
+                order.getId(),
+                order.getCode(),
+                productName,
+                order.getBuyer().getFullName(),
+                order.getBuyer().getId(),
+                order.getBuyer().getEmail(),
+                order.getSeller().getFullName(),
+                order.getSeller().getId(),
+                order.getSeller().getEmail(),
+                order.getType().name(),
+                order.getFinalPrice(),
+                order.getShippingFee(),
+                order.getTotalAmount(),
+                order.getShippingAddress(),
+                order.getBuyerPhone(),
                 complaint.getReason(),
                 complaint.getEvidenceUrls(),
                 complaint.getStatus(),

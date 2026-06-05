@@ -12,4 +12,7 @@ public interface BidRepository extends JpaRepository<Bid, Long> {
     List<Bid> findAllByAuctionId(long auctionId);
 
     boolean existsByAuctionIdAndSellerId(long auctionId, long sellerId);
+
+    long countBySellerId(long sellerId);
+    long countBySellerIdAndIsWinner(long sellerId, boolean isWinner);
 }

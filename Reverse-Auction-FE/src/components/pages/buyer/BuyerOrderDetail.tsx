@@ -13,6 +13,7 @@ import {
   Gavel,
   ExternalLink,
   Loader2,
+  X,
 } from "lucide-react";
 import {
   type Order,
@@ -21,6 +22,8 @@ import {
   ORDER_STATUS_INDEX,
 } from "@/types/orders";
 import { orderService } from "@/services/orderService";
+import { complaintService } from "@/services/complaintService";
+import { cloudinaryService } from "@/services/cloudinaryService";
 import toast from "react-hot-toast";
 import { useConfirm } from "@/context/ConfirmContext";
 
@@ -207,6 +210,49 @@ export default function BuyerOrderDetail() {
   const navigate = useNavigate();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const [isComplaintOpen, setIsComplaintOpen] = useState(false);
+  const [complaintReason, setComplaintReason] = useState("");
+  const [complaintImages, setComplaintImages] = useState<FileList | null>(null);
+  const [submittingComplaint, setSubmittingComplaint] = useState(false);
+
+  const handleSubmitComplaint = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!complaintReason.trim()) {
+      toast.error("Vui lòng nhập lý do khiếu nại!");
+      return;
+    }
+    setSubmittingComplaint(true);
+    try {
+      let evidenceUrls: string[] = [];
+      if (complaintImages && complaintImages.length > 0) {
+        toast.loading("Đang tải lên hình ảnh bằng chứng...", { id: "uploading" });
+        evidenceUrls = await cloudinaryService.uploadMultiImages(complaintImages);
+        toast.dismiss("uploading");
+      }
+
+      await complaintService.createComplaint({
+        orderId: order!.id,
+        reason: complaintReason,
+        evidenceUrls,
+      });
+
+      toast.success("Gửi khiếu nại thành công! Đơn hàng đã chuyển sang trạng thái tranh chấp.");
+      setIsComplaintOpen(false);
+      setComplaintReason("");
+      setComplaintImages(null);
+
+      // Reload order details
+      const data = await orderService.getOrderDetail(order!.id);
+      setOrder(data);
+    } catch (err) {
+      console.error(err);
+      toast.dismiss("uploading");
+      toast.error("Không thể gửi khiếu nại. Vui lòng thử lại!");
+    } finally {
+      setSubmittingComplaint(false);
+    }
+  };
 
   const handleConfirmReceipt = async () => {
     if (!order) return;
@@ -449,12 +495,20 @@ export default function BuyerOrderDetail() {
                 </div>
 
                 {(order.status === "SHIPPED" || order.status === "DELIVERED") && (
-                  <button
-                    onClick={handleConfirmReceipt}
-                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-green-500 hover:from-emerald-700 hover:to-green-600 text-white font-black text-sm transition-all shadow-sm hover:shadow active:scale-98"
-                  >
-                    Xác nhận đã nhận hàng
-                  </button>
+                  <div className="flex flex-col gap-2">
+                    <button
+                      onClick={handleConfirmReceipt}
+                      className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-green-500 hover:from-emerald-700 hover:to-green-600 text-white font-black text-sm transition-all shadow-sm hover:shadow active:scale-98"
+                    >
+                      Xác nhận đã nhận hàng
+                    </button>
+                    <button
+                      onClick={() => setIsComplaintOpen(true)}
+                      className="w-full py-2.5 rounded-xl border-2 border-red-200 text-red-600 hover:bg-red-50 font-black text-sm transition-all shadow-sm hover:shadow active:scale-98"
+                    >
+                      Khiếu nại / Hoàn tiền
+                    </button>
+                  </div>
                 )}
 
                 {order.status === "COMPLETED" && !order.alreadyReviewed && (
@@ -470,6 +524,79 @@ export default function BuyerOrderDetail() {
           </div>
         </div>
       </div>
+
+      {/* Complaint Modal */}
+      {isComplaintOpen && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-slate-800">Khiếu nại đơn hàng</h2>
+              <button
+                onClick={() => setIsComplaintOpen(false)}
+                className="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-100 rounded-lg transition-all"
+              >
+                <X size={24} />
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitComplaint} className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Lý do khiếu nại / Tranh chấp
+                </label>
+                <textarea
+                  required
+                  rows={4}
+                  value={complaintReason}
+                  onChange={(e) => setComplaintReason(e.target.value)}
+                  placeholder="Vui lòng mô tả chi tiết vấn đề bạn gặp phải với sản phẩm này (hỏng hóc, không giống mô tả, thiếu linh kiện...)"
+                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Hình ảnh bằng chứng (Nếu có)
+                </label>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*"
+                  onChange={(e) => setComplaintImages(e.target.files)}
+                  className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-[#375F97] hover:file:bg-blue-100"
+                />
+                <p className="text-[10px] text-slate-400 mt-1">
+                  Bạn có thể chọn nhiều ảnh cùng lúc.
+                </p>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsComplaintOpen(false)}
+                  className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition-all text-sm"
+                >
+                  Hủy
+                </button>
+                <button
+                  type="submit"
+                  disabled={submittingComplaint}
+                  className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-lg font-bold transition-all text-sm disabled:opacity-60"
+                >
+                  {submittingComplaint ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Đang gửi...
+                    </>
+                  ) : (
+                    "Gửi khiếu nại"
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

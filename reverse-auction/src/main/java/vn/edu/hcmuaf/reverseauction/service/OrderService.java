@@ -9,4 +9,5 @@ public interface OrderService {
     List<OrderResponseDTO> getOrdersBySellerId(Long sellerId);
     OrderResponseDTO getOrderById(Long id);
     OrderResponseDTO updateStatus(Long id, OrderStatus status);
+    List<OrderResponseDTO> getAllOrders();
 }

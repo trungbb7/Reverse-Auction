@@ -81,6 +81,11 @@ public class OrderServiceImpl implements OrderService {
 
         return toDTO(savedOrder);
     }
+    @Override
+    public List<OrderResponseDTO> getAllOrders() {
+        List<Order> orders = orderRepository.findAll();
+        return orders.stream().map(this::toDTO).collect(Collectors.toList());
+    }
     private OrderResponseDTO toDTO(Order o) {
         // For AUCTION orders, fallback to auction title/image when no product
         String productName = o.getProduct() != null

@@ -49,4 +49,9 @@ export const orderService = {
       params: { orderId, status },
     });
   },
+
+  getSellerStats: async (): Promise<any> => {
+    const res = await api.get("/stats/seller");
+    return res.data;
+  },
 };

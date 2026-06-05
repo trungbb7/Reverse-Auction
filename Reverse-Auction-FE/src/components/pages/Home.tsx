@@ -10,14 +10,34 @@ import {
   Box,
 } from "lucide-react";
 import {useEffect, useState} from "react";
+import { Link } from "react-router";
+import { useAppSelector } from "@/hooks/redux";
 import {productService} from "@/services/productsService.ts";
 import {shopService} from "@/services/shopService.ts";
+import { auctionService } from "@/services/auctionService";
+import { formatCurrency } from "@/utils/time";
 import { CategoryCard } from "../ui/CategoryCard";
 import { ProductCard } from "../ui/ProductCard";
 import { AuctionCard } from "../ui/AuctionCard";
 import { ShopCard } from "../ui/ShopCard";
 import type {Product} from "@/types/product.ts";
 import type {ShopDetail} from "@/types/shopDetail.ts";
+import type { Auction } from "@/types/auction";
+
+function getTimeLeft(endDate: string) {
+  const diff = Math.max(0, new Date(endDate).getTime() - Date.now());
+  const hours = Math.floor(diff / 3_600_000);
+  const minutes = Math.floor((diff % 3_600_000) / 60_000);
+
+  if (diff === 0) return { label: "Đã kết thúc", urgent: false };
+  if (hours === 0 && minutes <= 30)
+    return { label: `${minutes} phút còn lại`, urgent: true };
+  if (hours < 24) return { label: `${hours} giờ còn lại`, urgent: false };
+  return {
+    label: `${Math.floor(diff / 86_400_000)} ngày còn lại`,
+    urgent: false,
+  };
+}
 
 export default function Home() {
   const categories = [
@@ -30,8 +50,18 @@ export default function Home() {
     { title: "Phụ kiện", icon: Mouse, desc: "Chuột, Bàn phím" },
     { title: "Khác", icon: ShieldAlert, desc: "Tản nhiệt, Case..." },
   ];
+    const user = useAppSelector((state) => state.auth.user);
     const [products, setProducts] = useState<Product[]>([]);
     const [shops, setShops] = useState<ShopDetail[]>([]);
+    const [liveAuctions, setLiveAuctions] = useState<Auction[]>([]);
+
+    const getAuctionLink = (auctionId: number) => {
+      if (user?.role === "ROLE_SELLER") {
+        return `/seller/auctions/${auctionId}`;
+      }
+      return `/auctions/${auctionId}`;
+    };
+
     useEffect(() => {
         const load = async () => {
             try {
@@ -47,9 +77,25 @@ export default function Home() {
 
     useEffect(() => {
         const load = async () => {
-            const data = await productService.fetchProducts();
-            console.log(data);
-            setProducts(data);
+            try {
+                const data = await productService.fetchProducts();
+                setProducts(data);
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        load();
+    }, []);
+
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const res = await auctionService.searchAuctions({ status: "OPEN", size: 3 });
+                setLiveAuctions(res.content);
+            } catch (err) {
+                console.error("Failed to load live auctions", err);
+            }
         };
 
         load();
@@ -421,18 +467,57 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {recentAuctions.map((auction, idx) => (
-            <AuctionCard
-              key={idx}
-              title={auction.title}
-              buyerName={auction.buyerName}
-              timeRemaining={auction.timeRemaining}
-              lowestBid={auction.lowestBid}
-              participants={auction.participants}
-              tags={auction.tags}
-              isUrgent={auction.isUrgent}
-            />
-          ))}
+          {(liveAuctions.length > 0 ? liveAuctions : recentAuctions).map((auction: any, idx) => {
+            const isRealAuction = "id" in auction;
+            const cardTitle = isRealAuction ? (auction.title || "") : auction.title;
+            const buyer = isRealAuction ? (auction.buyerName || "Người dùng") : auction.buyerName;
+            
+            let timeLabel = "";
+            let urgent = false;
+            if (isRealAuction) {
+              const tl = getTimeLeft(auction.endDate);
+              timeLabel = tl.label;
+              urgent = tl.urgent;
+            } else {
+              timeLabel = auction.timeRemaining;
+              urgent = auction.isUrgent;
+            }
+
+            const lowestBidLabel = isRealAuction 
+              ? (auction.lowestPrice && auction.lowestPrice > 0 ? formatCurrency(auction.lowestPrice) : "Chưa có")
+              : auction.lowestBid;
+
+            const bidsCount = isRealAuction ? (auction.totalBids || 0) : auction.participants;
+            const tagsList = isRealAuction 
+              ? (auction.categoryName ? [auction.categoryName] : ["Linh kiện"])
+              : auction.tags;
+
+            const cardComponent = (
+              <AuctionCard
+                title={cardTitle}
+                buyerName={buyer}
+                timeRemaining={timeLabel}
+                lowestBid={lowestBidLabel}
+                participants={bidsCount}
+                tags={tagsList}
+                isUrgent={urgent}
+              />
+            );
+
+            if (isRealAuction) {
+              return (
+                <Link key={auction.id} to={getAuctionLink(auction.id)} className="block h-full hover:no-underline">
+                  {cardComponent}
+                </Link>
+              );
+            }
+
+            return (
+              <div key={idx}>
+                {cardComponent}
+              </div>
+            );
+          })}
         </div>
       </section>
     </div>

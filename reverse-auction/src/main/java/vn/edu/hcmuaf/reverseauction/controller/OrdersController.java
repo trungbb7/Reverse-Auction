@@ -2,6 +2,7 @@ package vn.edu.hcmuaf.reverseauction.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.hcmuaf.reverseauction.dto.OrderResponseDTO;
 import vn.edu.hcmuaf.reverseauction.entity.OrderStatus;
@@ -51,5 +52,13 @@ public class OrdersController {
     ) {
         OrderStatus orderStatus = OrderStatus.valueOf(status);
         return ResponseEntity.ok(orderServiceImpl.updateStatus(id, orderStatus));
+    }
+
+    @GetMapping("/admin")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<OrderResponseDTO>> getAllOrders() {
+        List<OrderResponseDTO> orders = orderServiceImpl.getAllOrders();
+        orders.sort((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt()));
+        return ResponseEntity.ok(orders);
     }
 }
