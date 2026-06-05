@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDateTime;
 
 
 @Entity
@@ -47,9 +48,25 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private Role role;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private AuthProvider provider = AuthProvider.LOCAL;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean verified = false;
+
     @Column(nullable = false)
     @Builder.Default
     private Boolean enabled = true;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer failedAttempts = 0;
+
+    @Column
+    private LocalDateTime lockoutTime;
 
     @OneToMany(mappedBy = "buyer", fetch = FetchType.LAZY)
     @Builder.Default
@@ -61,7 +78,16 @@ public class User implements UserDetails {
     }
     @Override public String getUsername() { return email; }
     @Override public boolean isAccountNonExpired() { return true; }
-    @Override public boolean isAccountNonLocked() { return enabled; }
+    @Override
+    public boolean isAccountNonLocked() {
+        if (lockoutTime != null && lockoutTime.isAfter(LocalDateTime.now())) {
+            return false;
+        }
+        return enabled;
+    }
     @Override public boolean isCredentialsNonExpired() { return true; }
-    @Override public boolean isEnabled() { return enabled; }
+    @Override
+    public boolean isEnabled() {
+        return verified;
+    }
 }

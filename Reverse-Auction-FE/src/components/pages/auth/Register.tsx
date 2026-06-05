@@ -40,7 +40,7 @@ export default function Register() {
     try {
       setIsLoading(true);
       await api.post("/auth/register", { fullName, email, password, role });
-      toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
+      toast.success("Đăng ký thành công! Vui lòng kiểm tra email của bạn để kích hoạt tài khoản.");
       navigate("/auth/login");
     } catch (err) {
       const axiosError = err as AxiosError;

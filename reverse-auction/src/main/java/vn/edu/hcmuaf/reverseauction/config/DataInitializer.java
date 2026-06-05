@@ -41,6 +41,7 @@ public class DataInitializer implements CommandLineRunner {
                     .fullName("TKS Admin")
                     .role(Role.ROLE_ADMIN)
                     .enabled(true)
+                    .verified(true)
                     .build());
             System.out.println("Ensured tks@gmail.com user exists.");
         }
@@ -64,6 +65,7 @@ public class DataInitializer implements CommandLineRunner {
                 .fullName("Admin System")
                 .role(Role.ROLE_ADMIN)
                 .enabled(true)
+                .verified(true)
                 .build();
 
         User buyer = User.builder()
@@ -72,6 +74,7 @@ public class DataInitializer implements CommandLineRunner {
                 .fullName("John Buyer")
                 .role(Role.ROLE_BUYER)
                 .enabled(true)
+                .verified(true)
                 .build();
 
         User seller = User.builder()
@@ -80,6 +83,7 @@ public class DataInitializer implements CommandLineRunner {
                 .fullName("Bob Seller")
                 .role(Role.ROLE_SELLER)
                 .enabled(true)
+                .verified(true)
                 .build();
 
         User tks = User.builder()
@@ -88,6 +92,7 @@ public class DataInitializer implements CommandLineRunner {
                 .fullName("TKS Admin")
                 .role(Role.ROLE_ADMIN)
                 .enabled(true)
+                .verified(true)
                 .build();
 
         userRepository.saveAll(Arrays.asList(admin, buyer, seller, tks));
@@ -204,6 +209,7 @@ public class DataInitializer implements CommandLineRunner {
                                 .fullName("John Seller")
                                 .role(Role.ROLE_SELLER)
                                 .enabled(true)
+                                .verified(true)
                                 .build()
                 ));
 

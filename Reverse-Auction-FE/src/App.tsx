@@ -14,6 +14,7 @@ import Register from "./components/pages/auth/Register";
 import ForgotPassword from "./components/pages/auth/ForgotPassword";
 import ChangePassword from "./components/pages/auth/ChangePassword";
 import ResetPassword from "./components/pages/auth/ResetPassword";
+import VerifyEmail from "./components/pages/auth/VerifyEmail";
 import SellerSearch from "./components/pages/seller/SellerSearch/SellerSearch";
 import OrderManagement from "./components/pages/seller/SellerOrders/SellerOrders";
 import OrderDetail from "./components/pages/seller/SellerOrders/SellerOrderDetail";
@@ -111,6 +112,7 @@ function App() {
             <Route path="forgot-password" element={<ForgotPassword />} />
             <Route path="change-password" element={<ChangePassword />} />
             <Route path="reset-password" element={<ResetPassword />} />
+            <Route path="verify-email" element={<VerifyEmail />} />
           </Route>
 
           {/* Unauthorized page */}

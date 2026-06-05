@@ -52,7 +52,7 @@ public class GlobalExceptionHandler {
                 .timestamp(LocalDateTime.now())
                 .error("Unauthorized")
                 .status(HttpStatus.UNAUTHORIZED.value())
-                .message("Tài khoản của bạn đã bị khóa!")
+                .message("Tài khoản chưa được xác thực email. Vui lòng kiểm tra hộp thư!")
                 .build();
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
     }
@@ -63,9 +63,9 @@ public class GlobalExceptionHandler {
                 .timestamp(LocalDateTime.now())
                 .error("Forbidden")
                 .status(HttpStatus.FORBIDDEN.value())
-                .message("Tài khoản của bạn đã bị khóa!")
+                .message("Tài khoản của bạn đã bị khóa hoặc cấm hoạt động!")
                 .build();
-        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(ExpiredJwtException.class)

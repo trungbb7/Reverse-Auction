@@ -1,5 +1,6 @@
 package vn.edu.hcmuaf.reverseauction.dto;
 import lombok.*;
+import vn.edu.hcmuaf.reverseauction.entity.AuthProvider;
 import vn.edu.hcmuaf.reverseauction.entity.Role;
 
 @Data
@@ -14,4 +15,6 @@ public class UserDTO {
     private String address;
     private Role role;
     private boolean enabled;
+    private boolean verified;
+    private AuthProvider provider;
 }

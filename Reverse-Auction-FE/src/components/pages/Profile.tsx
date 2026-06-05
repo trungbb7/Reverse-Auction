@@ -19,6 +19,8 @@ const defaultUser: User = {
     phone: "+84 90 123 4567",
     role: "ROLE_BUYER",
     enabled: true,
+    verified: true,
+    provider: "LOCAL",
 };
 
 export default function Profile() {
@@ -110,12 +112,18 @@ export default function Profile() {
                             Lịch sử đơn hàng
                         </button>
 
-                        <button
-                            onClick={() => navigate("")}
-                            className="mt-3 w-full border border-blue-500 text-blue-600 py-2 rounded-full hover:bg-blue-50"
-                        >
-                            Đặt lại mật khẩu
-                        </button>
+                        {user.provider === "LOCAL" ? (
+                            <button
+                                onClick={() => navigate("/auth/change-password")}
+                                className="mt-3 w-full border border-blue-500 text-blue-600 py-2 rounded-full hover:bg-blue-50 transition-colors"
+                            >
+                                Đổi mật khẩu
+                            </button>
+                        ) : (
+                            <div className="mt-3 w-full py-2 px-4 bg-slate-50 text-slate-400 border border-slate-200 rounded-full text-center text-xs font-medium">
+                                Đăng nhập bằng Google
+                            </div>
+                        )}
                     </div>
 
                     {/* RIGHT */}

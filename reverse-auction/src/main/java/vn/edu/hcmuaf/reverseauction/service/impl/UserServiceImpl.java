@@ -6,7 +6,12 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.hcmuaf.reverseauction.dto.UserDTO;
+import vn.edu.hcmuaf.reverseauction.dto.request.ChangePasswordRequest;
 import vn.edu.hcmuaf.reverseauction.entity.User;
+import vn.edu.hcmuaf.reverseauction.entity.AuthProvider;
+import vn.edu.hcmuaf.reverseauction.exception.CustomException;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import vn.edu.hcmuaf.reverseauction.repository.UserRepository;
 import vn.edu.hcmuaf.reverseauction.service.UserService;
 
@@ -18,6 +23,7 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public UserDTO getCurrentUser() {
@@ -57,7 +63,7 @@ public class UserServiceImpl implements UserService {
     public void toggleUserBlock(Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        user.setEnabled(!user.isEnabled());
+        user.setEnabled(!user.getEnabled());
         userRepository.save(user);
     }
 
@@ -83,8 +89,36 @@ public class UserServiceImpl implements UserService {
                 .phone(user.getPhone())
                 .id(user.getId())
                 .role(user.getRole())
-                .enabled(user.isEnabled())
+                .enabled(user.getEnabled())
+                .verified(user.getVerified())
+                .provider(user.getProvider())
                 .build();
     }
 
+    @Override
+    @Transactional
+    public void changePassword(ChangePasswordRequest request) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (user.getProvider() == AuthProvider.GOOGLE) {
+            throw CustomException.builder()
+                    .status(HttpStatus.BAD_REQUEST)
+                    .error("Bad Request")
+                    .message("Tài khoản đăng nhập bằng Google không thể đổi mật khẩu.")
+                    .build();
+        }
+
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+            throw CustomException.builder()
+                    .status(HttpStatus.BAD_REQUEST)
+                    .error("Bad Request")
+                    .message("Mật khẩu cũ không chính xác.")
+                    .build();
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+    }
 }

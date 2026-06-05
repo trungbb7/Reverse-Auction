@@ -74,5 +74,55 @@ public class EmailServiceImpl implements EmailService {
             throw new RuntimeException("Không thể gửi email. Vui lòng kiểm tra cấu hình SMTP hoặc thử lại sau.", e);
         }
     }
+
+    @Override
+    public void sendVerificationEmail(String toEmail, String token) {
+        String verificationLink = frontendUrl + "/auth/verify-email?token=" + token;
+
+        String htmlContent = """
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <div style="background: linear-gradient(135deg, #4f46e5 0%%, #7c3aed 100%%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
+                        <h1 style="color: white; margin: 0; font-size: 24px;">📧 Xác nhận tài khoản</h1>
+                    </div>
+                    <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
+                        <p style="color: #374151; font-size: 16px;">Xin chào,</p>
+                        <p style="color: #374151; font-size: 16px;">
+                            Cảm ơn bạn đã đăng ký tài khoản trên hệ thống đấu giá linh kiện <strong>Reverse Auction</strong>.
+                        </p>
+                        <p style="color: #374151; font-size: 16px;">
+                            Vui lòng nhấn vào nút bên dưới để kích hoạt tài khoản của bạn. Liên kết này sẽ hết hạn sau <strong>24 giờ</strong>.
+                        </p>
+                        <div style="text-align: center; margin: 30px 0;">
+                            <a href="%s"
+                               style="background: linear-gradient(135deg, #4f46e5 0%%, #7c3aed 100%%);
+                                      color: white; padding: 14px 32px; border-radius: 8px;
+                                      text-decoration: none; font-weight: bold; font-size: 16px;
+                                      display: inline-block;">
+                                Kích hoạt tài khoản
+                            </a>
+                        </div>
+                        <p style="color: #6b7280; font-size: 14px;">
+                            Nếu bạn không thực hiện đăng ký tài khoản này, vui lòng bỏ qua email này.
+                        </p>
+                        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+                        <p style="color: #9ca3af; font-size: 12px; text-align: center;">
+                            © 2025 Reverse Auction Platform. Không trả lời email này.
+                        </p>
+                    </div>
+                </div>
+                """.formatted(verificationLink);
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("Kích hoạt tài khoản - Reverse Auction");
+            helper.setText(htmlContent, true);
+            mailSender.send(message);
+        } catch (MessagingException | MailException e) {
+            throw new RuntimeException("Không thể gửi email kích hoạt. Vui lòng kiểm tra cấu hình SMTP hoặc thử lại sau.", e);
+        }
+    }
 }
 

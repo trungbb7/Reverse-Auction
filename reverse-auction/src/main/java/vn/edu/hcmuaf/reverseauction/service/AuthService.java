@@ -10,5 +10,6 @@ public interface AuthService {
     String forgotPassword(ForgotPasswordRequest request);
     String resetPassword(ResetPasswordRequest request);
     AuthenticationResponse googleLogin(GoogleLoginRequest request);
+    String verifyEmail(String token);
 }
 

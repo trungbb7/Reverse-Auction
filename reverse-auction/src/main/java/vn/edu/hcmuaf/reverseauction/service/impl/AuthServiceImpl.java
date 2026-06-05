@@ -14,10 +14,14 @@ import vn.edu.hcmuaf.reverseauction.entity.PasswordResetToken;
 import vn.edu.hcmuaf.reverseauction.entity.RefreshToken;
 import vn.edu.hcmuaf.reverseauction.entity.Role;
 import vn.edu.hcmuaf.reverseauction.entity.User;
+import vn.edu.hcmuaf.reverseauction.entity.AuthProvider;
+import vn.edu.hcmuaf.reverseauction.entity.EmailVerificationToken;
 import vn.edu.hcmuaf.reverseauction.exception.CustomException;
 import vn.edu.hcmuaf.reverseauction.repository.PasswordResetTokenRepository;
 import vn.edu.hcmuaf.reverseauction.repository.UserRepository;
+import vn.edu.hcmuaf.reverseauction.repository.EmailVerificationTokenRepository;
 import vn.edu.hcmuaf.reverseauction.service.AuthService;
+import org.springframework.security.authentication.BadCredentialsException;
 
 import org.springframework.web.client.RestTemplate;
 import org.springframework.http.HttpEntity;
@@ -39,8 +43,10 @@ public class AuthServiceImpl implements AuthService {
     private final RefreshTokenServiceImpl refreshTokenService;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final EmailServiceImpl emailService;
+    private final EmailVerificationTokenRepository emailVerificationTokenRepository;
 
     @Override
+    @Transactional
     public String register(RegisterRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             throw CustomException.builder()
@@ -54,20 +60,86 @@ public class AuthServiceImpl implements AuthService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .fullName(request.getFullName())
                 .role(Role.valueOf(request.getRole().toUpperCase()))
+                .verified(false)
+                .provider(AuthProvider.LOCAL)
                 .build();
-        userRepository.save(user);
-        return "Đăng ký thành công!";
+        User savedUser = userRepository.save(user);
+
+        String token = UUID.randomUUID().toString();
+        EmailVerificationToken verificationToken = EmailVerificationToken.builder()
+                .token(token)
+                .user(savedUser)
+                .expiresAt(LocalDateTime.now().plusHours(24))
+                .build();
+        emailVerificationTokenRepository.save(verificationToken);
+
+        emailService.sendVerificationEmail(savedUser.getEmail(), token);
+
+        return "Đăng ký thành công! Vui lòng kiểm tra email để kích hoạt tài khoản.";
     }
 
     @Override
+    @Transactional(noRollbackFor = CustomException.class)
     public AuthenticationResponse login(LoginRequest request) {
+        var userOpt = userRepository.findByEmail(request.getEmail());
+        if (userOpt.isPresent()) {
+            User user = userOpt.get();
+            if (user.getLockoutTime() != null && user.getLockoutTime().isAfter(LocalDateTime.now())) {
+                throw CustomException.builder()
+                        .status(HttpStatus.FORBIDDEN)
+                        .error("Forbidden")
+                        .message("Tài khoản của bạn tạm thời bị khóa. Vui lòng thử lại sau!")
+                        .build();
+            }
+            if (!user.getEnabled()) {
+                throw CustomException.builder()
+                        .status(HttpStatus.FORBIDDEN)
+                        .error("Forbidden")
+                        .message("Tài khoản của bạn đã bị cấm bởi Admin!")
+                        .build();
+            }
+            if (!user.getVerified()) {
+                throw CustomException.builder()
+                        .status(HttpStatus.FORBIDDEN)
+                        .error("Forbidden")
+                        .message("Tài khoản chưa được xác thực email. Vui lòng kiểm tra hộp thư!")
+                        .build();
+            }
+        }
 
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
-        );
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+            );
+        } catch (BadCredentialsException e) {
+            if (userOpt.isPresent()) {
+                User user = userOpt.get();
+                if (user.getProvider() == AuthProvider.LOCAL) {
+                    user.setFailedAttempts(user.getFailedAttempts() + 1);
+                    if (user.getFailedAttempts() >= 5) {
+                        user.setLockoutTime(LocalDateTime.now().plusMinutes(30));
+                        userRepository.save(user);
+                        throw CustomException.builder()
+                                .status(HttpStatus.FORBIDDEN)
+                                .error("Forbidden")
+                                .message("Mật khẩu không chính xác. Tài khoản của bạn đã bị khóa tạm thời 30 phút vì đăng nhập sai quá 5 lần.")
+                                .build();
+                    }
+                    userRepository.save(user);
+                    throw CustomException.builder()
+                            .status(HttpStatus.UNAUTHORIZED)
+                            .error("Unauthorized")
+                            .message("Email hoặc mật khẩu không chính xác. Bạn còn " + (5 - user.getFailedAttempts()) + " lần thử.")
+                            .build();
+                }
+            }
+            throw e;
+        }
 
-        var user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow();
+        var user = userOpt.orElseThrow();
+        user.setFailedAttempts(0);
+        user.setLockoutTime(null);
+        userRepository.save(user);
 
         String accessToken = jwtService.generateToken(user);
         refreshTokenService.deleteByUserId(user.getId());
@@ -215,6 +287,8 @@ public class AuthServiceImpl implements AuthService {
                             .imageUrl(picture)
                             .role(userRole)
                             .enabled(true)
+                            .verified(true)
+                            .provider(AuthProvider.GOOGLE)
                             .build();
                     userOpt = Optional.of(userRepository.save(newUser));
                 }
@@ -248,5 +322,37 @@ public class AuthServiceImpl implements AuthService {
                     .message("Đăng nhập bằng Google thất bại: " + e.getMessage())
                     .build();
         }
+    }
+
+    @Override
+    @Transactional
+    public String verifyEmail(String token) {
+        log.debug("Verify Email Token: {}", token);
+        EmailVerificationToken verificationToken = emailVerificationTokenRepository
+                .findByToken(token)
+                .orElseThrow(() -> CustomException.builder()
+                        .status(HttpStatus.BAD_REQUEST)
+                        .error("Bad Request")
+                        .message("Token kích hoạt không hợp lệ hoặc không tồn tại.")
+                        .build());
+        log.debug("Da vao day 1");
+        if (verificationToken.isExpired()) {
+            emailVerificationTokenRepository.delete(verificationToken);
+            throw CustomException.builder()
+                    .status(HttpStatus.BAD_REQUEST)
+                    .error("Bad Request")
+                    .message("Token kích hoạt đã hết hạn. Vui lòng đăng ký lại hoặc yêu cầu gửi lại.")
+                    .build();
+        }
+        log.debug("Da vao day 2");
+        User user = verificationToken.getUser();
+        user.setVerified(true);
+        userRepository.save(user);
+        log.debug("Da vao day 3");
+
+        emailVerificationTokenRepository.delete(verificationToken);
+        log.debug("Da vao day 4");
+
+        return "Kích hoạt tài khoản thành công! Bạn có thể đăng nhập ngay bây giờ.";
     }
 }
