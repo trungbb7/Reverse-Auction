@@ -3,8 +3,11 @@ import { adminService } from "@/services/adminService";
 import type { Category } from "@/types/category";
 import { Plus, Edit2, Trash2, Search, X, Check } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { useConfirm } from "@/context/ConfirmContext";
+
 
 export default function CategoryManagement() {
+  const { confirm } = useConfirm();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -72,7 +75,15 @@ export default function CategoryManagement() {
   };
 
   const handleDelete = async (id: number) => {
-    if (confirm("Bạn có chắc chắn muốn xóa danh mục này?")) {
+    const isConfirmed = await confirm({
+      title: "Xóa danh mục",
+      message: "Bạn có chắc chắn muốn xóa danh mục này?",
+      type: "danger",
+      confirmText: "Xóa",
+      cancelText: "Hủy",
+    });
+
+    if (isConfirmed) {
       try {
         await adminService.deleteCategory(id);
         toast.success("Đã xóa danh mục thành công");
