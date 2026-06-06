@@ -16,4 +16,10 @@ public class BidResponseDTO {
     private Boolean isWinner;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    // Auction info details for seller bid history
+    private String auctionTitle;
+    private String auctionStatus;
+    private BigDecimal auctionBudget;
+    private String categoryName;
 }

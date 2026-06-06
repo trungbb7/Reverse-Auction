@@ -2,6 +2,7 @@ import api from "@/utils/axios";
 import type { Bid } from "@/types/auction";
 import { AxiosError } from "axios";
 import type { Client } from "@stomp/stompjs";
+import type { PagedResult } from "./auctionService";
 
 interface BidRequest {
   auctionId: string | undefined;
@@ -66,5 +67,10 @@ export const bidService = {
   getBidsForAuction: async (auctionId: string | number): Promise<Bid[]> => {
     const response = await api.get(`/bids`, { params: { auctionId } });
     return response.data.bids;
+  },
+
+  getSellerBids: async (page = 0, size = 10): Promise<PagedResult<Bid>> => {
+    const response = await api.get("/bids/seller", { params: { page, size } });
+    return response.data;
   },
 };

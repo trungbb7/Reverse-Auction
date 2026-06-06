@@ -39,6 +39,10 @@ export interface Bid {
   isTopBid?: boolean;
   createdAt: string;
   updatedAt: string;
+  auctionTitle?: string;
+  auctionStatus?: string;
+  auctionBudget?: number;
+  categoryName?: string;
 }
 
 export const auctionEmpty: Auction = {

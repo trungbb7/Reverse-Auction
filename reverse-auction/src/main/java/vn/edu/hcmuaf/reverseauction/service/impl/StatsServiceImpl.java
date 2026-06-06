@@ -98,6 +98,16 @@ public class StatsServiceImpl implements StatsService {
                         Collectors.counting()
                 ));
 
+        Map<String, BigDecimal> revenueByDay = sellerOrders.stream()
+                .filter(o -> o.getStatus() == OrderStatus.COMPLETED && o.getCreatedAt() != null)
+                .collect(Collectors.groupingBy(
+                        o -> {
+                            var date = o.getCreatedAt();
+                            return date.getYear() + "-" + String.format("%02d", date.getMonthValue()) + "-" + String.format("%02d", date.getDayOfMonth());
+                        },
+                        Collectors.reducing(BigDecimal.ZERO, Order::getTotalAmount, BigDecimal::add)
+                ));
+
         Map<String, BigDecimal> revenueByMonth = sellerOrders.stream()
                 .filter(o -> o.getStatus() == OrderStatus.COMPLETED && o.getCreatedAt() != null)
                 .collect(Collectors.groupingBy(
@@ -108,13 +118,46 @@ public class StatsServiceImpl implements StatsService {
                         Collectors.reducing(BigDecimal.ZERO, Order::getTotalAmount, BigDecimal::add)
                 ));
 
+        Map<String, BigDecimal> revenueByYear = sellerOrders.stream()
+                .filter(o -> o.getStatus() == OrderStatus.COMPLETED && o.getCreatedAt() != null)
+                .collect(Collectors.groupingBy(
+                        o -> {
+                            var date = o.getCreatedAt();
+                            return String.valueOf(date.getYear());
+                        },
+                        Collectors.reducing(BigDecimal.ZERO, Order::getTotalAmount, BigDecimal::add)
+                ));
+
+        Map<String, Map<String, BigDecimal>> revenueByCategoryByMonth = sellerOrders.stream()
+                .filter(o -> o.getStatus() == OrderStatus.COMPLETED && o.getCreatedAt() != null)
+                .collect(Collectors.groupingBy(
+                        o -> {
+                            var date = o.getCreatedAt();
+                            return date.getYear() + "-" + String.format("%02d", date.getMonthValue());
+                        },
+                        Collectors.groupingBy(
+                                o -> {
+                                    if (o.getProduct() != null && o.getProduct().getCategory() != null) {
+                                        return o.getProduct().getCategory().getName();
+                                    } else if (o.getAuction() != null && o.getAuction().getCategory() != null) {
+                                        return o.getAuction().getCategory().getName();
+                                    }
+                                    return "Khác";
+                                },
+                                Collectors.reducing(BigDecimal.ZERO, Order::getTotalAmount, BigDecimal::add)
+                        )
+                ));
+
         return SellerStatsResponse.builder()
                 .totalBids(totalBids)
                 .totalWonBids(totalWonBids)
                 .totalOrders((long) sellerOrders.size())
                 .totalRevenue(totalRevenue)
                 .ordersByStatus(ordersByStatus)
+                .revenueByDay(revenueByDay)
                 .revenueByMonth(revenueByMonth)
+                .revenueByYear(revenueByYear)
+                .revenueByCategoryByMonth(revenueByCategoryByMonth)
                 .build();
     }
 }

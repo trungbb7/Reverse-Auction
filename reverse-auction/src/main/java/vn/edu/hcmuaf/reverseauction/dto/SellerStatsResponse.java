@@ -16,6 +16,9 @@ public class SellerStatsResponse {
     private long totalWonBids;
     private long totalOrders;
     private BigDecimal totalRevenue;
+    private Map<String, BigDecimal> revenueByDay;
     private Map<String, BigDecimal> revenueByMonth;
+    private Map<String, BigDecimal> revenueByYear;
+    private Map<String, Map<String, BigDecimal>> revenueByCategoryByMonth;
     private Map<String, Long> ordersByStatus;
 }

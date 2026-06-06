@@ -15,6 +15,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import vn.edu.hcmuaf.reverseauction.dto.response.ErrorResponse;
+import vn.edu.hcmuaf.reverseauction.service.ReviewService;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -22,6 +23,9 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    public GlobalExceptionHandler(ReviewService reviewService) {
+    }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException ex) {

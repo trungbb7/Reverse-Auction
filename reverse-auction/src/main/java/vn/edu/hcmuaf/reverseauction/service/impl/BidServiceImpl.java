@@ -2,12 +2,15 @@ package vn.edu.hcmuaf.reverseauction.service.impl;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import vn.edu.hcmuaf.reverseauction.dto.*;
 import vn.edu.hcmuaf.reverseauction.dto.request.CreateBidRequestDTO;
 import vn.edu.hcmuaf.reverseauction.dto.request.UpdateBidRequestDTO;
 import vn.edu.hcmuaf.reverseauction.dto.response.AllBidResponseDTO;
+import vn.edu.hcmuaf.reverseauction.dto.response.PageResponse;
 import vn.edu.hcmuaf.reverseauction.entity.AuctionRequest;
 import vn.edu.hcmuaf.reverseauction.entity.AuctionStatus;
 import vn.edu.hcmuaf.reverseauction.entity.Bid;
@@ -148,5 +151,11 @@ public class BidServiceImpl implements BidService {
         notificationService.createAndSendNotification(auc.getBuyer(), title, content, "NEW_BID", auc.getId());
 
         return bidMapper.toDTO(saved);
+    }
+
+    @Override
+    public PageResponse<BidResponseDTO> getSellerBids(long sellerId, Pageable pageable) {
+        Page<Bid> page = bidRepository.findAllBySellerId(sellerId, pageable);
+        return bidMapper.toPageResponse(page);
     }
 }

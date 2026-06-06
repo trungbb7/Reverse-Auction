@@ -45,6 +45,7 @@ import AdminDashboard from "./components/pages/admin/AdminDashboard";
 import AdminComplaints from "./components/pages/admin/AdminComplaints";
 import SellerComplaints from "./components/pages/seller/SellerComplaints";
 import SellerDashboard from "./components/pages/seller/SellerDashboard";
+import SellerAuctions from "./components/pages/seller/SellerAuctions";
 import Demo from "./components/pages/Demo.tsx";
 import ShopPage from "@/components/pages/shopPage";
 
@@ -169,7 +170,8 @@ function App() {
               </RequireRole>
             }
           >
-            <Route index element={<SellerDashboard />} />
+            <Route index element={<SellerAuctions />} />
+            <Route path="stats" element={<SellerDashboard />} />
             <Route path="search" element={<SellerSearch />} />
             <Route path="chat" element={<ExternalChatPage />} />
             <Route path="auctions/:id" element={<SellerAuctionDetail />} />
