@@ -1,4 +1,11 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+} from "react";
 import { useAppSelector } from "@/hooks/redux";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
@@ -15,24 +22,30 @@ interface NotificationContextProps {
   markAllAsRead: () => Promise<void>;
 }
 
-const NotificationContext = createContext<NotificationContextProps | undefined>(undefined);
+const NotificationContext = createContext<NotificationContextProps | undefined>(
+  undefined,
+);
 
 export const useNotifications = () => {
   const context = useContext(NotificationContext);
   if (!context) {
-    throw new Error("useNotifications must be used within a NotificationProvider");
+    throw new Error(
+      "useNotifications must be used within a NotificationProvider",
+    );
   }
   return context;
 };
 
-export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [loading, setLoading] = useState<boolean>(false);
   const user = useAppSelector((state) => state.auth.user);
   const stompClientRef = useRef<Client | null>(null);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     if (!user) return;
     setLoading(true);
     try {
@@ -45,13 +58,15 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   const markAsRead = async (id: number) => {
     try {
       await notificationService.markAsRead(id);
       setNotifications((prev) =>
-        prev.map((notif) => (notif.id === id ? { ...notif, isRead: true } : notif))
+        prev.map((notif) =>
+          notif.id === id ? { ...notif, isRead: true } : notif,
+        ),
       );
       setUnreadCount((prev) => Math.max(0, prev - 1));
     } catch (err) {
@@ -62,7 +77,9 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const markAllAsRead = async () => {
     try {
       await notificationService.markAllAsRead();
-      setNotifications((prev) => prev.map((notif) => ({ ...notif, isRead: true })));
+      setNotifications((prev) =>
+        prev.map((notif) => ({ ...notif, isRead: true })),
+      );
       setUnreadCount(0);
       toast.success("Đã đánh dấu tất cả là đã đọc");
     } catch (err) {
@@ -78,7 +95,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setNotifications([]);
       setUnreadCount(0);
     }
-  }, [user]);
+  }, [user, fetchNotifications]);
 
   // STOMP WebSocket client management
   useEffect(() => {
@@ -106,7 +123,9 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         // Suppress noisy logs, uncomment if needed
       },
       onConnect: () => {
-        console.log("Connected to notification WebSocket. Subscribing to user notifications...");
+        console.log(
+          "Connected to notification WebSocket. Subscribing to user notifications...",
+        );
 
         client.subscribe(`/topic/notifications/${user.id}`, (message) => {
           try {
@@ -118,16 +137,23 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
             setUnreadCount((prev) => prev + 1);
 
             // Display toast
-            toast(() => (
-              <div className="flex flex-col gap-0.5 max-w-[280px]">
-                <span className="font-extrabold text-sm text-slate-900">{newNotification.title}</span>
-                <span className="text-xs text-slate-600 line-clamp-2">{newNotification.content}</span>
-              </div>
-            ), {
-              icon: "🔔",
-              duration: 6000,
-              position: "top-right",
-            });
+            toast(
+              () => (
+                <div className="flex flex-col gap-0.5 max-w-[280px]">
+                  <span className="font-extrabold text-sm text-slate-900">
+                    {newNotification.title}
+                  </span>
+                  <span className="text-xs text-slate-600 line-clamp-2">
+                    {newNotification.content}
+                  </span>
+                </div>
+              ),
+              {
+                icon: "🔔",
+                duration: 6000,
+                position: "top-right",
+              },
+            );
           } catch (err) {
             console.error("Failed to parse incoming WS notification:", err);
           }
@@ -138,7 +164,7 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       },
       onWebSocketClose: () => {
         console.log("STOMP WebSocket connection closed");
-      }
+      },
     });
 
     client.activate();

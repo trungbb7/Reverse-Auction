@@ -4,6 +4,7 @@ import { userService } from "@/services/userService";
 import { logoutUser } from "../Auth/authSlice";
 import { useAppDispatch } from "@/hooks/redux";
 import type { User } from "@/types/user";
+import toast from "react-hot-toast";
 
 type InputProps = {
   label: string;
@@ -23,28 +24,60 @@ const defaultUser: User = {
   provider: "LOCAL",
 };
 
+const formatVND = (amount: number) => {
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  }).format(amount);
+};
+
 export default function Profile() {
   const navigate = useNavigate();
 
   const [user, setUser] = useState<User>(defaultUser);
   const [form, setForm] = useState<User>(defaultUser);
   const [loading, setLoading] = useState(true);
+  const [isTopupOpen, setIsTopupOpen] = useState(false);
+  const [topupAmount, setTopupAmount] = useState("");
+  const [submittingTopup, setSubmittingTopup] = useState(false);
   const dispatch = useAppDispatch();
 
+  const getUserData = async () => {
+    try {
+      const data = await userService.fetchUser();
+      setUser(data);
+      setForm(data);
+    } catch {
+      console.warn("API failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const getUser = async () => {
-      try {
-        const data = await userService.fetchUser();
-        setUser(data);
-        setForm(data);
-      } catch {
-        console.warn("API failed");
-      } finally {
-        setLoading(false);
-      }
-    };
-    getUser();
+    getUserData();
   }, []);
+
+  const handleTopup = async () => {
+    const amountNum = Number(topupAmount);
+    if (isNaN(amountNum) || amountNum <= 0) {
+      toast.error("Vui lòng nhập số tiền hợp lệ!");
+      return;
+    }
+    setSubmittingTopup(true);
+    try {
+      await userService.topupBalance(amountNum);
+      toast.success(`Nạp thành công ${formatVND(amountNum)} vào tài khoản!`);
+      setIsTopupOpen(false);
+      setTopupAmount("");
+      getUserData();
+    } catch (err) {
+      console.error(err);
+      toast.error("Nạp tiền thất bại, vui lòng thử lại!");
+    } finally {
+      setSubmittingTopup(false);
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm((prev) => ({
@@ -102,6 +135,18 @@ export default function Profile() {
                 Số điện thoại
               </p>
               <p>{user.phone}</p>
+            </div>
+
+            {/* Wallet Section */}
+            <div className="w-full mt-6 bg-gradient-to-br from-[#375F97] to-blue-600 rounded-xl p-4 text-white shadow-md">
+              <p className="text-xs opacity-90 uppercase tracking-wider font-bold">Số dư tài khoản</p>
+              <p className="text-2xl font-black mt-1">{formatVND(user.balance || 0)}</p>
+              <button
+                onClick={() => setIsTopupOpen(true)}
+                className="mt-3 w-full bg-white text-[#375F97] hover:bg-blue-50 font-bold text-xs py-2 px-4 rounded-lg transition-all shadow-sm active:scale-95"
+              >
+                Nạp tiền vào ví
+              </button>
             </div>
 
             <button
@@ -183,6 +228,56 @@ export default function Profile() {
           </div>
         </div>
       </div>
+
+      {/* Topup Modal */}
+      {isTopupOpen && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+            <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-slate-800">Nạp tiền vào tài khoản</h2>
+              <button
+                onClick={() => setIsTopupOpen(false)}
+                className="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-100 rounded-lg transition-all"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Nhập số tiền nạp (VND)
+                </label>
+                <input
+                  type="number"
+                  required
+                  value={topupAmount}
+                  onChange={(e) => setTopupAmount(e.target.value)}
+                  placeholder="Ví dụ: 100000"
+                  className="w-full px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 text-sm"
+                />
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setIsTopupOpen(false)}
+                  className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-lg font-medium transition-all text-sm"
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={handleTopup}
+                  disabled={submittingTopup}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-bold transition-all text-sm disabled:opacity-60"
+                >
+                  {submittingTopup ? "Đang xử lý..." : "Xác nhận nạp"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -61,4 +61,20 @@ public class OrdersController {
         orders.sort((o1, o2) -> o2.getCreatedAt().compareTo(o1.getCreatedAt()));
         return ResponseEntity.ok(orders);
     }
+
+    @PutMapping("/{id}/shipping")
+    public ResponseEntity<OrderResponseDTO> updateShipping(
+            @PathVariable Long id,
+            @RequestParam String address,
+            @RequestParam String phone
+    ) {
+        return ResponseEntity.ok(orderServiceImpl.updateShipping(id, address, phone));
+    }
+
+    @PostMapping("/{id}/pay-with-balance")
+    public ResponseEntity<OrderResponseDTO> payWithBalance(
+            @PathVariable Long id
+    ) {
+        return ResponseEntity.ok(orderServiceImpl.payWithBalance(id));
+    }
 }

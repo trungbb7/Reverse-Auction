@@ -70,7 +70,8 @@ export default function AuctionDetail() {
     if (!auction) return;
     const isConfirmed = await confirm({
       title: "Đóng sớm phiên đấu giá",
-      message: "Bạn có chắc chắn muốn đóng sớm phiên đấu giá này không? Sau khi đóng, người bán không thể gửi đề xuất thầu mới và bạn có thể chọn người thắng.",
+      message:
+        "Bạn có chắc chắn muốn đóng sớm phiên đấu giá này không? Sau khi đóng, người bán không thể gửi đề xuất thầu mới và bạn có thể chọn người thắng.",
       type: "warning",
       confirmText: "Đóng sớm",
       cancelText: "Hủy",
@@ -323,7 +324,7 @@ export default function AuctionDetail() {
               <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">
                 Hình ảnh tham khảo
               </p>
-              <div className="flex gap-3">
+              <div className="flex gap-3 flex-wrap">
                 {selectedImages.slice(0, 3).map((src, idx) => (
                   <button
                     key={idx}

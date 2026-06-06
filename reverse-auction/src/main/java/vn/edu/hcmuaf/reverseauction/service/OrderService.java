@@ -10,4 +10,6 @@ public interface OrderService {
     OrderResponseDTO getOrderById(Long id);
     OrderResponseDTO updateStatus(Long id, OrderStatus status);
     List<OrderResponseDTO> getAllOrders();
+    OrderResponseDTO updateShipping(Long orderId, String address, String phone);
+    OrderResponseDTO payWithBalance(Long orderId);
 }

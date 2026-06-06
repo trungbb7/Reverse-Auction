@@ -40,6 +40,9 @@ public class OrderResponseDTO {
     private String shippingAddress;
     private String buyerPhone;
 
+    private BigDecimal commissionRate;
+    private BigDecimal commissionAmount;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

@@ -268,7 +268,7 @@ export default function SellerAuctionDetail() {
             </div>
 
             {/* Image gallery */}
-            <div className="flex gap-3 mb-5">
+            <div className="flex gap-3 flex-wrap mb-5">
               {(auction.imageUrls ?? []).map((src: string, idx: number) => (
                 <button
                   key={idx}

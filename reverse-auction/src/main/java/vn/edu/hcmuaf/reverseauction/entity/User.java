@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.ArrayList;
 import java.util.List;
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 
 @Entity
@@ -67,6 +68,10 @@ public class User implements UserDetails {
 
     @Column
     private LocalDateTime lockoutTime;
+
+    @Column(nullable = false, columnDefinition = "DECIMAL(15,2) DEFAULT 0.00")
+    @Builder.Default
+    private BigDecimal balance = BigDecimal.ZERO;
 
     @OneToMany(mappedBy = "buyer", fetch = FetchType.LAZY)
     @Builder.Default

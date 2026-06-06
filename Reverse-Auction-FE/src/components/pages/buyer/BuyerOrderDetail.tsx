@@ -27,7 +27,6 @@ import { cloudinaryService } from "@/services/cloudinaryService";
 import toast from "react-hot-toast";
 import { useConfirm } from "@/context/ConfirmContext";
 
-
 /* ─── helpers ─────────────────────────────────────────────────── */
 function formatCurrency(n: number) {
   return new Intl.NumberFormat("vi-VN", {
@@ -47,90 +46,249 @@ const BANKS = [
 
 const STEP_ICONS = [CreditCard, CheckCircle2, Clock, Truck, Package];
 
+import { userService } from "@/services/userService";
+import type { User as UserType } from "@/types/user";
+
 /* ─── Payment Panel ─────────────────────────────────────────── */
-function PaymentPanel({ order }: { order: Order }) {
+function PaymentPanel({
+  order,
+  onPaymentSuccess,
+}: {
+  order: Order;
+  onPaymentSuccess: (updated: Order) => void;
+}) {
+  const [currentUser, setCurrentUser] = useState<UserType | null>(null);
+  const [shippingAddress, setShippingAddress] = useState("");
+  const [buyerPhone, setBuyerPhone] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"vnpay" | "balance">(
+    "balance",
+  );
   const [selectedBank, setSelectedBank] = useState("NCB");
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await userService.fetchUser();
+        setCurrentUser(data);
+        setShippingAddress(order.shippingAddress || data.address || "");
+        setBuyerPhone(order.buyerPhone || data.phone || "");
+      } catch (err) {
+        console.error("Failed to load user profile", err);
+      }
+    })();
+  }, [order]);
+
   const handlePay = async () => {
+    if (!shippingAddress.trim()) {
+      toast.error("Vui lòng nhập địa chỉ nhận hàng!");
+      return;
+    }
+    if (!buyerPhone.trim()) {
+      toast.error("Vui lòng nhập số điện thoại nhận hàng!");
+      return;
+    }
+
     setLoading(true);
     try {
-      const amount = Math.round(Number(order.totalAmount)); // VNPay expects integer VND
-      const result = await orderService.createPayment(
+      // 1. Cập nhật thông tin giao hàng lên đơn hàng trước
+      await orderService.updateShippingInfo(
         order.id,
-        amount,
-        selectedBank,
+        shippingAddress,
+        buyerPhone,
       );
 
-      console.log(result);
-
-      // Redirect to VNPay — VNPay will redirect back to /payment/result?orderId=X
-      window.location.href = result.paymentUrl;
-    } catch (err) {
+      // 2. Tiến hành thanh toán
+      if (paymentMethod === "balance") {
+        if (
+          !currentUser ||
+          (currentUser.balance || 0) < Number(order.totalAmount)
+        ) {
+          toast.error("Số dư ví của bạn không đủ để thanh toán!");
+          setLoading(false);
+          return;
+        }
+        const updated = await orderService.payWithBalance(order.id);
+        toast.success("Thanh toán thành công qua số dư ví!");
+        onPaymentSuccess(updated);
+      } else {
+        const amount = Math.round(Number(order.totalAmount)); // VNPay expects integer VND
+        const result = await orderService.createPayment(
+          order.id,
+          amount,
+          selectedBank,
+        );
+        // Redirect to VNPay
+        window.location.href = result.paymentUrl;
+      }
+    } catch (err: any) {
       console.error(err);
-      toast.error("Không thể tạo phiên thanh toán. Vui lòng thử lại!");
+      const errorMsg =
+        err.response?.data?.message ||
+        "Không thể thanh toán. Vui lòng thử lại!";
+      toast.error(errorMsg);
       setLoading(false);
     }
   };
 
+  const hasSufficientBalance =
+    currentUser && (currentUser.balance || 0) >= Number(order.totalAmount);
+
   return (
-    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-5">
+    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 space-y-6">
       <div className="flex items-center gap-2">
         <CreditCard className="w-5 h-5 text-[#375F97]" />
         <h2 className="font-black text-slate-900 text-base">
-          Thanh toán đơn hàng
+          Xác nhận thông tin & Thanh toán
         </h2>
+      </div>
+
+      {/* Shipping details */}
+      <div className="space-y-3 p-4 bg-slate-50 rounded-xl">
+        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+          Thông tin giao hàng
+        </p>
+        <div className="space-y-2.5">
+          <div>
+            <label className="block text-[11px] text-slate-400 font-semibold mb-1">
+              Số điện thoại nhận hàng
+            </label>
+            <input
+              type="text"
+              value={buyerPhone}
+              onChange={(e) => setBuyerPhone(e.target.value)}
+              placeholder="Nhập số điện thoại"
+              className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 bg-white"
+            />
+          </div>
+          <div>
+            <label className="block text-[11px] text-slate-400 font-semibold mb-1">
+              Địa chỉ giao hàng
+            </label>
+            <textarea
+              rows={2}
+              value={shippingAddress}
+              onChange={(e) => setShippingAddress(e.target.value)}
+              placeholder="Nhập địa chỉ cụ thể"
+              className="w-full px-3 py-2 text-xs rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 bg-white"
+            />
+          </div>
+        </div>
       </div>
 
       {/* Amount */}
       <div className="bg-slate-50 rounded-xl p-4 text-center">
-        <p className="text-xs text-slate-500 mb-1">Số tiền cần thanh toán</p>
+        <p className="text-xs text-slate-500 mb-1">Tổng cộng cần thanh toán</p>
         <p className="text-3xl font-black text-[#375F97]">
           {formatCurrency(Number(order.totalAmount))}
         </p>
       </div>
 
-      {/* Bank selection */}
+      {/* Payment Method Select */}
       <div>
-        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
-          Chọn ngân hàng
+        <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2.5">
+          Phương thức thanh toán
         </p>
-        <div className="grid grid-cols-3 gap-2">
-          {BANKS.map((bank) => (
-            <button
-              key={bank.code}
-              onClick={() => setSelectedBank(bank.code)}
-              className={`relative p-3 rounded-xl border-2 transition-all text-center ${
-                selectedBank === bank.code
-                  ? "border-[#375F97] bg-blue-50"
-                  : "border-slate-200 hover:border-slate-300 bg-white"
-              }`}
-            >
-              <div
-                className={`w-8 h-5 rounded bg-gradient-to-r ${bank.color} mx-auto mb-1.5`}
-              />
-              <p className="text-[10px] font-bold text-slate-700">
-                {bank.name}
-              </p>
-              {selectedBank === bank.code && (
-                <div className="absolute top-1.5 right-1.5 w-3 h-3 rounded-full bg-[#375F97] flex items-center justify-center">
-                  <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                </div>
-              )}
-            </button>
-          ))}
+        <div className="grid grid-cols-2 gap-2.5">
+          <button
+            onClick={() => setPaymentMethod("balance")}
+            className={`p-3 rounded-xl border-2 transition-all flex flex-col items-center justify-center text-center ${
+              paymentMethod === "balance"
+                ? "border-[#375F97] bg-blue-50/50"
+                : "border-slate-200 hover:border-slate-300 bg-white"
+            }`}
+          >
+            <span className="text-xs font-bold text-slate-700">Số dư ví</span>
+            <span className="text-[10px] text-slate-400 mt-0.5">
+              {currentUser
+                ? `Ví: ${formatCurrency(currentUser.balance || 0)}`
+                : "Đang tải..."}
+            </span>
+          </button>
+          <button
+            onClick={() => setPaymentMethod("vnpay")}
+            className={`p-3 rounded-xl border-2 transition-all flex flex-col items-center justify-center text-center ${
+              paymentMethod === "vnpay"
+                ? "border-[#375F97] bg-blue-50/50"
+                : "border-slate-200 hover:border-slate-300 bg-white"
+            }`}
+          >
+            <span className="text-xs font-bold text-slate-700">Cổng VNPay</span>
+            <span className="text-[10px] text-slate-400 mt-0.5">
+              Thẻ ATM / QR
+            </span>
+          </button>
         </div>
       </div>
 
+      {/* Balance payment checks */}
+      {paymentMethod === "balance" && currentUser && (
+        <div className="text-center">
+          {!hasSufficientBalance ? (
+            <div className="p-3 bg-red-50 text-red-600 rounded-xl text-xs font-medium">
+              Số dư tài khoản không đủ (
+              {formatCurrency(currentUser.balance || 0)} &lt;{" "}
+              {formatCurrency(Number(order.totalAmount))}). Vui lòng vào hồ sơ
+              để nạp thêm tiền.
+            </div>
+          ) : (
+            <div className="p-3 bg-emerald-50 text-emerald-700 rounded-xl text-xs font-medium">
+              Số dư hợp lệ. Bạn sẽ thanh toán trực tiếp từ ví.
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* VNPay bank selection */}
+      {paymentMethod === "vnpay" && (
+        <div>
+          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+            Chọn ngân hàng
+          </p>
+          <div className="grid grid-cols-3 gap-2">
+            {BANKS.map((bank) => (
+              <button
+                key={bank.code}
+                onClick={() => setSelectedBank(bank.code)}
+                className={`relative p-2.5 rounded-xl border-2 transition-all text-center ${
+                  selectedBank === bank.code
+                    ? "border-[#375F97] bg-blue-50"
+                    : "border-slate-200 hover:border-slate-300 bg-white"
+                }`}
+              >
+                <div
+                  className={`w-7 h-4 rounded bg-gradient-to-r ${bank.color} mx-auto mb-1`}
+                />
+                <p className="text-[9px] font-bold text-slate-700">
+                  {bank.name}
+                </p>
+                {selectedBank === bank.code && (
+                  <div className="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-[#375F97] flex items-center justify-center">
+                    <div className="w-1 h-1 rounded-full bg-white" />
+                  </div>
+                )}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       <button
         onClick={handlePay}
-        disabled={loading}
+        disabled={
+          loading || (paymentMethod === "balance" && !hasSufficientBalance)
+        }
         className="w-full py-3.5 rounded-xl bg-gradient-to-r from-[#375F97] to-blue-500 text-white font-black text-sm flex items-center justify-center gap-2 hover:from-[#2d4f80] hover:to-blue-600 transition-all disabled:opacity-60"
       >
         {loading ? (
           <>
             <Loader2 className="w-4 h-4 animate-spin" />
-            Đang chuyển đến VNPay...
+            Đang xử lý thanh toán...
+          </>
+        ) : paymentMethod === "balance" ? (
+          <>
+            <CreditCard className="w-4 h-4" />
+            Thanh toán bằng Số dư ví
           </>
         ) : (
           <>
@@ -141,7 +299,8 @@ function PaymentPanel({ order }: { order: Order }) {
       </button>
 
       <p className="text-center text-xs text-slate-400">
-        Bạn sẽ được chuyển đến trang thanh toán VNPay an toàn
+        Bằng cách nhấn thanh toán, bạn đồng ý với các điều khoản giao dịch của
+        sàn.
       </p>
     </div>
   );
@@ -226,8 +385,11 @@ export default function BuyerOrderDetail() {
     try {
       let evidenceUrls: string[] = [];
       if (complaintImages && complaintImages.length > 0) {
-        toast.loading("Đang tải lên hình ảnh bằng chứng...", { id: "uploading" });
-        evidenceUrls = await cloudinaryService.uploadMultiImages(complaintImages);
+        toast.loading("Đang tải lên hình ảnh bằng chứng...", {
+          id: "uploading",
+        });
+        evidenceUrls =
+          await cloudinaryService.uploadMultiImages(complaintImages);
         toast.dismiss("uploading");
       }
 
@@ -237,7 +399,9 @@ export default function BuyerOrderDetail() {
         evidenceUrls,
       });
 
-      toast.success("Gửi khiếu nại thành công! Đơn hàng đã chuyển sang trạng thái tranh chấp.");
+      toast.success(
+        "Gửi khiếu nại thành công! Đơn hàng đã chuyển sang trạng thái tranh chấp.",
+      );
       setIsComplaintOpen(false);
       setComplaintReason("");
       setComplaintImages(null);
@@ -258,7 +422,8 @@ export default function BuyerOrderDetail() {
     if (!order) return;
     const isConfirmed = await confirm({
       title: "Xác nhận nhận hàng",
-      message: "Bạn xác nhận đã nhận được hàng đầy đủ và đúng mô tả? Thao tác này sẽ hoàn tất đơn hàng và không thể hoàn tác.",
+      message:
+        "Bạn xác nhận đã nhận được hàng đầy đủ và đúng mô tả? Thao tác này sẽ hoàn tất đơn hàng và không thể hoàn tác.",
       type: "success",
       confirmText: "Xác nhận nhận hàng",
       cancelText: "Hủy",
@@ -473,7 +638,10 @@ export default function BuyerOrderDetail() {
 
             {/* Payment panel — only shown when AWAITING_PAYMENT */}
             {order.status === "AWAITING_PAYMENT" && (
-              <PaymentPanel order={order} />
+              <PaymentPanel
+                order={order}
+                onPaymentSuccess={(updated) => setOrder(updated)}
+              />
             )}
 
             {/* Status info for non-payment states */}
@@ -490,11 +658,13 @@ export default function BuyerOrderDetail() {
                     {ORDER_STATUS_LABEL[order.status]}
                   </p>
                   <p className="text-xs text-slate-400 mt-0.5">
-                    Cập nhật: {new Date(order.updatedAt).toLocaleString("vi-VN")}
+                    Cập nhật:{" "}
+                    {new Date(order.updatedAt).toLocaleString("vi-VN")}
                   </p>
                 </div>
 
-                {(order.status === "SHIPPED" || order.status === "DELIVERED") && (
+                {(order.status === "SHIPPED" ||
+                  order.status === "DELIVERED") && (
                   <div className="flex flex-col gap-2">
                     <button
                       onClick={handleConfirmReceipt}
@@ -530,7 +700,9 @@ export default function BuyerOrderDetail() {
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
             <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-slate-800">Khiếu nại đơn hàng</h2>
+              <h2 className="text-xl font-bold text-slate-800">
+                Khiếu nại đơn hàng
+              </h2>
               <button
                 onClick={() => setIsComplaintOpen(false)}
                 className="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-100 rounded-lg transition-all"

@@ -8,6 +8,7 @@ export interface User {
   enabled: boolean;
   verified: boolean;
   provider?: "LOCAL" | "GOOGLE";
+  balance?: number;
 }
 
 export interface UserWithToken {

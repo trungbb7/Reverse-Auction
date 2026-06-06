@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { adminService } from "@/services/adminService";
 import { formatCurrency } from "@/utils/time";
 import { Link } from "react-router";
+import toast from "react-hot-toast";
 import {
   Users,
   Package,
@@ -24,20 +25,45 @@ interface AdminStats {
 export default function AdminDashboard() {
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const [commissionRate, setCommissionRate] = useState<string>("10");
+  const [updatingCommission, setUpdatingCommission] = useState(false);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
       try {
-        const data = await adminService.getAdminStats();
-        setStats(data);
+        const [statsData, rate] = await Promise.all([
+          adminService.getAdminStats(),
+          adminService.getCommissionRate()
+        ]);
+        setStats(statsData);
+        setCommissionRate(rate.toString());
       } catch (error) {
         console.error("Failed to load admin stats", error);
       } finally {
         setLoading(false);
       }
     };
-    fetchStats();
+    fetchData();
   }, []);
+
+  const handleSaveCommission = async () => {
+    const rateNum = Number(commissionRate);
+    if (isNaN(rateNum) || rateNum < 0 || rateNum > 100) {
+      toast.error("Tỷ lệ hoa hồng phải từ 0% đến 100%!");
+      return;
+    }
+    setUpdatingCommission(true);
+    try {
+      const newRate = await adminService.updateCommissionRate(rateNum);
+      setCommissionRate(newRate.toString());
+      toast.success("Cập nhật tỷ lệ hoa hồng thành công!");
+    } catch (error) {
+      console.error(error);
+      toast.error("Không thể cập nhật tỷ lệ hoa hồng!");
+    } finally {
+      setUpdatingCommission(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -233,6 +259,35 @@ export default function AdminDashboard() {
               Chưa ghi nhận đơn hàng nào
             </p>
           )}
+        </div>
+      </div>
+
+      {/* System Settings */}
+      <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+        <h3 className="font-bold text-slate-800 text-lg">Cấu hình Hệ thống</h3>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
+          <div>
+            <p className="font-semibold text-slate-700 text-sm">Tỷ lệ hoa hồng (%)</p>
+            <p className="text-xs text-slate-400 mt-0.5">Tỷ lệ phần trăm hoa hồng trích từ mỗi đơn hàng thành công của người bán.</p>
+          </div>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <input
+              type="number"
+              min="0"
+              max="100"
+              step="0.1"
+              value={commissionRate}
+              onChange={(e) => setCommissionRate(e.target.value)}
+              className="px-3 py-2 text-sm rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 bg-white w-24 text-center"
+            />
+            <button
+              onClick={handleSaveCommission}
+              disabled={updatingCommission}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold text-sm transition-all disabled:opacity-60 active:scale-95 whitespace-nowrap"
+            >
+              {updatingCommission ? "Đang lưu..." : "Lưu thay đổi"}
+            </button>
+          </div>
         </div>
       </div>
 

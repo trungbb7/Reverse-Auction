@@ -36,7 +36,13 @@ public class StatsServiceImpl implements StatsService {
                 .toList();
 
         BigDecimal totalRevenue = completedOrders.stream()
-                .map(Order::getTotalAmount)
+                .map(o -> {
+                    if (o.getCommissionAmount() != null) {
+                        return o.getCommissionAmount();
+                    }
+                    BigDecimal total = o.getTotalAmount() != null ? o.getTotalAmount() : BigDecimal.ZERO;
+                    return total.multiply(BigDecimal.valueOf(10)).divide(BigDecimal.valueOf(100));
+                })
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         Map<String, BigDecimal> revenueByCategory = completedOrders.stream()
@@ -49,7 +55,13 @@ public class StatsServiceImpl implements StatsService {
                             }
                             return "Khác";
                         },
-                        Collectors.reducing(BigDecimal.ZERO, Order::getTotalAmount, BigDecimal::add)
+                        Collectors.reducing(BigDecimal.ZERO, o -> {
+                            if (o.getCommissionAmount() != null) {
+                                return o.getCommissionAmount();
+                            }
+                            BigDecimal total = o.getTotalAmount() != null ? o.getTotalAmount() : BigDecimal.ZERO;
+                            return total.multiply(BigDecimal.valueOf(10)).divide(BigDecimal.valueOf(100));
+                        }, BigDecimal::add)
                 ));
 
         Map<String, Long> ordersByStatus = orderRepository.findAll().stream()

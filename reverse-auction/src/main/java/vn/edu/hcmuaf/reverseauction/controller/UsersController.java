@@ -26,6 +26,11 @@ public class UsersController {
         return userService.updateCurrentUser(request);
     }
 
+    @PostMapping("/me/topup")
+    public UserDTO topupBalance(@RequestParam java.math.BigDecimal amount) {
+        return userService.topupBalance(amount);
+    }
+
     @PutMapping("/change-password")
     public void changePassword(@Valid @RequestBody ChangePasswordRequest request) {
         userService.changePassword(request);

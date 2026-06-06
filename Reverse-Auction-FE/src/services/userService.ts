@@ -11,4 +11,11 @@ export const userService = {
         const res = await api.put("/users/me", data);
         return res.data;
     },
+
+    topupBalance: async (amount: number): Promise<User> => {
+        const res = await api.post("/users/me/topup", null, {
+            params: { amount }
+        });
+        return res.data;
+    },
 };

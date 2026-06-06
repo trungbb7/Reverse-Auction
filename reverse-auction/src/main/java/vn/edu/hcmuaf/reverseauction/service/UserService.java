@@ -11,4 +11,5 @@ public interface UserService {
     void toggleUserBlock(Long id);
     List<UserDTO> listChatUsers();
     void changePassword(ChangePasswordRequest request);
+    UserDTO topupBalance(java.math.BigDecimal amount);
 }

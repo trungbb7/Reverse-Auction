@@ -2,23 +2,34 @@ package vn.edu.hcmuaf.reverseauction.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.http.HttpStatus;
 import vn.edu.hcmuaf.reverseauction.dto.OrderResponseDTO;
 import vn.edu.hcmuaf.reverseauction.entity.Order;
 import vn.edu.hcmuaf.reverseauction.entity.OrderStatus;
+import vn.edu.hcmuaf.reverseauction.entity.User;
+import vn.edu.hcmuaf.reverseauction.entity.SystemSetting;
+import vn.edu.hcmuaf.reverseauction.exception.CustomException;
 import vn.edu.hcmuaf.reverseauction.repository.OrderRepository;
 import vn.edu.hcmuaf.reverseauction.repository.ReviewRepository;
+import vn.edu.hcmuaf.reverseauction.repository.UserRepository;
+import vn.edu.hcmuaf.reverseauction.repository.SystemSettingRepository;
 import vn.edu.hcmuaf.reverseauction.service.NotificationService;
 import vn.edu.hcmuaf.reverseauction.service.OrderService;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final ReviewRepository reviewRepository;
     private final NotificationService notificationService;
+    private final UserRepository userRepository;
+    private final SystemSettingRepository systemSettingRepository;
 
     @Override
     public List<OrderResponseDTO> getOrdersByUserId(Long uid) {
@@ -40,9 +51,35 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public OrderResponseDTO updateStatus(Long id, OrderStatus status) {
         Order order = orderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        if (status == OrderStatus.COMPLETED && order.getStatus() != OrderStatus.COMPLETED) {
+            BigDecimal commRate = systemSettingRepository.findById("COMMISSION_RATE")
+                    .map(s -> {
+                        try {
+                            return new BigDecimal(s.getValue());
+                        } catch (Exception e) {
+                            return BigDecimal.valueOf(10);
+                        }
+                    })
+                    .orElse(BigDecimal.valueOf(10));
+            BigDecimal totalAmount = order.getTotalAmount() != null ? order.getTotalAmount() : BigDecimal.ZERO;
+            BigDecimal commAmount = totalAmount.multiply(commRate).divide(BigDecimal.valueOf(100));
+            BigDecimal sellerEarnings = totalAmount.subtract(commAmount);
+
+            order.setCommissionRate(commRate);
+            order.setCommissionAmount(commAmount);
+
+            User seller = order.getSeller();
+            if (seller.getBalance() == null) {
+                seller.setBalance(BigDecimal.ZERO);
+            }
+            seller.setBalance(seller.getBalance().add(sellerEarnings));
+            userRepository.save(seller);
+        }
 
         order.setStatus(status);
         order.setUpdatedAt(LocalDateTime.now());
@@ -125,9 +162,81 @@ public class OrderServiceImpl implements OrderService {
                 .auctionTitle(auctionTitle)
 
                 .shippingAddress(o.getShippingAddress())
+                .commissionRate(o.getCommissionRate())
+                .commissionAmount(o.getCommissionAmount())
 
                 .createdAt(o.getCreatedAt())
                 .updatedAt(o.getUpdatedAt())
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public OrderResponseDTO updateShipping(Long orderId, String address, String phone) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+        order.setShippingAddress(address);
+        order.setBuyerPhone(phone);
+        order.setUpdatedAt(LocalDateTime.now());
+        Order saved = orderRepository.save(order);
+        return toDTO(saved);
+    }
+
+    @Override
+    @Transactional
+    public OrderResponseDTO payWithBalance(Long orderId) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy đơn hàng"));
+
+        if (order.getStatus() != OrderStatus.AWAITING_PAYMENT) {
+            throw CustomException.builder()
+                    .status(HttpStatus.BAD_REQUEST)
+                    .error("Bad Request")
+                    .message("Đơn hàng này không ở trạng thái chờ thanh toán")
+                    .build();
+        }
+
+        User buyer = order.getBuyer();
+        BigDecimal totalAmount = order.getTotalAmount();
+
+        if (buyer.getBalance() == null || buyer.getBalance().compareTo(totalAmount) < 0) {
+            throw CustomException.builder()
+                    .status(HttpStatus.BAD_REQUEST)
+                    .error("Bad Request")
+                    .message("Số dư tài khoản không đủ để thanh toán")
+                    .build();
+        }
+
+        // Deduct balance from buyer
+        buyer.setBalance(buyer.getBalance().subtract(totalAmount));
+        userRepository.save(buyer);
+
+        // Update order status to PAID
+        order.setStatus(OrderStatus.PAID);
+        order.setUpdatedAt(LocalDateTime.now());
+        Order savedOrder = orderRepository.save(order);
+
+        // Send notifications (identical to VNPay callback success)
+        String orderTitle = order.getAuction() != null ? order.getAuction().getTitle() : (order.getProduct() != null ? order.getProduct().getName() : "sản phẩm");
+
+        // Notify buyer
+        notificationService.createAndSendNotification(
+                order.getBuyer(),
+                "Thanh toán đơn hàng thành công",
+                String.format("Thanh toán cho đơn hàng %s (\"%s\") đã được xác nhận thành công từ số dư ví.", order.getCode(), orderTitle),
+                "ORDER_STATUS_CHANGED",
+                order.getId()
+        );
+
+        // Notify seller
+        notificationService.createAndSendNotification(
+                order.getSeller(),
+                "Đơn hàng mới đã được thanh toán",
+                String.format("Đơn hàng %s (\"%s\") đã được người mua thanh toán bằng số dư ví. Vui lòng chuẩn bị và giao hàng.", order.getCode(), orderTitle),
+                "ORDER_STATUS_CHANGED",
+                order.getId()
+        );
+
+        return toDTO(savedOrder);
     }
 }

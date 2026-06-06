@@ -2,6 +2,7 @@ package vn.edu.hcmuaf.reverseauction.dto;
 import lombok.*;
 import vn.edu.hcmuaf.reverseauction.entity.AuthProvider;
 import vn.edu.hcmuaf.reverseauction.entity.Role;
+import java.math.BigDecimal;
 
 @Data
 @Builder
@@ -17,4 +18,5 @@ public class UserDTO {
     private boolean enabled;
     private boolean verified;
     private AuthProvider provider;
+    private BigDecimal balance;
 }

@@ -60,4 +60,16 @@ export const adminService = {
         const res = await api.get("/stats/admin");
         return res.data;
     },
+
+    getCommissionRate: async (): Promise<number> => {
+        const res = await api.get("/admin/settings/commission-rate");
+        return res.data;
+    },
+
+    updateCommissionRate: async (rate: number): Promise<number> => {
+        const res = await api.put("/admin/settings/commission-rate", null, {
+            params: { rate }
+        });
+        return res.data;
+    },
 };
