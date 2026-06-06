@@ -43,6 +43,7 @@ import AuctionManagement from "./components/pages/admin/AuctionManagement";
 import AdminOrders from "./components/pages/admin/AdminOrders";
 import AdminDashboard from "./components/pages/admin/AdminDashboard";
 import AdminComplaints from "./components/pages/admin/AdminComplaints";
+import AdminRevenue from "./components/pages/admin/AdminRevenue";
 import SellerComplaints from "./components/pages/seller/SellerComplaints";
 import SellerDashboard from "./components/pages/seller/SellerDashboard";
 import SellerAuctions from "./components/pages/seller/SellerAuctions";
@@ -159,6 +160,7 @@ function App() {
             <Route path="auctions" element={<AuctionManagement />} />
             <Route path="orders" element={<AdminOrders />} />
             <Route path="complaints" element={<AdminComplaints />} />
+            <Route path="revenue" element={<AdminRevenue />} />
           </Route>
 
           {/* Seller routes */}

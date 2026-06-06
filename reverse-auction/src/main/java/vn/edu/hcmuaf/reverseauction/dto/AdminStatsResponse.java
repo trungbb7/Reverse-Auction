@@ -16,6 +16,9 @@ public class AdminStatsResponse {
     private long totalOrders;
     private long totalAuctions;
     private BigDecimal totalRevenue;
+    private Map<String, BigDecimal> revenueByDay;
+    private Map<String, BigDecimal> revenueByMonth;
+    private Map<String, BigDecimal> revenueByYear;
     private Map<String, BigDecimal> revenueByCategory;
     private Map<String, Long> ordersByStatus;
 }

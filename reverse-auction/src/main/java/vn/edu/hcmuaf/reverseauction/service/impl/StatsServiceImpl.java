@@ -45,6 +45,54 @@ public class StatsServiceImpl implements StatsService {
                 })
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+        Map<String, BigDecimal> revenueByDay = completedOrders.stream()
+                .filter(o -> o.getCreatedAt() != null)
+                .collect(Collectors.groupingBy(
+                        o -> {
+                            var date = o.getCreatedAt();
+                            return date.getYear() + "-" + String.format("%02d", date.getMonthValue()) + "-" + String.format("%02d", date.getDayOfMonth());
+                        },
+                        Collectors.reducing(BigDecimal.ZERO, o -> {
+                            if (o.getCommissionAmount() != null) {
+                                return o.getCommissionAmount();
+                            }
+                            BigDecimal total = o.getTotalAmount() != null ? o.getTotalAmount() : BigDecimal.ZERO;
+                            return total.multiply(BigDecimal.valueOf(10)).divide(BigDecimal.valueOf(100));
+                        }, BigDecimal::add)
+                ));
+
+        Map<String, BigDecimal> revenueByMonth = completedOrders.stream()
+                .filter(o -> o.getCreatedAt() != null)
+                .collect(Collectors.groupingBy(
+                        o -> {
+                            var date = o.getCreatedAt();
+                            return date.getYear() + "-" + String.format("%02d", date.getMonthValue());
+                        },
+                        Collectors.reducing(BigDecimal.ZERO, o -> {
+                            if (o.getCommissionAmount() != null) {
+                                return o.getCommissionAmount();
+                            }
+                            BigDecimal total = o.getTotalAmount() != null ? o.getTotalAmount() : BigDecimal.ZERO;
+                            return total.multiply(BigDecimal.valueOf(10)).divide(BigDecimal.valueOf(100));
+                        }, BigDecimal::add)
+                ));
+
+        Map<String, BigDecimal> revenueByYear = completedOrders.stream()
+                .filter(o -> o.getCreatedAt() != null)
+                .collect(Collectors.groupingBy(
+                        o -> {
+                            var date = o.getCreatedAt();
+                            return String.valueOf(date.getYear());
+                        },
+                        Collectors.reducing(BigDecimal.ZERO, o -> {
+                            if (o.getCommissionAmount() != null) {
+                                return o.getCommissionAmount();
+                            }
+                            BigDecimal total = o.getTotalAmount() != null ? o.getTotalAmount() : BigDecimal.ZERO;
+                            return total.multiply(BigDecimal.valueOf(10)).divide(BigDecimal.valueOf(100));
+                        }, BigDecimal::add)
+                ));
+
         Map<String, BigDecimal> revenueByCategory = completedOrders.stream()
                 .collect(Collectors.groupingBy(
                         o -> {
@@ -75,6 +123,9 @@ public class StatsServiceImpl implements StatsService {
                 .totalOrders(totalOrders)
                 .totalAuctions(totalAuctions)
                 .totalRevenue(totalRevenue)
+                .revenueByDay(revenueByDay)
+                .revenueByMonth(revenueByMonth)
+                .revenueByYear(revenueByYear)
                 .revenueByCategory(revenueByCategory)
                 .ordersByStatus(ordersByStatus)
                 .build();
