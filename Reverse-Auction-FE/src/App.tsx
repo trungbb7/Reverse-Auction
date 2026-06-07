@@ -49,6 +49,7 @@ import SellerDashboard from "./components/pages/seller/SellerDashboard";
 import SellerAuctions from "./components/pages/seller/SellerAuctions";
 import Demo from "./components/pages/Demo.tsx";
 import ShopPage from "@/components/pages/shopPage";
+import SearchPage from "./components/pages/SearchPage";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -72,6 +73,7 @@ function App() {
           {/* Public home route */}
           <Route path="/" element={<MainLayout />}>
             <Route index element={<Home />} />
+            <Route path="search" element={<SearchPage />} />
           </Route>
 
           {/* Buyer-only routes */}

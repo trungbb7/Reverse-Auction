@@ -55,14 +55,6 @@ export default function Home() {
   const [shops, setShops] = useState<ShopDetail[]>([]);
   const [liveAuctions, setLiveAuctions] = useState<Auction[]>([]);
 
-  if (user?.role === "ROLE_SELLER") {
-    return <Navigate to={"/seller"} replace />;
-  }
-
-  if (user?.role === "ROLE_ADMIN") {
-    return <Navigate to={"/admin"} replace />;
-  }
-
   const getAuctionLink = (auctionId: number) => {
     if (user?.role === "ROLE_SELLER") {
       return `/seller/auctions/${auctionId}`;
@@ -111,6 +103,14 @@ export default function Home() {
 
     load();
   }, []);
+
+  if (user?.role === "ROLE_SELLER") {
+    return <Navigate to={"/seller"} replace />;
+  }
+
+  if (user?.role === "ROLE_ADMIN") {
+    return <Navigate to={"/admin"} replace />;
+  }
 
   const recentAuctions = [
     {

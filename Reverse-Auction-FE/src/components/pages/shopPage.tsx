@@ -84,16 +84,19 @@ export default function ShopPage() {
                                 {shop?.name}
                             </h1>
 
-                            <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <div className="flex items-center gap-2 text-sm text-gray-500 flex-wrap">
                                 <Star
                                     size={16}
                                     className="fill-yellow-400 text-yellow-400"
                                 />
-                                <span>{shop?.rating ?? 0}</span>
-
+                                <span className="font-bold text-slate-700">{shop?.rating?.toFixed(1) ?? 0}</span>
+                                <span>({shop?.totalReviews ?? 0} đánh giá)</span>
                                 <span>•</span>
-
-                                <span>{shop?.totalReviews ?? 0} reviews</span>
+                                <span>{shop?.totalOrders ?? 0} đơn hàng</span>
+                                <span>•</span>
+                                <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded text-xs font-semibold">
+                                    Tỷ lệ hoàn thành: {shop?.completionRate ? `${shop.completionRate.toFixed(1)}%` : "0%"}
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -134,12 +137,25 @@ export default function ShopPage() {
                             {shop?.description}
                         </p>
 
-                        <div className="mt-4 text-sm text-gray-600 space-y-2">
-                            <div>Tham gia: {shop?.createdAt}</div>
-
-                            <div className="flex items-center gap-2">
-                                <MapPin size={16}/>
-                                {shop?.location}
+                        <div className="mt-4 text-sm text-gray-600 space-y-2 border-t border-slate-300 pt-3">
+                            <div className="flex justify-between">
+                                <span className="font-semibold text-slate-700">Tham gia:</span>
+                                <span>{shop?.createdAt || "Chưa rõ"}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="font-semibold text-slate-700">Địa chỉ:</span>
+                                <span className="flex items-center gap-1">
+                                    <MapPin size={14} className="text-slate-400"/>
+                                    {shop?.location}
+                                </span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="font-semibold text-slate-700">Tổng số đơn hàng:</span>
+                                <span>{shop?.totalOrders ?? 0} đơn</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="font-semibold text-slate-700">Tỷ lệ hoàn thành:</span>
+                                <span>{shop?.completionRate ? `${shop.completionRate.toFixed(1)}%` : "0%"}</span>
                             </div>
                         </div>
                     </div>

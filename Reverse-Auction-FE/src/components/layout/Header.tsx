@@ -27,8 +27,15 @@ const Header = ({ isAdmin = false }: HeaderProps) => {
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      navigate(`/search?keyword=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -93,6 +100,9 @@ const Header = ({ isAdmin = false }: HeaderProps) => {
             <div className="relative w-full max-w-md">
               <input
                 type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleSearchKeyDown}
                 placeholder="Tìm kiếm linh kiện PC..."
                 className="w-full rounded-full border border-slate-300 bg-slate-50 px-4 py-2 pl-10 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
               />
