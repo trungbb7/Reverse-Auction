@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
-@Component
+//@Component
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
 
