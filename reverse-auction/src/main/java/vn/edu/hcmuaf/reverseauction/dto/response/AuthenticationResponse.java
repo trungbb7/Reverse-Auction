@@ -12,4 +12,10 @@ import lombok.NoArgsConstructor;
 public class AuthenticationResponse {
     private String accessToken;
     private String refreshToken;
+
+    @Builder.Default
+    private boolean registered = true;
+    private String email;
+    private String fullName;
+    private String imageUrl;
 }

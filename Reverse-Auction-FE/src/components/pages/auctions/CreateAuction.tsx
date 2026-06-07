@@ -71,7 +71,7 @@ const CreateAuction = () => {
 
       if (err instanceof AxiosError && err.status === 400) {
         const { fieldErrors } = err.response?.data as ErrorResponse;
-        toast.error(`${Object.values(fieldErrors)[0]}`);
+        toast.error(`${Object.values(fieldErrors || {})[0]}`);
       } else {
         toast.error("Đăng yêu cầu thất bại!");
       }

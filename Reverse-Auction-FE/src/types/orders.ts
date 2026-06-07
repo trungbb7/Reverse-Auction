@@ -45,6 +45,8 @@ export interface Order {
 
   shippingAddress: string;
   buyerPhone: string;
+  commissionRate?: number;
+  commissionAmount?: number;
   createdAt: string;
   updatedAt: string;
 }

@@ -66,6 +66,11 @@ const authSlice = createSlice({
       })
       .addCase(fetchCurrentUser.rejected, (state) => {
         state.user = undefined;
+        state.logged = false;
+        state.accessToken = undefined;
+        state.refreshToken = undefined;
+        localStorage.setItem("accessToken", "");
+        localStorage.setItem("refreshToken", "");
       });
   },
 });

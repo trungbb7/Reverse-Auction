@@ -32,7 +32,7 @@ public class DataInitializer implements CommandLineRunner {
         if (userRepository.count() == 0) {
             seedUsers();
         }
-        
+
         // Ensure tks user exists for testing
         if (userRepository.findByEmail("tks@gmail.com").isEmpty()) {
             userRepository.save(User.builder()
@@ -41,6 +41,7 @@ public class DataInitializer implements CommandLineRunner {
                     .fullName("TKS Admin")
                     .role(Role.ROLE_ADMIN)
                     .enabled(true)
+                    .verified(true)
                     .build());
             System.out.println("Ensured tks@gmail.com user exists.");
         }
@@ -52,7 +53,9 @@ public class DataInitializer implements CommandLineRunner {
         seedAuctionsAndBids();
 
         // 4. Seed product
-        seedProduct();
+        if (productRepository.count() == 0) {
+            seedProduct();
+        }
     }
 
     private void seedUsers() {
@@ -62,14 +65,16 @@ public class DataInitializer implements CommandLineRunner {
                 .fullName("Admin System")
                 .role(Role.ROLE_ADMIN)
                 .enabled(true)
+                .verified(true)
                 .build();
-        
+
         User buyer = User.builder()
                 .email("buyer@gmail.com")
                 .password(passwordEncoder.encode("buyer123"))
                 .fullName("John Buyer")
                 .role(Role.ROLE_BUYER)
                 .enabled(true)
+                .verified(true)
                 .build();
 
         User seller = User.builder()
@@ -78,6 +83,7 @@ public class DataInitializer implements CommandLineRunner {
                 .fullName("Bob Seller")
                 .role(Role.ROLE_SELLER)
                 .enabled(true)
+                .verified(true)
                 .build();
 
         User tks = User.builder()
@@ -86,6 +92,7 @@ public class DataInitializer implements CommandLineRunner {
                 .fullName("TKS Admin")
                 .role(Role.ROLE_ADMIN)
                 .enabled(true)
+                .verified(true)
                 .build();
 
         userRepository.saveAll(Arrays.asList(admin, buyer, seller, tks));
@@ -105,7 +112,7 @@ public class DataInitializer implements CommandLineRunner {
     private void seedAuctionsAndBids() {
         User buyer = userRepository.findByEmail("buyer@gmail.com").orElse(null);
         User seller = userRepository.findByEmail("seller@gmail.com").orElse(null);
-        
+
         if (buyer == null) return;
 
         Category cpuCat = categoryRepository.findByName("CPU - Bộ vi xử lý").orElse(null);
@@ -126,7 +133,7 @@ public class DataInitializer implements CommandLineRunner {
                     .status(AuctionStatus.OPEN)
                     .build();
             cpuAuction = auctionRequestRepository.save(cpuAuction);
-            
+
             if (seller != null) {
                 bidRepository.save(Bid.builder()
                         .auction(cpuAuction)
@@ -202,6 +209,7 @@ public class DataInitializer implements CommandLineRunner {
                                 .fullName("John Seller")
                                 .role(Role.ROLE_SELLER)
                                 .enabled(true)
+                                .verified(true)
                                 .build()
                 ));
 
@@ -215,6 +223,7 @@ public class DataInitializer implements CommandLineRunner {
                         .imageUrl("https://via.placeholder.com/300x200")
                         .price(new BigDecimal("48500000"))
                         .stockQuantity(5)
+                        .category(categoryRepository.findByName("VGA - Card màn hình").orElse(null))
                         .status(ProductStatus.ACTIVE)
                         .seller(seller)
                         .createdAt(LocalDateTime.now())
@@ -230,6 +239,7 @@ public class DataInitializer implements CommandLineRunner {
                         .imageUrl("https://via.placeholder.com/300x200")
                         .price(new BigDecimal("15990000"))
                         .stockQuantity(12)
+                        .category(categoryRepository.findByName("CPU - Bộ vi xử lý").orElse(null))
                         .status(ProductStatus.ACTIVE)
                         .seller(seller)
                         .createdAt(LocalDateTime.now())
@@ -245,6 +255,7 @@ public class DataInitializer implements CommandLineRunner {
                         .imageUrl("https://via.placeholder.com/300x200")
                         .price(new BigDecimal("4250000"))
                         .stockQuantity(20)
+                        .category(categoryRepository.findByName("RAM - Bộ nhớ trong").orElse(null))
                         .status(ProductStatus.ACTIVE)
                         .seller(seller)
                         .createdAt(LocalDateTime.now())
@@ -260,6 +271,7 @@ public class DataInitializer implements CommandLineRunner {
                         .imageUrl("https://via.placeholder.com/300x200")
                         .price(new BigDecimal("18450000"))
                         .stockQuantity(8)
+                        .category(categoryRepository.findByName("RAM - Bộ nhớ trong").orElse(null))
                         .status(ProductStatus.ACTIVE)
                         .seller(seller)
                         .createdAt(LocalDateTime.now())
@@ -274,6 +286,7 @@ public class DataInitializer implements CommandLineRunner {
                         .model("Vengeance DDR5")
                         .imageUrl("https://via.placeholder.com/300x200")
                         .price(new BigDecimal("3200000"))
+                        .category(categoryRepository.findByName("RAM - Bộ nhớ trong").orElse(null))
                         .stockQuantity(30)
                         .status(ProductStatus.ACTIVE)
                         .seller(seller)

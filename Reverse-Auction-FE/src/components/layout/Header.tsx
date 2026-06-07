@@ -13,6 +13,8 @@ import {
 import { Link, useNavigate } from "react-router";
 import { useAppSelector, useAppDispatch } from "@/hooks/redux";
 import { logoutUser } from "@/components/Auth/authSlice";
+import { useNotifications } from "@/context/NotificationContext";
+import { NotificationDropdown } from "./NotificationDropdown";
 
 interface HeaderProps {
   isAdmin?: boolean;
@@ -20,10 +22,20 @@ interface HeaderProps {
 
 const Header = ({ isAdmin = false }: HeaderProps) => {
   const { logged, user } = useAppSelector((state) => state.auth);
+  const { unreadCount } = useNotifications();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const notificationRef = useRef<HTMLDivElement>(null);
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      navigate(`/search?keyword=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -33,6 +45,12 @@ const Header = ({ isAdmin = false }: HeaderProps) => {
         !dropdownRef.current.contains(e.target as Node)
       ) {
         setDropdownOpen(false);
+      }
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(e.target as Node)
+      ) {
+        setNotificationOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -82,6 +100,9 @@ const Header = ({ isAdmin = false }: HeaderProps) => {
             <div className="relative w-full max-w-md">
               <input
                 type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleSearchKeyDown}
                 placeholder="Tìm kiếm linh kiện PC..."
                 className="w-full rounded-full border border-slate-300 bg-slate-50 px-4 py-2 pl-10 text-sm outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
               />
@@ -105,10 +126,22 @@ const Header = ({ isAdmin = false }: HeaderProps) => {
           )}
 
           {logged && (
-            <button className="text-slate-500 hover:text-primary-600 transition-colors relative">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500 ring-2 ring-white"></span>
-            </button>
+            <div className="relative" ref={notificationRef}>
+              <button
+                onClick={() => setNotificationOpen((prev) => !prev)}
+                className="text-slate-500 hover:text-primary-600 transition-colors relative p-1 rounded-full hover:bg-slate-100"
+              >
+                <Bell className="h-5 w-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-4.5 w-4.5 items-center justify-center rounded-full bg-red-500 text-[9px] font-black text-white ring-2 ring-white">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+              {notificationOpen && (
+                <NotificationDropdown onClose={() => setNotificationOpen(false)} />
+              )}
+            </div>
           )}
 
           {!isAdmin && logged && (

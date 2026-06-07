@@ -1,6 +1,7 @@
 package vn.edu.hcmuaf.reverseauction.repository;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import vn.edu.hcmuaf.reverseauction.entity.Bid;
@@ -12,4 +13,10 @@ public interface BidRepository extends JpaRepository<Bid, Long> {
     List<Bid> findAllByAuctionId(long auctionId);
 
     boolean existsByAuctionIdAndSellerId(long auctionId, long sellerId);
+
+    long countBySellerId(long sellerId);
+    long countBySellerIdAndIsWinner(long sellerId, boolean isWinner);
+
+    @EntityGraph(attributePaths = {"auction", "seller"})
+    Page<Bid> findAllBySellerId(long sellerId, Pageable pageable);
 }

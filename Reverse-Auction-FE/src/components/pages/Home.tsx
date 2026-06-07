@@ -9,15 +9,35 @@ import {
   Cpu as GpuIcon,
   Box,
 } from "lucide-react";
-import {useEffect, useState} from "react";
-import {productService} from "@/services/productsService.ts";
-import {shopService} from "@/services/shopService.ts";
+import { useEffect, useState } from "react";
+import { Link, Navigate } from "react-router";
+import { useAppSelector } from "@/hooks/redux";
+import { productService } from "@/services/productsService.ts";
+import { shopService } from "@/services/shopService.ts";
+import { auctionService } from "@/services/auctionService";
+import { formatCurrency } from "@/utils/time";
 import { CategoryCard } from "../ui/CategoryCard";
 import { ProductCard } from "../ui/ProductCard";
 import { AuctionCard } from "../ui/AuctionCard";
 import { ShopCard } from "../ui/ShopCard";
-import type {Product} from "@/types/product.ts";
-import type {ShopDetail} from "@/types/shopDetail.ts";
+import type { Product } from "@/types/product.ts";
+import type { ShopDetail } from "@/types/shopDetail.ts";
+import type { Auction } from "@/types/auction";
+
+function getTimeLeft(endDate: string) {
+  const diff = Math.max(0, new Date(endDate).getTime() - Date.now());
+  const hours = Math.floor(diff / 3_600_000);
+  const minutes = Math.floor((diff % 3_600_000) / 60_000);
+
+  if (diff === 0) return { label: "Đã kết thúc", urgent: false };
+  if (hours === 0 && minutes <= 30)
+    return { label: `${minutes} phút còn lại`, urgent: true };
+  if (hours < 24) return { label: `${hours} giờ còn lại`, urgent: false };
+  return {
+    label: `${Math.floor(diff / 86_400_000)} ngày còn lại`,
+    urgent: false,
+  };
+}
 
 export default function Home() {
   const categories = [
@@ -30,57 +50,67 @@ export default function Home() {
     { title: "Phụ kiện", icon: Mouse, desc: "Chuột, Bàn phím" },
     { title: "Khác", icon: ShieldAlert, desc: "Tản nhiệt, Case..." },
   ];
-    const [products, setProducts] = useState<Product[]>([]);
-    const [shops, setShops] = useState<ShopDetail[]>([]);
-    useEffect(() => {
-        const load = async () => {
-            try {
-                const data = await shopService.getListShops();
-                setShops(data);
-            } catch (err) {
-                console.error(err);
-            }
-        };
+  const user = useAppSelector((state) => state.auth.user);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [shops, setShops] = useState<ShopDetail[]>([]);
+  const [liveAuctions, setLiveAuctions] = useState<Auction[]>([]);
 
-        load();
-    }, []);
+  const getAuctionLink = (auctionId: number) => {
+    if (user?.role === "ROLE_SELLER") {
+      return `/seller/auctions/${auctionId}`;
+    }
+    return `/auctions/${auctionId}`;
+  };
 
-    useEffect(() => {
-        const load = async () => {
-            const data = await productService.fetchProducts();
-            console.log(data);
-            setProducts(data);
-        };
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await shopService.getListShops();
+        setShops(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
 
-        load();
-    }, []);
+    load();
+  }, []);
 
-  // const trendingProducts = [
-  //   {
-  //     name: "CPU Intel Core i9-14900K",
-  //     price: "14.500.000đ",
-  //     rating: 4.9,
-  //     sold: 128,
-  //   },
-  //   {
-  //     name: "VGA NVIDIA RTX 4070 Ti Super",
-  //     price: "22.300.000đ",
-  //     rating: 4.8,
-  //     sold: 85,
-  //   },
-  //   {
-  //     name: "RAM Corsair Vengeance RGB 32GB DDR5",
-  //     price: "3.200.000đ",
-  //     rating: 5.0,
-  //     sold: 342,
-  //   },
-  //   {
-  //     name: "SSD Samsung 990 Pro 2TB",
-  //     price: "4.100.000đ",
-  //     rating: 4.9,
-  //     sold: 215,
-  //   },
-  // ];
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await productService.fetchProducts();
+        setProducts(data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    load();
+  }, []);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await auctionService.searchAuctions({
+          status: "OPEN",
+          size: 3,
+        });
+        setLiveAuctions(res.content);
+      } catch (err) {
+        console.error("Failed to load live auctions", err);
+      }
+    };
+
+    load();
+  }, []);
+
+  if (user?.role === "ROLE_SELLER") {
+    return <Navigate to={"/seller"} replace />;
+  }
+
+  if (user?.role === "ROLE_ADMIN") {
+    return <Navigate to={"/admin"} replace />;
+  }
 
   const recentAuctions = [
     {
@@ -217,7 +247,7 @@ export default function Home() {
             </div>
             <div className="flex pr-[267px] items-center gap-2 w-fit">
               <p className="flex flex-col justify-center text-[#375F97] font-inter text-base font-bold leading-6 h-6 text-center">
-                Tạo yêu cầu ngay
+                <Link to="/create-auction">Tạo yêu cầu ngay</Link>
               </p>
               <svg
                 width="16"
@@ -372,31 +402,31 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {products.map((prod) => (
-                <ProductCard key={prod.id} product={prod} />
-            ))}
+          {products.map((prod) => (
+            <ProductCard key={prod.id} product={prod} />
+          ))}
         </div>
       </section>
 
-        {/* Shop Section */}
-        <section>
-            <div className="flex items-end justify-between mb-8">
-                <div>
-                    <h2 className="text-2xl font-bold text-slate-800">
-                        Cửa hàng uy tín hàng đầu
-                    </h2>
-                    <p className="text-slate-500 mt-2">
-                        Đối tác được xác thực bởi HardwareBid
-                    </p>
-                </div>
-            </div>
+      {/* Shop Section */}
+      <section>
+        <div className="flex items-end justify-between mb-8">
+          <div>
+            <h2 className="text-2xl font-bold text-slate-800">
+              Cửa hàng uy tín hàng đầu
+            </h2>
+            <p className="text-slate-500 mt-2">
+              Đối tác được xác thực bởi HardwareBid
+            </p>
+          </div>
+        </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {shops.map((prod) => (
-                    <ShopCard key={prod.id} shop={prod} />
-                ))}
-            </div>
-        </section>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {shops.map((prod) => (
+            <ShopCard key={prod.id} shop={prod} />
+          ))}
+        </div>
+      </section>
 
       {/* Recent Auctions Section */}
       <section>
@@ -421,18 +451,69 @@ export default function Home() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {recentAuctions.map((auction, idx) => (
-            <AuctionCard
-              key={idx}
-              title={auction.title}
-              buyerName={auction.buyerName}
-              timeRemaining={auction.timeRemaining}
-              lowestBid={auction.lowestBid}
-              participants={auction.participants}
-              tags={auction.tags}
-              isUrgent={auction.isUrgent}
-            />
-          ))}
+          {(liveAuctions.length > 0 ? liveAuctions : recentAuctions).map(
+            (auction: any, idx) => {
+              const isRealAuction = "id" in auction;
+              const cardTitle = isRealAuction
+                ? auction.title || ""
+                : auction.title;
+              const buyer = isRealAuction
+                ? auction.buyerName || "Người dùng"
+                : auction.buyerName;
+
+              let timeLabel = "";
+              let urgent = false;
+              if (isRealAuction) {
+                const tl = getTimeLeft(auction.endDate);
+                timeLabel = tl.label;
+                urgent = tl.urgent;
+              } else {
+                timeLabel = auction.timeRemaining;
+                urgent = auction.isUrgent;
+              }
+
+              const lowestBidLabel = isRealAuction
+                ? auction.lowestPrice && auction.lowestPrice > 0
+                  ? formatCurrency(auction.lowestPrice)
+                  : "Chưa có"
+                : auction.lowestBid;
+
+              const bidsCount = isRealAuction
+                ? auction.totalBids || 0
+                : auction.participants;
+              const tagsList = isRealAuction
+                ? auction.categoryName
+                  ? [auction.categoryName]
+                  : ["Linh kiện"]
+                : auction.tags;
+
+              const cardComponent = (
+                <AuctionCard
+                  title={cardTitle}
+                  buyerName={buyer}
+                  timeRemaining={timeLabel}
+                  lowestBid={lowestBidLabel}
+                  participants={bidsCount}
+                  tags={tagsList}
+                  isUrgent={urgent}
+                />
+              );
+
+              if (isRealAuction) {
+                return (
+                  <Link
+                    key={auction.id}
+                    to={getAuctionLink(auction.id)}
+                    className="block h-full hover:no-underline"
+                  >
+                    {cardComponent}
+                  </Link>
+                );
+              }
+
+              return <div key={idx}>{cardComponent}</div>;
+            },
+          )}
         </div>
       </section>
     </div>

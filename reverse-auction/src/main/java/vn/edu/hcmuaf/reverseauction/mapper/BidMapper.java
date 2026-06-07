@@ -15,6 +15,10 @@ public interface BidMapper {
     @Mapping(target = "auctionId", expression = "java(bid.getAuction().getId())")
     @Mapping(target = "sellerId", expression = "java(bid.getSeller().getId())")
     @Mapping(target = "sellerName", expression = "java(bid.getSeller().getFullName())")
+    @Mapping(target = "auctionTitle", expression = "java(bid.getAuction().getTitle())")
+    @Mapping(target = "auctionStatus", expression = "java(bid.getAuction().getStatus().name())")
+    @Mapping(target = "auctionBudget", expression = "java(bid.getAuction().getBudgetMax())")
+    @Mapping(target = "categoryName", expression = "java(bid.getAuction().getCategory() != null ? bid.getAuction().getCategory().getName() : \"\")")
     BidResponseDTO toDTO(Bid bid);
 
     default PageResponse<BidResponseDTO> toPageResponse(Page<Bid> page) {

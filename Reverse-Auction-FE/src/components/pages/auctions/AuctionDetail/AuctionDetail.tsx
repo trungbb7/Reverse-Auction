@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router";
+import { useParams, useNavigate, Link } from "react-router";
 import {
   Clock,
   Users,
@@ -18,25 +18,35 @@ import toast from "react-hot-toast";
 import { bidService } from "@/services/bidService";
 import { auctionService } from "@/services/auctionService";
 import { useAppSelector } from "@/hooks/redux";
+import { useConfirm } from "@/context/ConfirmContext";
+
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 
 export default function AuctionDetail() {
+  const { confirm } = useConfirm();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [auction, setAuction] = useState<Auction>();
-  const countdown = useCountdown(auction?.endDate ?? new Date().toISOString());
+  const countdown = useCountdown(
+    auction?.status !== "OPEN"
+      ? new Date().toISOString()
+      : (auction?.endDate ?? new Date().toISOString()),
+  );
   const [bids, setBids] = useState<Bid[]>([]);
   const [lowestBid, setLowestBid] = useState<number>(0);
   const [lastOffer, setLastOffer] = useState<string | undefined>();
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [mainImage, setMainImage] = useState(selectedImages[0] ?? "");
   const [winner, setWinner] = useState<number | null>(null);
+  const [orderId, setOrderId] = useState<number | undefined>(undefined);
   const currentUser = useAppSelector((state) => state.auth.user);
 
   const handleSelectWinner = async (bidId: number) => {
     try {
-      await auctionService.selectWinner(id || "", bidId);
+      const newOrderId = (await auctionService.selectWinner(id || "", bidId))
+        .orderId;
+      setOrderId(newOrderId);
       setWinner(bidId);
 
       setBids((prev) =>
@@ -52,6 +62,32 @@ export default function AuctionDetail() {
       toast.success("Đã chọn người thắng thành công!");
     } catch (err) {
       toast.error("Không thể chọn người thắng. Vui lòng thử lại.");
+      console.error(err);
+    }
+  };
+
+  const handleCloseEarly = async () => {
+    if (!auction) return;
+    const isConfirmed = await confirm({
+      title: "Đóng sớm phiên đấu giá",
+      message:
+        "Bạn có chắc chắn muốn đóng sớm phiên đấu giá này không? Sau khi đóng, người bán không thể gửi đề xuất thầu mới và bạn có thể chọn người thắng.",
+      type: "warning",
+      confirmText: "Đóng sớm",
+      cancelText: "Hủy",
+    });
+
+    if (!isConfirmed) return;
+
+    try {
+      const updated = await auctionService.updateAuctionStatus(
+        auction.id,
+        "CLOSED",
+      );
+      setAuction(updated);
+      toast.success("Đã đóng sớm phiên đấu giá thành công!");
+    } catch (err) {
+      toast.error("Không thể đóng sớm phiên đấu giá. Vui lòng thử lại.");
       console.error(err);
     }
   };
@@ -191,8 +227,17 @@ export default function AuctionDetail() {
             onClick={() => navigate(-1)}
             className="px-5 py-2 rounded-xl border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors"
           >
-            Huỷ phiên đấu
+            Quay lại
           </button>
+          {currentUser?.id === auction?.buyerId &&
+            auction?.status === "OPEN" && (
+              <button
+                onClick={handleCloseEarly}
+                className="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 text-white text-sm font-semibold hover:from-amber-600 hover:to-orange-700 shadow-md hover:shadow-lg transition-all"
+              >
+                Đóng sớm phiên đấu
+              </button>
+            )}
           <button className="w-9 h-9 rounded-xl border border-slate-200 flex items-center justify-center text-slate-500 hover:bg-slate-50 transition-colors">
             <MoreHorizontal className="w-5 h-5" />
           </button>
@@ -279,7 +324,7 @@ export default function AuctionDetail() {
               <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 mb-3">
                 Hình ảnh tham khảo
               </p>
-              <div className="flex gap-3">
+              <div className="flex gap-3 flex-wrap">
                 {selectedImages.slice(0, 3).map((src, idx) => (
                   <button
                     key={idx}
@@ -414,11 +459,14 @@ export default function AuctionDetail() {
                   </p>
                   <p className="text-xs text-green-600 mt-1">
                     {bids.find((b) => b.id === winner)?.sellerName} đã được
-                    chọn. Phiên đấu giá sẽ kết thúc sớm.
+                    chọn. Phiên đấu giá hoàn thành.
                   </p>
-                  <button className="mt-3 flex items-center gap-1 text-xs font-bold text-green-700 hover:text-green-900 transition-colors">
-                    Xem hợp đồng <ChevronRight className="w-3 h-3" />
-                  </button>
+                  <Link
+                    to={`/buyer/orders/${orderId}`}
+                    className="mt-3 flex items-center gap-1 text-xs font-bold text-green-700 hover:text-green-900 transition-colors"
+                  >
+                    Xem đơn hàng <ChevronRight className="w-3 h-3" />
+                  </Link>
                 </div>
               </div>
             </div>

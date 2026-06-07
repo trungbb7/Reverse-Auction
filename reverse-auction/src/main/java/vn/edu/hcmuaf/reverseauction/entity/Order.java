@@ -50,6 +50,12 @@ public class Order {
 
     private BigDecimal totalAmount;
 
+    @Column(precision = 15, scale = 2)
+    private BigDecimal commissionRate;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal commissionAmount;
+
     private String shippingAddress;
     private String buyerPhone;
 

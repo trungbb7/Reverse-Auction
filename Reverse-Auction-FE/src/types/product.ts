@@ -19,6 +19,7 @@ export interface Product {
     model?: string;
 
     imageUrl?: string;
+    imageUrls?: string[];
 
     categoryId: number;
     categoryName: string;
@@ -45,6 +46,7 @@ export interface ProductRequest {
     model?: string;
 
     imageUrl?: string;
+    imageUrls?: string[];
 
     categoryId: number;
 

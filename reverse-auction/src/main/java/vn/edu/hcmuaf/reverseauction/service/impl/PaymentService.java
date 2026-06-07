@@ -11,6 +11,7 @@ import vn.edu.hcmuaf.reverseauction.entity.OrderStatus;
 import vn.edu.hcmuaf.reverseauction.entity.Payment;
 import vn.edu.hcmuaf.reverseauction.repository.OrderRepository;
 import vn.edu.hcmuaf.reverseauction.repository.PaymentRepository;
+import vn.edu.hcmuaf.reverseauction.service.NotificationService;
 import vn.edu.hcmuaf.reverseauction.utils.PaymentUtils;
 
 import java.security.InvalidKeyException;
@@ -26,6 +27,7 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
     private final PaymentUtils paymentUtils;
+    private final NotificationService notificationService;
 
     @Transactional
     public PaymentResponse createPayment(CreatePaymentRequest request) throws NoSuchAlgorithmException, InvalidKeyException {
@@ -62,6 +64,26 @@ public class PaymentService {
             order.setStatus(OrderStatus.PAID);
             order.setUpdatedAt(LocalDateTime.now());
             orderRepository.save(order);
+
+            String orderTitle = order.getAuction() != null ? order.getAuction().getTitle() : (order.getProduct() != null ? order.getProduct().getName() : "sản phẩm");
+
+            // Notify buyer
+            notificationService.createAndSendNotification(
+                    order.getBuyer(),
+                    "Thanh toán đơn hàng thành công",
+                    String.format("Thanh toán cho đơn hàng %s (\"%s\") đã được xác nhận thành công.", order.getCode(), orderTitle),
+                    "ORDER_STATUS_CHANGED",
+                    order.getId()
+            );
+
+            // Notify seller
+            notificationService.createAndSendNotification(
+                    order.getSeller(),
+                    "Đơn hàng mới đã được thanh toán",
+                    String.format("Đơn hàng %s (\"%s\") đã được người mua thanh toán. Vui lòng chuẩn bị và giao hàng.", order.getCode(), orderTitle),
+                    "ORDER_STATUS_CHANGED",
+                    order.getId()
+            );
         }
     }
 

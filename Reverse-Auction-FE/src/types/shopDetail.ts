@@ -15,4 +15,6 @@ export interface ShopDetail {
         two: number;
         one: number;
     };
+    totalOrders?: number;
+    completionRate?: number;
 }

@@ -2,6 +2,7 @@ import { formatCurrency, formatTimeAgo } from "@/utils/time";
 import SellerAvatar from "./SellerAvatar";
 import { Crown } from "lucide-react";
 import type { Bid } from "@/types/auction";
+import { Link } from "react-router";
 
 interface BidCardProps {
   bid: Bid;
@@ -31,9 +32,12 @@ export default function BidCard({
         <SellerAvatar name={bid.sellerName} />
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-semibold text-slate-900 text-sm truncate">
+            <Link
+              to={`/shopPage/${bid.sellerId}`}
+              className="font-semibold text-slate-900 text-sm truncate hover:text-blue-600 transition-colors"
+            >
               {bid.sellerName}
-            </span>
+            </Link>
             {bid.isWinner && (
               <span className="text-[10px] font-bold text-green-700 bg-green-200 px-2 py-0.5 rounded-full flex items-center gap-1">
                 THẮNG CUỘC
@@ -45,8 +49,22 @@ export default function BidCard({
               </span>
             )}
           </div>
-          <span className="text-xs text-slate-400">
-            {formatTimeAgo(bid.updatedAt)}
+          
+          <div className="flex items-center gap-1.5 text-[11px] text-slate-500 mt-1 flex-wrap font-medium">
+            <span className="flex items-center gap-0.5 text-amber-500 font-bold">
+              ★ {bid.sellerRating ? bid.sellerRating.toFixed(1) : "0.0"}
+            </span>
+            <span>({bid.sellerTotalReviews ?? 0} đánh giá)</span>
+            <span>•</span>
+            <span>{bid.sellerTotalOrders ?? 0} đơn</span>
+            <span>•</span>
+            <span className="text-emerald-600 font-bold">
+              HT: {bid.sellerCompletionRate ? `${bid.sellerCompletionRate.toFixed(0)}%` : "0%"}
+            </span>
+          </div>
+
+          <span className="text-[10px] text-slate-400 mt-0.5 block">
+            Đặt giá {formatTimeAgo(bid.updatedAt)}
           </span>
         </div>
         <span className="font-black text-lg text-slate-900 shrink-0">
