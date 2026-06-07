@@ -37,6 +37,7 @@ public class OrderServiceImpl implements OrderService {
     private final SystemSettingRepository systemSettingRepository;
 
     @Override
+    @Transactional
     public List<OrderResponseDTO> getOrdersByUserId(Long uid) {
         List<Order> orders = orderRepository.findByBuyer_Id(uid);
         return orders.stream().map(this::toDTO).collect(Collectors.toList());

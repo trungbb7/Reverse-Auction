@@ -2,6 +2,7 @@ package vn.edu.hcmuaf.reverseauction.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import vn.edu.hcmuaf.reverseauction.dto.CategoryDTO;
 import vn.edu.hcmuaf.reverseauction.entity.Category;
 import vn.edu.hcmuaf.reverseauction.mapper.CategoryMapper;
@@ -18,11 +19,13 @@ public class CategoryServiceImpl implements CategoryService {
     private final CategoryMapper categoryMapper;
 
     @Override
+    @Transactional
     public List<CategoryDTO> getAllCategories() {
         return categoryMapper.toDTOList(categoryRepository.findAll());
     }
 
     @Override
+    @Transactional
     public CategoryDTO getCategoryById(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Category not found"));
@@ -30,6 +33,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Transactional
     public CategoryDTO createCategory(CategoryDTO categoryDTO) {
         Category category = categoryMapper.toEntity(categoryDTO);
         Category savedCategory = categoryRepository.save(category);
@@ -37,6 +41,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Transactional
     public CategoryDTO updateCategory(Long id, CategoryDTO categoryDTO) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Category not found"));
@@ -47,6 +52,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Transactional
     public void deleteCategory(Long id) {
         if (!categoryRepository.existsById(id)) {
             throw new RuntimeException("Category not found");
