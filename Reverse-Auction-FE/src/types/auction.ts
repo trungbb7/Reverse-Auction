@@ -43,6 +43,10 @@ export interface Bid {
   auctionStatus?: string;
   auctionBudget?: number;
   categoryName?: string;
+  sellerRating?: number;
+  sellerTotalReviews?: number;
+  sellerTotalOrders?: number;
+  sellerCompletionRate?: number;
 }
 
 export const auctionEmpty: Auction = {

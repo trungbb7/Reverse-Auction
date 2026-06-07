@@ -11,15 +11,10 @@ import vn.edu.hcmuaf.reverseauction.dto.request.CreateBidRequestDTO;
 import vn.edu.hcmuaf.reverseauction.dto.request.UpdateBidRequestDTO;
 import vn.edu.hcmuaf.reverseauction.dto.response.AllBidResponseDTO;
 import vn.edu.hcmuaf.reverseauction.dto.response.PageResponse;
-import vn.edu.hcmuaf.reverseauction.entity.AuctionRequest;
-import vn.edu.hcmuaf.reverseauction.entity.AuctionStatus;
-import vn.edu.hcmuaf.reverseauction.entity.Bid;
-import vn.edu.hcmuaf.reverseauction.entity.User;
+import vn.edu.hcmuaf.reverseauction.entity.*;
 import vn.edu.hcmuaf.reverseauction.exception.CustomException;
 import vn.edu.hcmuaf.reverseauction.mapper.BidMapper;
-import vn.edu.hcmuaf.reverseauction.repository.AuctionRequestRepository;
-import vn.edu.hcmuaf.reverseauction.repository.BidRepository;
-import vn.edu.hcmuaf.reverseauction.repository.UserRepository;
+import vn.edu.hcmuaf.reverseauction.repository.*;
 import vn.edu.hcmuaf.reverseauction.service.BidService;
 import vn.edu.hcmuaf.reverseauction.service.NotificationService;
 
@@ -33,6 +28,8 @@ public class BidServiceImpl implements BidService {
     private final UserRepository userRepository;
     private final BidMapper bidMapper;
     private final NotificationService notificationService;
+    private final ReviewRepository reviewRepository;
+    private final OrderRepository orderRepository;
 
     @Override
     @Transactional
@@ -71,13 +68,19 @@ public class BidServiceImpl implements BidService {
                 existing.getSeller().getFullName(), bid.getBidPrice(), auc.getTitle());
         notificationService.createAndSendNotification(auc.getBuyer(), title, content, "BID_UPDATED", auc.getId());
 
-        return bidMapper.toDTO(saved);
+        BidResponseDTO dto = bidMapper.toDTO(saved);
+        enrichSellerStats(dto, sellerId);
+        return dto;
     }
 
     @Override
     public AllBidResponseDTO getBidsForAuction(long auctionId) {
         List<Bid> bids = bidRepository.findAllByAuctionId(auctionId);
-        List<BidResponseDTO> bidsDTO = bids.stream().map(bidMapper::toDTO).toList();
+        List<BidResponseDTO> bidsDTO = bids.stream().map(bid -> {
+            BidResponseDTO dto = bidMapper.toDTO(bid);
+            enrichSellerStats(dto, bid.getSeller().getId());
+            return dto;
+        }).toList();
         return new AllBidResponseDTO(bidsDTO);
     }
 
@@ -96,7 +99,10 @@ public class BidServiceImpl implements BidService {
                         .message("Không tim thấy phiên người bán!")
                         .status(HttpStatus.NOT_FOUND)
                         .build());
-        return bidMapper.toDTO(uBid);
+        
+        BidResponseDTO dto = bidMapper.toDTO(uBid);
+        enrichSellerStats(dto, userId);
+        return dto;
     }
 
     @Override
@@ -150,12 +156,38 @@ public class BidServiceImpl implements BidService {
                 seller.getFullName(), requestDTO.getBidPrice(), auc.getTitle());
         notificationService.createAndSendNotification(auc.getBuyer(), title, content, "NEW_BID", auc.getId());
 
-        return bidMapper.toDTO(saved);
+        BidResponseDTO dto = bidMapper.toDTO(saved);
+        enrichSellerStats(dto, sellerId);
+        return dto;
     }
 
     @Override
     public PageResponse<BidResponseDTO> getSellerBids(long sellerId, Pageable pageable) {
         Page<Bid> page = bidRepository.findAllBySellerId(sellerId, pageable);
-        return bidMapper.toPageResponse(page);
+        PageResponse<BidResponseDTO> response = bidMapper.toPageResponse(page);
+        if (response.getContent() != null) {
+            response.getContent().forEach(dto -> enrichSellerStats(dto, sellerId));
+        }
+        return response;
+    }
+
+    private void enrichSellerStats(BidResponseDTO dto, long sellerId) {
+        Double avgRating = reviewRepository.getAvgRatingBySellerId(sellerId);
+        Long totalReviews = reviewRepository.countBySellerId(sellerId);
+
+        List<Order> orders = orderRepository.findBySeller_Id(sellerId);
+        int totalOrders = orders.size();
+        double completionRate = 0.0;
+        if (totalOrders > 0) {
+            long completedOrders = orders.stream()
+                    .filter(o -> o.getStatus() == OrderStatus.COMPLETED)
+                    .count();
+            completionRate = (double) completedOrders / totalOrders * 100.0;
+        }
+
+        dto.setSellerRating(avgRating != null ? avgRating : 0.0);
+        dto.setSellerTotalReviews(totalReviews != null ? totalReviews.intValue() : 0);
+        dto.setSellerTotalOrders(totalOrders);
+        dto.setSellerCompletionRate(completionRate);
     }
 }

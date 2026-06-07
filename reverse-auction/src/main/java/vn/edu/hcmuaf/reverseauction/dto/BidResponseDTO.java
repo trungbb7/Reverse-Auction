@@ -22,4 +22,10 @@ public class BidResponseDTO {
     private String auctionStatus;
     private BigDecimal auctionBudget;
     private String categoryName;
+
+    // Seller reputation statistics
+    private Double sellerRating;
+    private Integer sellerTotalReviews;
+    private Integer sellerTotalOrders;
+    private Double sellerCompletionRate;
 }
