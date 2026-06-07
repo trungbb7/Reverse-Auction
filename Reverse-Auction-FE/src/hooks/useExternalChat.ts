@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useAppSelector } from "@/hooks/redux";
+import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { externalChatService } from "@/services/externalChatService";
 import { createExternalChatSocket } from "@/services/externalChatSocket";
 import type {
@@ -8,6 +8,7 @@ import type {
   ExternalMessage,
 } from "@/types/externalChat";
 import toast from "react-hot-toast";
+import { selectContact, toggleChat } from "@/components/chat/chatSlice";
 
 export type ChatTab = "conversations" | "contacts";
 type ConnectionState = "idle" | "connecting" | "connected" | "reconnecting";
@@ -20,7 +21,14 @@ const formatChatError = (error: unknown, fallback: string) =>
   error instanceof Error ? error.message : fallback;
 
 export const useExternalChat = ({ enabled }: UseExternalChatOptions) => {
+  const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.auth);
+  const {
+    isOpen,
+    selectedContactId: reduxContactId,
+    isComplaintMode,
+  } = useAppSelector((state) => state.chat);
+
   const [tab, setTab] = useState<ChatTab>("conversations");
   const [search, setSearch] = useState("");
   const [contacts, setContacts] = useState<ChatUser[]>([]);
@@ -47,6 +55,22 @@ export const useExternalChat = ({ enabled }: UseExternalChatOptions) => {
   const reconnectAttemptsRef = useRef(0);
   const manualCloseRef = useRef(false);
   const connectSocketRef = useRef<(() => void) | null>(null);
+
+  // Sync redux state to local state
+  useEffect(() => {
+    if (reduxContactId !== null) {
+      setSelectedContactId(reduxContactId);
+      const existingConversation = conversations.find(
+        (c) => c.participantId === reduxContactId,
+      );
+      setSelectedConversationId(existingConversation?.conversationId ?? null);
+      if (existingConversation) {
+        setTab("conversations");
+      } else {
+        setTab("contacts");
+      }
+    }
+  }, [reduxContactId, conversations]);
 
   const selectedConversation = useMemo(
     () =>
@@ -114,7 +138,14 @@ export const useExternalChat = ({ enabled }: UseExternalChatOptions) => {
     setConversations(data);
 
     setSelectedConversationId((currentConversationId) => {
+      // If we already have a conversation selected, or there are no conversations, stay as is
       if (currentConversationId || data.length === 0) {
+        return currentConversationId;
+      }
+
+      // If we have a contact selected that doesn't have a conversation yet,
+      // don't auto-switch to the first conversation in the list
+      if (selectedContactIdRef.current && !currentConversationId) {
         return currentConversationId;
       }
 
@@ -122,10 +153,10 @@ export const useExternalChat = ({ enabled }: UseExternalChatOptions) => {
       return data[0].conversationId;
     });
 
-    if (!selectedConversationId && data.length > 0 && !selectedContactId) {
+    if (!selectedConversationIdRef.current && data.length > 0 && !selectedContactIdRef.current) {
       setSelectedContactId(data[0].participantId);
     }
-  }, [selectedConversationId, selectedContactId]);
+  }, []);
 
   const loadContacts = useCallback(async () => {
     const data = await externalChatService.fetchContacts();
@@ -159,8 +190,24 @@ export const useExternalChat = ({ enabled }: UseExternalChatOptions) => {
     }
   }, []);
 
+  const selectedConversationIdRef = useRef(selectedConversationId);
+  const selectedContactIdRef = useRef(selectedContactId);
+  const loadConversationsRef = useRef(loadConversations);
+
+  useEffect(() => {
+    selectedConversationIdRef.current = selectedConversationId;
+  }, [selectedConversationId]);
+
+  useEffect(() => {
+    selectedContactIdRef.current = selectedContactId;
+  }, [selectedContactId]);
+
+  useEffect(() => {
+    loadConversationsRef.current = loadConversations;
+  }, [loadConversations]);
+
   const openSocket = useCallback(() => {
-    if (!enabled || !user || !selectedContactId) {
+    if (!enabled || !user) {
       return;
     }
 
@@ -173,25 +220,35 @@ export const useExternalChat = ({ enabled }: UseExternalChatOptions) => {
       reconnectAttemptsRef.current > 0 ? "reconnecting" : "connecting",
     );
 
-    const socket = createExternalChatSocket(selectedConversationId, {
+    const socket = createExternalChatSocket(null, {
       onOpen: () => {
         reconnectAttemptsRef.current = 0;
         setConnectionState("connected");
       },
       onMessage: (message) => {
-        appendMessage(message);
-        void loadConversations().catch(() => undefined);
+        const currentConvId = selectedConversationIdRef.current;
+        const currentContactId = selectedContactIdRef.current;
 
-        const peerId =
-          message.senderId === user.id ? message.receiverId : message.senderId;
-        setSelectedConversationId(message.conversationId);
-        setSelectedContactId(peerId);
+        const isCurrentConversation =
+          (currentConvId && message.conversationId === currentConvId) ||
+          (!currentConvId && currentContactId &&
+            (message.senderId === currentContactId || message.receiverId === currentContactId));
+
+        if (isCurrentConversation) {
+          appendMessage(message);
+
+          if (!currentConvId) {
+            setSelectedConversationId(message.conversationId);
+          }
+        }
+
+        void loadConversationsRef.current().catch(() => undefined);
       },
       onClose: () => {
         socketRef.current = null;
 
-        if (!enabled || manualCloseRef.current || !selectedContactId) {
-          setConnectionState(enabled ? "idle" : "idle");
+        if (!enabled || manualCloseRef.current) {
+          setConnectionState("idle");
           return;
         }
 
@@ -207,7 +264,7 @@ export const useExternalChat = ({ enabled }: UseExternalChatOptions) => {
         }, delay);
       },
       onError: () => {
-        if (!enabled || manualCloseRef.current || !selectedContactId) {
+        if (!enabled || manualCloseRef.current) {
           return;
         }
 
@@ -220,9 +277,6 @@ export const useExternalChat = ({ enabled }: UseExternalChatOptions) => {
     appendMessage,
     clearReconnectTimer,
     enabled,
-    loadConversations,
-    selectedContactId,
-    selectedConversationId,
     user,
   ]);
 
@@ -244,12 +298,12 @@ export const useExternalChat = ({ enabled }: UseExternalChatOptions) => {
   }, [clearReconnectTimer, enabled, refreshAll, user]);
 
   useEffect(() => {
-    if (!enabled || !user || !selectedContactId) {
+    if (!enabled || !user) {
       manualCloseRef.current = true;
       clearReconnectTimer();
       socketRef.current?.close();
       socketRef.current = null;
-      setConnectionState(enabled ? "idle" : "idle");
+      setConnectionState("idle");
       return;
     }
 
@@ -265,8 +319,6 @@ export const useExternalChat = ({ enabled }: UseExternalChatOptions) => {
     clearReconnectTimer,
     enabled,
     openSocket,
-    selectedContactId,
-    selectedConversationId,
     user,
   ]);
 
@@ -290,8 +342,14 @@ export const useExternalChat = ({ enabled }: UseExternalChatOptions) => {
       setTab("conversations");
       setSelectedConversationId(conversation.conversationId);
       setSelectedContactId(conversation.participantId);
+      dispatch(
+        selectContact({
+          contactId: conversation.participantId,
+          isComplaintMode: conversation.complaintChat,
+        }),
+      );
     },
-    [],
+    [dispatch],
   );
 
   const handleSelectContact = useCallback(
@@ -303,12 +361,42 @@ export const useExternalChat = ({ enabled }: UseExternalChatOptions) => {
       setTab("contacts");
       setSelectedContactId(contact.id);
       setSelectedConversationId(existingConversation?.conversationId ?? null);
+      dispatch(
+        selectContact({
+          contactId: contact.id,
+          isComplaintMode: existingConversation?.complaintChat,
+        }),
+      );
     },
-    [conversations],
+    [conversations, dispatch],
   );
 
   const handleSend = useCallback(async () => {
     if (!selectedContactId || !draft.trim()) return;
+
+    const actualComplaintMode = isComplaintMode;
+
+    // Use REST API for first message to create conversation
+    if (!selectedConversationId) {
+      setSending(true);
+      try {
+        const newMessage = await externalChatService.sendMessage({
+          receiverId: selectedContactId,
+          content: draft.trim(),
+          complaintChat: actualComplaintMode,
+        });
+        setDraft("");
+        setSelectedConversationId(newMessage.conversationId);
+        appendMessage(newMessage);
+        void loadConversations().catch(() => undefined);
+      } catch (error) {
+        toast.error(formatChatError(error, "Không gửi được tin nhắn"));
+      } finally {
+        setSending(false);
+      }
+      return;
+    }
+
     if (!socketRef.current?.isOpen()) {
       toast.error("Kết nối chat chưa sẵn sàng");
       return;
@@ -319,6 +407,7 @@ export const useExternalChat = ({ enabled }: UseExternalChatOptions) => {
       socketRef.current.send({
         receiverId: selectedContactId,
         content: draft.trim(),
+        complaintChat: actualComplaintMode,
       });
       setDraft("");
     } catch (error) {
@@ -328,7 +417,11 @@ export const useExternalChat = ({ enabled }: UseExternalChatOptions) => {
     } finally {
       setSending(false);
     }
-  }, [draft, selectedContactId]);
+  }, [appendMessage, draft, isComplaintMode, loadConversations, selectedContactId, selectedConversationId]);
+
+  const handleToggleOpen = useCallback(() => {
+    dispatch(toggleChat());
+  }, [dispatch]);
 
   return {
     user,
@@ -352,13 +445,17 @@ export const useExternalChat = ({ enabled }: UseExternalChatOptions) => {
     sending,
     connectionState,
     isConnected: connectionState === "connected",
+    isOpen,
+    isComplaintMode,
     bottomRef,
     handleSelectConversation,
     handleSelectContact,
     handleSend,
+    handleToggleOpen,
     refreshAll,
     loadConversations,
     loadContacts,
     loadMessages,
   };
 };
+

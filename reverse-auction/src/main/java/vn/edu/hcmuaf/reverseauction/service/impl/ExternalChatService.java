@@ -62,7 +62,8 @@ public class ExternalChatService {
             throw new IllegalArgumentException("Cannot send a message to yourself");
         }
 
-        ExternalConversation conversation = resolveOrCreateConversation(sender, receiver);
+        boolean isComplaintChat = request.complaintChat() != null && request.complaintChat();
+        ExternalConversation conversation = resolveOrCreateConversation(sender, receiver, isComplaintChat);
 
         ExternalMessage message = new ExternalMessage();
         message.setConversation(conversation);
@@ -78,13 +79,14 @@ public class ExternalChatService {
         return toMessageResponse(message);
     }
 
-    private ExternalConversation resolveOrCreateConversation(User sender, User receiver) {
-        String hash = buildParticipantsHash(sender.getId(), receiver.getId());
+    private ExternalConversation resolveOrCreateConversation(User sender, User receiver, boolean isComplaintChat) {
+        String hash = buildParticipantsHash(sender.getId(), receiver.getId(), isComplaintChat);
         return conversationRepository.findByParticipantsHash(hash)
                 .orElseGet(() -> {
                     ExternalConversation conversation = new ExternalConversation();
                     conversation.setId(nextConversationId());
                     conversation.setParticipantsHash(hash);
+                    conversation.setComplaintChat(isComplaintChat);
                     if (sender.getId() < receiver.getId()) {
                         conversation.setUser1(sender);
                         conversation.setUser2(receiver);
@@ -100,7 +102,8 @@ public class ExternalChatService {
     }
 
     private Long nextConversationId() {
-        return conversationRepository.findMaxId() + 1;
+        Long maxId = conversationRepository.findMaxId();
+        return (maxId == null ? 0L : maxId) + 1;
     }
 
     private ExternalConversation resolveConversationForUser(Long conversationId, User currentUser) {
@@ -129,7 +132,8 @@ public class ExternalChatService {
                 lastMessage == null ? null : lastMessage.getMessage(),
                 lastMessage == null ? null : lastMessage.getCreatedDate(),
                 conversation.getCreatedDate(),
-                conversation.getUpdatedDate()
+                conversation.getUpdatedDate(),
+                conversation.getComplaintChat()
         );
     }
 
@@ -146,10 +150,10 @@ public class ExternalChatService {
         );
     }
 
-    private String buildParticipantsHash(Long firstUserId, Long secondUserId) {
+    private String buildParticipantsHash(Long firstUserId, Long secondUserId, boolean isComplaintChat) {
         long low = Math.min(firstUserId, secondUserId);
         long high = Math.max(firstUserId, secondUserId);
-        return low + ":" + high;
+        return low + ":" + high + (isComplaintChat ? ":COMPLAINT" : "");
     }
 
     private boolean isParticipant(ExternalConversation conversation, User user) {

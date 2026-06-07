@@ -14,6 +14,6 @@ public interface ExternalConversationRepository extends JpaRepository<ExternalCo
 
     List<ExternalConversation> findAllByUser1_IdOrUser2_IdOrderByUpdatedDateDesc(Long user1Id, Long user2Id);
 
-    @Query("select coalesce(max(c.id), 0) from ExternalConversation c")
+    @Query("select max(c.id) from ExternalConversation c")
     Long findMaxId();
 }

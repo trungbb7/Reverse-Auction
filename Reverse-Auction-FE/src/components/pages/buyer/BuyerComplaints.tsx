@@ -1,23 +1,59 @@
-import { useEffect, useState, type ChangeEvent } from "react";
+import { useEffect, useMemo, useState, type ChangeEvent } from "react";
 import { useNavigate } from "react-router";
 import {
   ArrowLeft,
+  CheckCircle2,
+  Clock3,
+  Filter,
   ImagePlus,
   Loader2,
+  MessageSquare,
   Package,
+  ShieldAlert,
   TriangleAlert,
   X,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { orderService } from "@/services/orderService";
-import { complaintService } from "@/services/complaintService";
+import { complaintService, type Complaint } from "@/services/complaintService";
 import type { Order } from "@/types/orders";
+import { useAppDispatch } from "@/hooks/redux";
+import { selectContact } from "@/components/chat/chatSlice";
 
 function formatCurrency(n: number) {
   return new Intl.NumberFormat("vi-VN", {
     style: "currency",
     currency: "VND",
   }).format(n);
+}
+
+function statusMeta(status: string) {
+  switch (status) {
+    case "PENDING_SELLER":
+      return {
+        label: "Chờ seller phản hồi",
+        className: "bg-amber-100 text-amber-800",
+        icon: Clock3,
+      };
+    case "PENDING_ADMIN":
+      return {
+        label: "Chờ admin xử lý",
+        className: "bg-blue-100 text-blue-800",
+        icon: ShieldAlert,
+      };
+    case "CLOSED":
+      return {
+        label: "Đã đóng",
+        className: "bg-emerald-100 text-emerald-800",
+        icon: CheckCircle2,
+      };
+    default:
+      return {
+        label: status,
+        className: "bg-slate-100 text-slate-700",
+        icon: TriangleAlert,
+      };
+  }
 }
 
 function ComplaintModal({
@@ -189,29 +225,60 @@ function ComplaintModal({
   );
 }
 
+type TabType = "ORDERS" | "COMPLAINTS";
+
 export default function BuyerComplaints() {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<TabType>("COMPLAINTS");
   const [selectedOrderId, setSelectedOrderId] = useState<number | null>(null);
+  const [selectedComplaintId, setSelectedComplaintId] = useState<number | null>(
+    null,
+  );
   const [modalOpen, setModalOpen] = useState(false);
 
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [orderData, complaintData] = await Promise.all([
+        orderService.getMyOrders(),
+        complaintService.listComplaints(),
+      ]);
+      setOrders(orderData);
+      setComplaints(complaintData);
+
+      if (orderData.length > 0) setSelectedOrderId(orderData[0].id);
+      if (complaintData.length > 0)
+        setSelectedComplaintId(complaintData[0].complaintId);
+    } catch (error) {
+      console.error(error);
+      toast.error("Không tải được dữ liệu.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    (async () => {
-      try {
-        const data = await orderService.getMyOrders();
-        setOrders(data);
-        setSelectedOrderId(data[0]?.id ?? null);
-      } catch (error) {
-        console.error(error);
-        toast.error("Không tải được danh sách đơn hàng.");
-      } finally {
-        setLoading(false);
-      }
-    })();
+    void loadData();
   }, []);
 
-  const selectedOrder = orders.find((order) => order.id === selectedOrderId) ?? null;
+  const selectedOrder = useMemo(
+    () => orders.find((o) => o.id === selectedOrderId) ?? null,
+    [orders, selectedOrderId],
+  );
+
+  const selectedComplaint = useMemo(
+    () =>
+      complaints.find((c) => c.complaintId === selectedComplaintId) ?? null,
+    [complaints, selectedComplaintId],
+  );
+
+  const handleChatWithSeller = (sellerId: number) => {
+    dispatch(selectContact({ contactId: sellerId, isComplaintMode: true }));
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6">
@@ -230,101 +297,290 @@ export default function BuyerComplaints() {
             Complaint Center
           </p>
           <h1 className="text-3xl font-black">Trang khiếu nại</h1>
-          <p className="mt-2 max-w-2xl text-sm text-white/70">
-            Chọn đơn hàng và gửi khiếu nại kèm ảnh minh chứng.
-          </p>
+          <div className="mt-4 flex gap-2">
+            <button
+              onClick={() => setTab("COMPLAINTS")}
+              className={`rounded-xl px-4 py-2 text-sm font-bold transition ${
+                tab === "COMPLAINTS"
+                  ? "bg-white text-slate-900"
+                  : "bg-white/10 text-white hover:bg-white/20"
+              }`}
+            >
+              Danh sách khiếu nại
+            </button>
+            <button
+              onClick={() => setTab("ORDERS")}
+              className={`rounded-xl px-4 py-2 text-sm font-bold transition ${
+                tab === "ORDERS"
+                  ? "bg-white text-slate-900"
+                  : "bg-white/10 text-white hover:bg-white/20"
+              }`}
+            >
+              Khiếu nại đơn hàng mới
+            </button>
+          </div>
         </div>
 
         {loading ? (
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {[1, 2, 3].map((item) => (
-              <div key={item} className="h-40 animate-pulse rounded-3xl bg-white" />
+              <div
+                key={item}
+                className="h-40 animate-pulse rounded-3xl bg-white"
+              />
             ))}
-          </div>
-        ) : orders.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-slate-200 bg-white p-16 text-center">
-            <Package className="mx-auto mb-3 h-12 w-12 text-slate-300" />
-            <p className="font-semibold text-slate-500">Chưa có đơn hàng nào</p>
           </div>
         ) : (
           <div className="grid gap-5 xl:grid-cols-[380px_minmax(0,1fr)]">
             <aside className="space-y-3">
-              {orders.map((order) => {
-                const active = order.id === selectedOrderId;
-                return (
-                  <button
-                    key={order.id}
-                    type="button"
-                    onClick={() => setSelectedOrderId(order.id)}
-                    className={`w-full rounded-3xl border p-4 text-left transition ${
-                      active
-                        ? "border-[#375F97] bg-blue-50 shadow-sm"
-                        : "border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50"
-                    }`}
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-100">
-                        {order.imageUrl ? (
-                          <img src={order.imageUrl} alt="" className="h-full w-full object-cover" />
-                        ) : (
-                          <Package className="h-6 w-6 text-slate-300" />
-                        )}
+              {tab === "ORDERS" ? (
+                orders.length === 0 ? (
+                  <div className="rounded-3xl border border-dashed border-slate-200 bg-white p-8 text-center">
+                    <Package className="mx-auto mb-3 h-10 w-10 text-slate-300" />
+                    <p className="text-sm font-semibold text-slate-500">
+                      Chưa có đơn hàng nào
+                    </p>
+                  </div>
+                ) : (
+                  orders.map((order) => (
+                    <button
+                      key={order.id}
+                      type="button"
+                      onClick={() => setSelectedOrderId(order.id)}
+                      className={`w-full rounded-3xl border p-4 text-left transition ${
+                        order.id === selectedOrderId
+                          ? "border-[#375F97] bg-blue-50 shadow-sm"
+                          : "border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50"
+                      }`}
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-slate-100">
+                          {order.imageUrl ? (
+                            <img
+                              src={order.imageUrl}
+                              alt=""
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <Package className="h-5 w-5 text-slate-300" />
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-bold text-slate-900">
+                            {order.productName ??
+                              order.auctionTitle ??
+                              `Đơn #${order.id}`}
+                          </p>
+                          <p className="mt-0.5 text-xs text-slate-500">
+                            {order.sellerName} ·{" "}
+                            {formatCurrency(Number(order.totalAmount))}
+                          </p>
+                        </div>
                       </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-bold text-slate-900">
-                          {order.productName ?? order.auctionTitle ?? `Đơn #${order.id}`}
-                        </p>
-                        <p className="mt-0.5 text-xs text-slate-500">
-                          {order.sellerName} · {formatCurrency(Number(order.totalAmount))}
-                        </p>
-                        <p className="mt-0.5 text-xs text-slate-400">
-                          {new Date(order.createdAt).toLocaleString("vi-VN")}
-                        </p>
+                    </button>
+                  ))
+                )
+              ) : complaints.length === 0 ? (
+                <div className="rounded-3xl border border-dashed border-slate-200 bg-white p-8 text-center">
+                  <TriangleAlert className="mx-auto mb-3 h-10 w-10 text-slate-300" />
+                  <p className="text-sm font-semibold text-slate-500">
+                    Chưa có khiếu nại nào
+                  </p>
+                </div>
+              ) : (
+                complaints.map((complaint) => {
+                  const meta = statusMeta(complaint.status);
+                  const Icon = meta.icon;
+                  return (
+                    <button
+                      key={complaint.complaintId}
+                      type="button"
+                      onClick={() => setSelectedComplaintId(complaint.complaintId)}
+                      className={`w-full rounded-3xl border p-4 text-left transition ${
+                        complaint.complaintId === selectedComplaintId
+                          ? "border-[#375F97] bg-blue-50 shadow-sm"
+                          : "border-slate-100 bg-white hover:border-slate-200 hover:bg-slate-50"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-semibold text-slate-400">
+                            #{complaint.complaintId} · Đơn #{complaint.orderId}
+                          </p>
+                          <p className="mt-1 line-clamp-1 text-sm font-bold text-slate-900">
+                            {complaint.reason}
+                          </p>
+                        </div>
+                        <span
+                          className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${meta.className}`}
+                        >
+                          {meta.label}
+                        </span>
                       </div>
-                    </div>
-                  </button>
-                );
-              })}
+                      <p className="mt-2 text-xs text-slate-400">
+                        {new Date(complaint.createdAt).toLocaleString("vi-VN")}
+                      </p>
+                    </button>
+                  );
+                })
+              )}
             </aside>
 
             <section className="rounded-3xl border border-slate-100 bg-white p-6 shadow-sm">
-              {!selectedOrder ? (
+              {tab === "ORDERS" ? (
+                !selectedOrder ? (
+                  <div className="flex min-h-[320px] items-center justify-center text-slate-500">
+                    Chọn một đơn hàng để gửi khiếu nại
+                  </div>
+                ) : (
+                  <div className="space-y-5">
+                    <div className="rounded-2xl bg-slate-50 p-4">
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+                        Đơn hàng đã chọn
+                      </p>
+                      <h2 className="mt-2 text-2xl font-black text-slate-900">
+                        {selectedOrder.productName ??
+                          selectedOrder.auctionTitle ??
+                          `Đơn #${selectedOrder.id}`}
+                      </h2>
+                      <p className="mt-1 text-sm text-slate-600">
+                        Mã đơn: #{selectedOrder.code ?? selectedOrder.id}
+                      </p>
+                      <p className="mt-1 text-sm text-slate-600">
+                        Người bán: {selectedOrder.sellerName}
+                      </p>
+                    </div>
+                    <div className="rounded-2xl border border-slate-100 p-5">
+                      <p className="text-sm text-slate-600">
+                        Bấm nút bên dưới để mở form gửi khiếu nại cho đơn hàng
+                        này.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setModalOpen(true)}
+                        className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#375F97] to-blue-500 px-5 py-3 text-sm font-bold text-white transition hover:from-[#2d4f80] hover:to-blue-600"
+                      >
+                        <TriangleAlert className="h-4 w-4" />
+                        Gửi khiếu nại
+                      </button>
+                    </div>
+                  </div>
+                )
+              ) : !selectedComplaint ? (
                 <div className="flex min-h-[320px] items-center justify-center text-slate-500">
-                  Chọn một đơn hàng để gửi khiếu nại
+                  Chọn một khiếu nại để xem chi tiết
                 </div>
               ) : (
-                <div className="space-y-5">
-                  <div className="rounded-2xl bg-slate-50 p-4">
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-                      Đơn hàng đã chọn
-                    </p>
-                    <h2 className="mt-2 text-2xl font-black text-slate-900">
-                      {selectedOrder.productName ?? selectedOrder.auctionTitle ?? `Đơn #${selectedOrder.id}`}
-                    </h2>
-                    <p className="mt-1 text-sm text-slate-600">
-                      Mã đơn: #{selectedOrder.code ?? selectedOrder.id}
-                    </p>
-                    <p className="mt-1 text-sm text-slate-600">
-                      Người bán: {selectedOrder.sellerName}
-                    </p>
+                <div className="space-y-6">
+                  <div className="flex flex-col gap-4 border-b border-slate-100 pb-5 md:flex-row md:items-start md:justify-between">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#375F97]">
+                          Khiếu nại #{selectedComplaint.complaintId}
+                        </span>
+                        {(() => {
+                          const meta = statusMeta(selectedComplaint.status);
+                          return (
+                            <span
+                              className={`rounded-full px-3 py-1 text-xs font-semibold ${meta.className}`}
+                            >
+                              {meta.label}
+                            </span>
+                          );
+                        })()}
+                      </div>
+                      <h2 className="mt-2 text-2xl font-black text-slate-900">
+                        Đơn hàng #{selectedComplaint.orderId}
+                      </h2>
+                      <p className="mt-1 text-sm text-slate-600">
+                        Người bán: {selectedComplaint.sellerName}
+                      </p>
+                      <p className="mt-4 text-sm leading-6 text-slate-600 bg-slate-50 p-4 rounded-2xl">
+                        {selectedComplaint.reason}
+                      </p>
+                    </div>
+                    <div className="shrink-0 flex flex-col gap-2">
+                      <button
+                        onClick={() => handleChatWithSeller(selectedComplaint.sellerId)}
+                        className="inline-flex items-center justify-center gap-2 rounded-2xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-slate-800"
+                      >
+                        <MessageSquare className="h-4 w-4" />
+                        Chat với người bán
+                      </button>
+                    </div>
                   </div>
 
-                  <div className="rounded-2xl border border-slate-100 p-5">
-                    <p className="text-sm text-slate-600">
-                      Bấm nút bên dưới để mở form gửi khiếu nại cho đơn hàng này.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={() => setModalOpen(true)}
-                      className="mt-4 inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#375F97] to-blue-500 px-5 py-3 text-sm font-bold text-white transition hover:from-[#2d4f80] hover:to-blue-600"
-                    >
-                      <TriangleAlert className="h-4 w-4" />
-                      Gửi khiếu nại
-                    </button>
-                    <p className="mt-3 text-xs text-slate-400">
-                      Nhấn nút để mở form khiếu nại cho đơn hàng này.
-                    </p>
+                  <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
+                    <div className="rounded-2xl bg-slate-50 p-4">
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+                        Ảnh minh chứng
+                      </p>
+                      {selectedComplaint.evidenceUrls?.length ? (
+                        <div className="mt-3 grid grid-cols-2 gap-3">
+                          {selectedComplaint.evidenceUrls.map((url) => (
+                            <a
+                              key={url}
+                              href={url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="overflow-hidden rounded-2xl border border-white bg-white shadow-sm"
+                            >
+                              <img
+                                src={url}
+                                alt="Ảnh minh chứng"
+                                className="h-32 w-full object-cover"
+                              />
+                            </a>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="mt-3 text-sm text-slate-500">
+                          Không có ảnh đính kèm.
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="rounded-2xl bg-slate-50 p-4">
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
+                        Phản hồi seller
+                      </p>
+                      {selectedComplaint.sellerAction ||
+                      selectedComplaint.sellerMessage ? (
+                        <div className="mt-3 space-y-2 text-sm text-slate-700">
+                          <p>
+                            <span className="font-semibold">Hành động:</span>{" "}
+                            {selectedComplaint.sellerAction}
+                          </p>
+                          <p>
+                            <span className="font-semibold">Nội dung:</span>{" "}
+                            {selectedComplaint.sellerMessage || "Không có"}
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="mt-3 text-sm text-slate-500">
+                          Chưa có phản hồi từ seller.
+                        </p>
+                      )}
+                    </div>
                   </div>
+
+                  {selectedComplaint.verdict && (
+                    <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5">
+                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600">
+                        Phán quyết admin
+                      </p>
+                      <div className="mt-3 space-y-2 text-sm text-emerald-900">
+                        <p>
+                          <span className="font-semibold">Kết quả:</span>{" "}
+                          {selectedComplaint.verdict}
+                        </p>
+                        <p>
+                          <span className="font-semibold">Ghi chú:</span>{" "}
+                          {selectedComplaint.adminNote || "Không có"}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </section>
@@ -337,7 +593,8 @@ export default function BuyerComplaints() {
           orderId={selectedOrder.id}
           onClose={() => setModalOpen(false)}
           onSuccess={() => {
-            toast.success("Khiếu nại đã được gửi.");
+            void loadData();
+            setTab("COMPLAINTS");
           }}
         />
       )}

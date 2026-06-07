@@ -34,7 +34,6 @@ const getInitials = (value?: string | null) =>
     .toUpperCase();
 
 const GlobalChatWidget = () => {
-  const [isOpen, setIsOpen] = useState(false);
   const {
     user,
     tab,
@@ -57,11 +56,14 @@ const GlobalChatWidget = () => {
     sending,
     connectionState,
     isConnected,
+    isOpen,
+    isComplaintMode,
     bottomRef,
     handleSelectConversation,
     handleSelectContact,
     handleSend,
-  } = useExternalChat({ enabled: isOpen });
+    handleToggleOpen,
+  } = useExternalChat({ enabled: true });
 
   if (!user) return null;
 
@@ -88,7 +90,6 @@ const GlobalChatWidget = () => {
           type="button"
           onClick={() => {
             handleSelectConversation(conversation);
-            setIsOpen(true);
           }}
           className={`flex w-full items-start gap-3 border-b border-slate-100 px-4 py-3 text-left transition-colors hover:bg-slate-50 ${
             isActive ? "bg-primary-50" : ""
@@ -101,6 +102,11 @@ const GlobalChatWidget = () => {
             <div className="flex items-center justify-between gap-2">
               <p className="truncate text-sm font-semibold text-slate-900">
                 {displayName}
+                {conversation.complaintChat && (
+                  <span className="ml-1 rounded-full bg-red-500/10 px-1.5 py-0.5 text-[9px] font-bold text-red-500">
+                    COMPLAINT
+                  </span>
+                )}
               </p>
               <span className="shrink-0 text-[11px] text-slate-400">
                 {formatTime(
@@ -108,6 +114,7 @@ const GlobalChatWidget = () => {
                 )}
               </span>
             </div>
+
             <p className="truncate text-xs text-slate-500">
               {conversation.participantRole || "User"}
             </p>
@@ -125,7 +132,15 @@ const GlobalChatWidget = () => {
       return <p className="px-4 py-6 text-sm text-slate-500">Loading...</p>;
     }
 
-    if (filteredContacts.length === 0) {
+    const filtered = filteredContacts.filter((contact) => {
+      // Non-admin users cannot proactively message admins
+      if (user.role !== "ROLE_ADMIN" && contact.role === "ROLE_ADMIN") {
+        return false;
+      }
+      return true;
+    });
+
+    if (filtered.length === 0) {
       return (
         <div className="px-4 py-8 text-center text-sm text-slate-500">
           No matching users.
@@ -133,7 +148,7 @@ const GlobalChatWidget = () => {
       );
     }
 
-    return filteredContacts.map((contact) => {
+    return filtered.map((contact) => {
       const existingConversation = conversations.find(
         (conversation) => conversation.participantId === contact.id,
       );
@@ -146,7 +161,6 @@ const GlobalChatWidget = () => {
           type="button"
           onClick={() => {
             handleSelectContact(contact);
-            setIsOpen(true);
           }}
           className={`flex w-full items-start gap-3 border-b border-slate-100 px-4 py-3 text-left transition-colors hover:bg-slate-50 ${
             isActive ? "bg-primary-50" : ""
@@ -238,7 +252,7 @@ const GlobalChatWidget = () => {
               <div className="flex min-w-0 items-center gap-3">
                 <button
                   type="button"
-                  onClick={() => setIsOpen(false)}
+                  onClick={handleToggleOpen}
                   className="rounded-full border border-white/15 p-2 text-white transition-colors hover:bg-white/10 md:hidden"
                 >
                   <ChevronLeft size={18} />
@@ -249,6 +263,11 @@ const GlobalChatWidget = () => {
                 <div className="min-w-0">
                   <h3 className="truncate text-sm font-semibold">
                     {activePeerName}
+                    {isComplaintMode && (
+                      <span className="ml-2 rounded-full bg-red-500/20 px-2 py-0.5 text-[10px] font-bold text-red-200">
+                        COMPLAINT
+                      </span>
+                    )}
                   </h3>
                   <p className="truncate text-xs text-slate-300">
                     {selectedConversation?.participantRole ||
@@ -270,7 +289,7 @@ const GlobalChatWidget = () => {
                 </span>
                 <button
                   type="button"
-                  onClick={() => setIsOpen(false)}
+                  onClick={handleToggleOpen}
                   className="rounded-full border border-white/15 p-2 text-white transition-colors hover:bg-white/10"
                 >
                   <X size={18} />
@@ -399,7 +418,7 @@ const GlobalChatWidget = () => {
       ) : (
         <button
           type="button"
-          onClick={() => setIsOpen(true)}
+          onClick={handleToggleOpen}
           className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-slate-950 to-slate-700 text-white shadow-[0_18px_40px_rgba(15,23,42,0.35)] transition-transform hover:scale-105"
           aria-label="Open chat"
         >

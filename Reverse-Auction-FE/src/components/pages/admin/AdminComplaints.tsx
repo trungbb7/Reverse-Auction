@@ -10,6 +10,7 @@ import {
   ShieldAlert,
   ShieldCheck,
   TriangleAlert,
+  User,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import {
@@ -17,6 +18,8 @@ import {
   type Complaint,
   type ResolveComplaintPayload,
 } from "@/services/complaintService";
+import { useAppDispatch } from "@/hooks/redux";
+import { selectContact } from "@/components/chat/chatSlice";
 
 type ComplaintFilter = "ALL" | "PENDING_SELLER" | "PENDING_ADMIN" | "CLOSED";
 
@@ -33,7 +36,7 @@ const VERDICT_OPTIONS = [
   { value: "REJECT_COMPLAINT", label: "Từ chối khiếu nại" },
 ];
 
-function statusMeta(status: Complaint["status"]) {
+function statusMeta(status: string) {
   switch (status) {
     case "PENDING_SELLER":
       return {
@@ -63,6 +66,7 @@ function statusMeta(status: Complaint["status"]) {
 }
 
 export default function AdminComplaints() {
+  const dispatch = useAppDispatch();
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -130,6 +134,10 @@ export default function AdminComplaints() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleChatWithUser = (userId: number) => {
+    dispatch(selectContact({ contactId: userId, isComplaintMode: true }));
   };
 
   return (
@@ -203,7 +211,7 @@ export default function AdminComplaints() {
               {filtered.map((item) => {
                 const meta = statusMeta(item.status);
                 const ActiveIcon = meta.icon;
-                const active = item.complaintId === selectedComplaint?.complaintId;
+                const active = item.complaintId === selectedId;
 
                 return (
                   <button
@@ -270,7 +278,41 @@ export default function AdminComplaints() {
                   <h2 className="mt-2 text-2xl font-black text-slate-900">
                     Order #{selectedComplaint.orderId}
                   </h2>
-                  <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+                  <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8">
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-[#375F97]">
+                        <User className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Buyer (Người khiếu nại)</p>
+                        <p className="text-sm font-black text-slate-900">{selectedComplaint.buyerName}</p>
+                        <button
+                          onClick={() => handleChatWithUser(selectedComplaint.buyerId)}
+                          className="mt-1 inline-flex items-center gap-1.5 text-xs font-bold text-[#375F97] hover:underline"
+                        >
+                          <MessageSquare className="h-3 w-3" />
+                          Chat với buyer
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-600">
+                        <Package className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Seller (Người bị khiếu nại)</p>
+                        <p className="text-sm font-black text-slate-900">{selectedComplaint.sellerName}</p>
+                        <button
+                          onClick={() => handleChatWithUser(selectedComplaint.sellerId)}
+                          className="mt-1 inline-flex items-center gap-1.5 text-xs font-bold text-[#375F97] hover:underline"
+                        >
+                          <MessageSquare className="h-3 w-3" />
+                          Chat với seller
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="mt-6 max-w-3xl text-sm leading-6 text-slate-600 bg-slate-50 p-4 rounded-2xl">
                     {selectedComplaint.reason}
                   </p>
                 </div>

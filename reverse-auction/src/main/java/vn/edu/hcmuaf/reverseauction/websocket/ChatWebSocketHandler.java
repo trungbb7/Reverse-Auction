@@ -13,9 +13,6 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import vn.edu.hcmuaf.reverseauction.dto.request.ExternalMessageRequest;
 import vn.edu.hcmuaf.reverseauction.dto.response.ExternalMessageResponse;
-import vn.edu.hcmuaf.reverseauction.entity.ExternalConversation;
-import vn.edu.hcmuaf.reverseauction.entity.User;
-import vn.edu.hcmuaf.reverseauction.repository.ExternalConversationRepository;
 import vn.edu.hcmuaf.reverseauction.service.impl.ChatMessageService;
 import vn.edu.hcmuaf.reverseauction.service.impl.JwtServiceImpl;
 
@@ -33,12 +30,10 @@ import java.util.concurrent.ConcurrentHashMap;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ChatWebSocketHandler extends TextWebSocketHandler {
     JwtServiceImpl jwtService;
-    ExternalConversationRepository conversationRepository;
     ChatMessageService chatMessageService;
     final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
 
-    Map<Long, Set<WebSocketSession>> sessionsByConversation = new ConcurrentHashMap<>();
-    Map<String, Long> sessionConversationMap = new ConcurrentHashMap<>();
+    Map<Long, Set<WebSocketSession>> sessionsByUserId = new ConcurrentHashMap<>();
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
@@ -54,14 +49,12 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             session.getAttributes().put("userEmail", userEmail);
             session.getAttributes().put("userId", userId);
 
-            String conversationIdValue = getQueryParameter(session.getUri(), "conversationId");
-            if (StringUtils.hasText(conversationIdValue)) {
-                Long conversationId = Long.valueOf(conversationIdValue);
-                ensureParticipant(userId, conversationId);
-                registerSession(session, conversationId);
-            }
+            // Register session by userId
+            sessionsByUserId
+                    .computeIfAbsent(userId, ignored -> ConcurrentHashMap.newKeySet())
+                    .add(session);
 
-            log.info("Chat websocket connected: userEmail={}, conversationId={}", userEmail, conversationIdValue);
+            log.info("Chat websocket connected: userEmail={}, userId={}", userEmail, userId);
         } catch (Exception ex) {
             log.warn("Chat websocket rejected: {}", ex.getMessage());
             session.close(new CloseStatus(CloseStatus.NOT_ACCEPTABLE.getCode(), ex.getMessage()));
@@ -76,53 +69,39 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
             return;
         }
 
+        log.info("Received chat message payload: {}", message.getPayload());
         ExternalMessageRequest request = objectMapper.readValue(message.getPayload(), ExternalMessageRequest.class);
         ExternalMessageResponse response = chatMessageService.send(
                 userEmail,
                 request
         );
 
-        registerSession(session, response.conversationId());
-        broadcast(response.conversationId(), response);
+        broadcast(response);
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
-        Long conversationId = sessionConversationMap.remove(session.getId());
-        if (conversationId == null) {
-            return;
-        }
-
-        Set<WebSocketSession> sessions = sessionsByConversation.get(conversationId);
-        if (sessions != null) {
-            sessions.remove(session);
-            if (sessions.isEmpty()) {
-                sessionsByConversation.remove(conversationId);
-            }
-        }
-    }
-
-    private void registerSession(WebSocketSession session, Long conversationId) {
-        Long previousConversationId = sessionConversationMap.put(session.getId(), conversationId);
-        if (previousConversationId != null && !previousConversationId.equals(conversationId)) {
-            Set<WebSocketSession> previousSessions = sessionsByConversation.get(previousConversationId);
-            if (previousSessions != null) {
-                previousSessions.remove(session);
-                if (previousSessions.isEmpty()) {
-                    sessionsByConversation.remove(previousConversationId);
+        Long userId = (Long) session.getAttributes().get("userId");
+        if (userId != null) {
+            Set<WebSocketSession> sessions = sessionsByUserId.get(userId);
+            if (sessions != null) {
+                sessions.remove(session);
+                if (sessions.isEmpty()) {
+                    sessionsByUserId.remove(userId);
                 }
             }
         }
-
-        sessionsByConversation
-                .computeIfAbsent(conversationId, ignored -> ConcurrentHashMap.newKeySet())
-                .add(session);
-        session.getAttributes().put("conversationId", conversationId);
     }
 
-    private void broadcast(Long conversationId, ExternalMessageResponse response) throws IOException {
+    private void broadcast(ExternalMessageResponse response) throws IOException {
         String payload = objectMapper.writeValueAsString(response);
-        Set<WebSocketSession> sessions = sessionsByConversation.get(conversationId);
+        sendToUser(response.senderId(), payload);
+        sendToUser(response.receiverId(), payload);
+    }
+
+    private void sendToUser(Long userId, String payload) {
+        if (userId == null) return;
+        Set<WebSocketSession> sessions = sessionsByUserId.get(userId);
         if (sessions == null || sessions.isEmpty()) {
             return;
         }
@@ -132,32 +111,13 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                 try {
                     wsSession.sendMessage(new TextMessage(payload));
                 } catch (IOException ex) {
-                    log.warn("Failed to broadcast chat message to session {}: {}", wsSession.getId(), ex.getMessage());
+                    log.warn("Failed to send chat message to session {}: {}", wsSession.getId(), ex.getMessage());
                     sessions.remove(wsSession);
                 }
             } else {
                 sessions.remove(wsSession);
             }
         }
-    }
-
-    private void ensureParticipant(Long userId, Long conversationId) {
-        ExternalConversation conversation = conversationRepository.findById(conversationId)
-                .orElseThrow(() -> new IllegalArgumentException("Conversation not found: " + conversationId));
-
-        boolean participantExists = isParticipant(conversation, userId);
-        if (!participantExists) {
-            throw new IllegalArgumentException("You are not a participant of this conversation");
-        }
-    }
-
-    private boolean isParticipant(ExternalConversation conversation, Long userId) {
-        return matchesUser(conversation.getUser1(), userId)
-                || matchesUser(conversation.getUser2(), userId);
-    }
-
-    private boolean matchesUser(User user, Long userId) {
-        return user != null && userId != null && userId.equals(user.getId());
     }
 
     private String getQueryParameter(URI uri, String name) {

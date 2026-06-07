@@ -16,6 +16,7 @@ export interface ExternalConversation {
   lastMessageAt?: string | null;
   createdDate: string;
   updatedDate: string;
+  complaintChat?: boolean;
 }
 
 export interface ExternalMessage {

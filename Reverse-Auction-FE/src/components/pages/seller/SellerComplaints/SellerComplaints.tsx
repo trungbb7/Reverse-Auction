@@ -10,6 +10,7 @@ import {
   Send,
   ShieldAlert,
   TriangleAlert,
+  User,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import {
@@ -17,6 +18,8 @@ import {
   type Complaint,
   type RespondComplaintPayload,
 } from "@/services/complaintService";
+import { useAppDispatch } from "@/hooks/redux";
+import { selectContact } from "@/components/chat/chatSlice";
 
 type ComplaintFilter = "ALL" | "PENDING_SELLER" | "PENDING_ADMIN" | "CLOSED";
 
@@ -33,7 +36,7 @@ const ACTION_OPTIONS = [
   { value: "DISPUTE", label: "Không đồng ý" },
 ];
 
-function statusMeta(status: Complaint["status"]) {
+function statusMeta(status: string) {
   switch (status) {
     case "PENDING_SELLER":
       return {
@@ -63,6 +66,7 @@ function statusMeta(status: Complaint["status"]) {
 }
 
 export default function SellerComplaints() {
+  const dispatch = useAppDispatch();
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -131,6 +135,10 @@ export default function SellerComplaints() {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleChatWithBuyer = (buyerId: number) => {
+    dispatch(selectContact({ contactId: buyerId, isComplaintMode: true }));
   };
 
   return (
@@ -211,7 +219,7 @@ export default function SellerComplaints() {
               {filtered.map((item) => {
                 const meta = statusMeta(item.status);
                 const ActiveIcon = meta.icon;
-                const active = item.complaintId === selectedComplaint?.complaintId;
+                const active = item.complaintId === selectedId;
 
                 return (
                   <button
@@ -282,7 +290,23 @@ export default function SellerComplaints() {
                   <h2 className="mt-2 text-2xl font-black text-slate-900">
                     Order #{selectedComplaint.orderId}
                   </h2>
-                  <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
+                  <div className="mt-3 flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-[#375F97]">
+                      <User className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Người khiếu nại</p>
+                      <p className="text-sm font-black text-slate-900">{selectedComplaint.buyerName}</p>
+                    </div>
+                    <button
+                      onClick={() => handleChatWithBuyer(selectedComplaint.buyerId)}
+                      className="ml-4 inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white transition hover:bg-slate-800"
+                    >
+                      <MessageSquare className="h-3.5 w-3.5" />
+                      Chat với buyer
+                    </button>
+                  </div>
+                  <p className="mt-4 max-w-3xl text-sm leading-6 text-slate-600 bg-slate-50 p-4 rounded-2xl">
                     {selectedComplaint.reason}
                   </p>
                 </div>
@@ -329,12 +353,12 @@ export default function SellerComplaints() {
 
                 <div className="rounded-2xl bg-slate-50 p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-                    Phản hồi seller
+                    Phản hồi của bạn
                   </p>
                   {selectedComplaint.sellerAction || selectedComplaint.sellerMessage ? (
                     <div className="mt-3 space-y-3 text-sm text-slate-700">
                       <p>
-                        <span className="font-semibold text-slate-900">Action: </span>
+                        <span className="font-semibold text-slate-900">Hành động: </span>
                         {selectedComplaint.sellerAction}
                       </p>
                       <p>
@@ -348,7 +372,7 @@ export default function SellerComplaints() {
                     </div>
                   ) : (
                     <p className="mt-3 text-sm text-slate-500">
-                      Chưa có phản hồi từ seller.
+                      Bạn chưa gửi phản hồi.
                     </p>
                   )}
                 </div>

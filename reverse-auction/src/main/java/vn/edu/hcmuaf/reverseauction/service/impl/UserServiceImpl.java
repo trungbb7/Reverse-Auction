@@ -69,9 +69,12 @@ public class UserServiceImpl implements UserService {
         User currentUser = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        boolean isAdmin = vn.edu.hcmuaf.reverseauction.entity.Role.ROLE_ADMIN.equals(currentUser.getRole());
+
         return userRepository.findAll(Sort.by(Sort.Direction.ASC, "fullName"))
                 .stream()
                 .filter(user -> !user.getId().equals(currentUser.getId()))
+                .filter(user -> isAdmin || !vn.edu.hcmuaf.reverseauction.entity.Role.ROLE_ADMIN.equals(user.getRole()))
                 .map(this::mapToDTO)
                 .toList();
     }

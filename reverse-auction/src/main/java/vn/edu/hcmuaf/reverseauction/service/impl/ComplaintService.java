@@ -110,6 +110,10 @@ public class ComplaintService {
         return new ComplaintResponse(
                 complaint.getId(),
                 complaint.getOrder().getId(),
+                complaint.getBuyer().getId(),
+                complaint.getBuyer().getFullName(),
+                complaint.getOrder().getSeller().getId(),
+                complaint.getOrder().getSeller().getFullName(),
                 complaint.getReason(),
                 complaint.getEvidenceUrls(),
                 complaint.getStatus(),
