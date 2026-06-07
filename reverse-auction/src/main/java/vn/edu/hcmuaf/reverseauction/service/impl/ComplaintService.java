@@ -51,6 +51,7 @@ public class ComplaintService {
 
         Complaint complaint = new Complaint();
         complaint.setOrder(order);
+        complaint.setBuyer(order.getBuyer());
         complaint.setReason(reason);
         complaint.setEvidenceUrls(evidenceUrls == null ? List.of() : List.copyOf(evidenceUrls));
         complaint.setStatus("PENDING_SELLER");

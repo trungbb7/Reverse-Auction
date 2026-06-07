@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ChangeEvent } from "react";
 import { useParams, useNavigate } from "react-router";
 import {
   ArrowLeft,
@@ -13,6 +13,9 @@ import {
   Gavel,
   ExternalLink,
   Loader2,
+  TriangleAlert,
+  ImagePlus,
+  X,
 } from "lucide-react";
 import {
   type Order,
@@ -21,6 +24,7 @@ import {
   ORDER_STATUS_INDEX,
 } from "@/types/orders";
 import { orderService } from "@/services/orderService";
+import { complaintService } from "@/services/complaintService";
 import toast from "react-hot-toast";
 
 /* ─── helpers ─────────────────────────────────────────────────── */
@@ -142,6 +146,178 @@ function PaymentPanel({ order }: { order: Order }) {
   );
 }
 
+function ComplaintModal({
+  open,
+  orderId,
+  onClose,
+  onSuccess,
+}: {
+  open: boolean;
+  orderId: number;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const [reason, setReason] = useState("");
+  const [files, setFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!open) {
+      setReason("");
+      setFiles([]);
+      setPreviews([]);
+      setLoading(false);
+    }
+  }, [open]);
+
+  useEffect(() => {
+    const nextPreviews = files.map((file) => URL.createObjectURL(file));
+    setPreviews(nextPreviews);
+
+    return () => {
+      nextPreviews.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [files]);
+
+  if (!open) return null;
+
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(event.target.files ?? []);
+    setFiles(selectedFiles);
+  };
+
+  const handleSubmit = async () => {
+    if (!reason.trim()) {
+      toast.error("Vui lòng nhập nội dung khiếu nại.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await complaintService.createComplaint({
+        orderId,
+        reason: reason.trim(),
+        evidenceImages: files,
+      });
+      toast.success("Đã gửi khiếu nại thành công.");
+      onSuccess();
+      onClose();
+    } catch (error) {
+      console.error(error);
+      toast.error("Không thể gửi khiếu nại. Vui lòng thử lại.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 px-4">
+      <div className="w-full max-w-2xl rounded-3xl bg-white shadow-2xl">
+        <div className="flex items-center justify-between border-b border-slate-100 px-6 py-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#375F97]">
+              Khiếu nại đơn hàng
+            </p>
+            <h3 className="text-xl font-black text-slate-900">
+              Gửi yêu cầu kèm hình ảnh
+            </h3>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full p-2 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="space-y-5 px-6 py-5">
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">
+              Nội dung khiếu nại
+            </label>
+            <textarea
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              rows={5}
+              placeholder="Mô tả rõ vấn đề bạn gặp phải, ví dụ: hàng lỗi, sai mô tả, thiếu phụ kiện..."
+              className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-[#375F97] focus:bg-white"
+            />
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-700">
+              Ảnh minh chứng
+            </label>
+            <label className="flex cursor-pointer items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-500 transition hover:border-[#375F97] hover:bg-blue-50/50">
+              <ImagePlus className="h-5 w-5 text-[#375F97]" />
+              <span>Chọn ảnh từ thiết bị</span>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handleFileChange}
+                className="hidden"
+              />
+            </label>
+          </div>
+
+          {previews.length > 0 && (
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              {previews.map((preview, index) => (
+                <div
+                  key={`${preview}-${index}`}
+                  className="overflow-hidden rounded-2xl border border-slate-100 bg-slate-50"
+                >
+                  <img
+                    src={preview}
+                    alt={`Ảnh minh chứng ${index + 1}`}
+                    className="h-32 w-full object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="flex items-start gap-3 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />
+            <p>
+              Hãy mô tả ngắn gọn, rõ ràng và đính kèm ảnh chụp thực tế để quá
+              trình xử lý nhanh hơn.
+            </p>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-1">
+            <button
+              type="button"
+              onClick={onClose}
+              className="rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+            >
+              Hủy
+            </button>
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={loading}
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#375F97] to-blue-500 px-5 py-3 text-sm font-bold text-white transition hover:from-[#2d4f80] hover:to-blue-600 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Đang gửi...
+                </>
+              ) : (
+                "Gửi khiếu nại"
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 /* ─── Progress Timeline ─────────────────────────────────────── */
 function OrderTimeline({ status }: { status: Order["status"] }) {
   const steps = ORDER_STEPS;
@@ -204,6 +380,7 @@ export default function BuyerOrderDetail() {
   const navigate = useNavigate();
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
+  const [complaintOpen, setComplaintOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -420,9 +597,39 @@ export default function BuyerOrderDetail() {
                 </p>
               </div>
             )}
+
+            {order.status !== "AWAITING_PAYMENT" && order.status !== "CANCELLED" && (
+              <button
+                type="button"
+                onClick={() => setComplaintOpen(true)}
+                className="w-full rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-left transition hover:border-amber-300 hover:bg-amber-100/70"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
+                    <TriangleAlert className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-slate-900">Gửi khiếu nại</p>
+                    <p className="text-xs text-slate-500">
+                      Tải ảnh minh chứng và mô tả vấn đề của đơn hàng
+                    </p>
+                  </div>
+                </div>
+              </button>
+            )}
           </div>
         </div>
       </div>
+      {order && (
+        <ComplaintModal
+          open={complaintOpen}
+          orderId={order.id}
+          onClose={() => setComplaintOpen(false)}
+          onSuccess={() => {
+            setComplaintOpen(false);
+          }}
+        />
+      )}
     </div>
   );
 }

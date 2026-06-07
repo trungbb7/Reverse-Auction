@@ -29,6 +29,7 @@ const Sidebar = ({ role = "admin" }: SidebarProps) => {
     { name: "Danh mục", path: "/admin/categories", icon: <LayoutGrid size={20} /> },
     { name: "Người dùng", path: "/admin/users", icon: <Users size={20} /> },
     { name: "Doanh thu", path: "/admin/revenue", icon: <TrendingUp size={20} /> },
+    { name: "Khiếu nại", path: "/admin/complaints", icon: <TriangleAlert size={20} /> },
     { name: "Chính sách", path: "/admin/policies", icon: <FileText size={20} /> },
     { name: "Cài đặt", path: "/admin/settings", icon: <Settings size={20} /> },
   ];
