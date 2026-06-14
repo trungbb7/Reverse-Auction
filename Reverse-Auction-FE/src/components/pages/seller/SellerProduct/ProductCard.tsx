@@ -4,6 +4,7 @@ import type { Product } from "@/types/product.ts";
 import { useConfirm } from "@/context/ConfirmContext";
 
 
+
 interface ProductRowProps {
     product: Product;
     onEdit: (product: Product) => void;

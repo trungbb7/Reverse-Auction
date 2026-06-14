@@ -21,11 +21,18 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
     @Override
     public RefreshToken createRefreshToken(Long userId) {
-        RefreshToken refreshToken = RefreshToken.builder()
-                .user(userRepository.findById(userId).orElseThrow(() -> new RuntimeException("User not found")))
-                .token(UUID.randomUUID().toString())
-                .expiryDate(Instant.now().plusMillis(1000L * 60 * 60 * 24 * 7)) // 7 days
-                .build();
+        RefreshToken refreshToken = refreshTokenRepository
+                .findByUserId(userId)
+                .orElse(
+                        RefreshToken.builder()
+                                .user(userRepository.findById(userId)
+                                        .orElseThrow(() -> new RuntimeException("User not found")))
+                                .build()
+                );
+
+        refreshToken.setToken(UUID.randomUUID().toString());
+        refreshToken.setExpiryDate(Instant.now().plusMillis(1000L * 60 * 60 * 24 * 7));
+
         return refreshTokenRepository.save(refreshToken);
     }
 

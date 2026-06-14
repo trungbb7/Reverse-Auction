@@ -15,6 +15,7 @@ import { useAppSelector, useAppDispatch } from "@/hooks/redux";
 import { logoutUser } from "@/components/Auth/authSlice";
 import { useNotifications } from "@/context/NotificationContext";
 import { NotificationDropdown } from "./NotificationDropdown";
+import { useCartContext } from "@/context/CartContext";
 
 interface HeaderProps {
   isAdmin?: boolean;
@@ -30,6 +31,7 @@ const Header = ({ isAdmin = false }: HeaderProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
   const notificationRef = useRef<HTMLDivElement>(null);
+  const { cartCount } = useCartContext();
 
   const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -120,7 +122,7 @@ const Header = ({ isAdmin = false }: HeaderProps) => {
             >
               <ShoppingCart className="h-5 w-5" />
               <span className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
-                0
+                  {cartCount}
               </span>
             </Link>
           )}

@@ -26,6 +26,7 @@ const emptyForm: ProductRequest = {
     categoryId: 0,
     price: 0,
     stockQuantity: 0,
+    status: "ACTIVE",
 };
 
 export default function AddProductModal({ open, onClose, categories, mode, initialData, onSuccess }: Props) {
@@ -49,6 +50,7 @@ export default function AddProductModal({ open, onClose, categories, mode, initi
                 categoryId: initialData.categoryId ?? 0,
                 price: Number(initialData.price ?? 0),
                 stockQuantity: initialData.stockQuantity ?? 0,
+                status: initialData.status ?? "ACTIVE",
             });
 
             const initialUrls = initialData.imageUrls && initialData.imageUrls.length > 0
@@ -230,6 +232,21 @@ export default function AddProductModal({ open, onClose, categories, mode, initi
                                     {cate.name}
                                 </option>
                             ))}
+                        </select>
+                    </div>
+                    {/* STATUS*/}
+                    <div>
+                        <label className="text-sm font-medium">Trạng thái *</label>
+                        <select
+                            name="status"
+                            value={form.status}
+                            className="border p-3 rounded-xl w-full mt-1"
+                            onChange={handleChange}
+                        >
+                            <option value="ACTIVE">Sẵn hàng</option>
+                            <option value="INACTIVE">Tạm ngưng</option>
+                            <option value="HIDDEN">Ẩn</option>
+                            <option value="OUT_OF_STOCK">Hết hàng</option>
                         </select>
                     </div>
 

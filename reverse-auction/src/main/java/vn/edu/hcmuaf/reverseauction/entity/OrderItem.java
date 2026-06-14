@@ -1,0 +1,50 @@
+package vn.edu.hcmuaf.reverseauction.entity;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "order_items")
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class OrderItem {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", nullable = false)
+    private Order order;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product;
+
+    @Column(nullable = false)
+    private Integer quantity;
+
+    @Column(nullable = false)
+    private BigDecimal unitPrice;
+
+    @Column(nullable = false)
+    private BigDecimal subtotal;
+
+//    private boolean reviewed;
+//    private Integer rating;
+//    private String reviewComment;
+//    private LocalDateTime reviewedAt;
+
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+
+//    public void calculateSubtotal() {
+//        this.subtotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
+//    }
+}

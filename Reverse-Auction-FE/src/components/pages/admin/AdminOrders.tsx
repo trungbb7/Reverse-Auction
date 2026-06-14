@@ -9,6 +9,7 @@ import {
   Calendar,
   DollarSign,
   RefreshCw,
+  ShoppingCart,
   X,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
@@ -37,6 +38,26 @@ export default function AdminOrders() {
   useEffect(() => {
     fetchOrders();
   }, []);
+    const resolveOrderDisplay = (order: Order) => {
+        const firstItem = order.items?.[0];
+
+        const productName =
+            order.productName ||
+            firstItem?.productName ||
+            order.auctionTitle ||
+            "Đơn hàng đấu giá";
+
+        const imageUrl =
+            order.imageUrl ||
+            firstItem?.productImage ||
+            null;
+
+        return {
+            productName,
+            imageUrl,
+            type: order.type?.toLowerCase?.() || "unknown",
+        };
+    };
 
   // Filter logic
   const filteredOrders = orders.filter((order) => {
@@ -181,72 +202,88 @@ export default function AdminOrders() {
                   <th className="px-6 py-4 text-right">Chi tiết</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200 text-sm">
+                <tbody className="divide-y divide-slate-200 text-sm">
                 {filteredOrders.map((order) => {
-                  const content = orderStatusContent[order.status] || {
-                    title: order.status,
-                    icon: Calendar,
-                    color: "text-slate-500",
-                  };
-                  return (
-                    <tr
-                      key={order.id}
-                      className="hover:bg-slate-50/50 transition-colors"
-                    >
-                      <td className="px-6 py-4 font-mono font-bold text-slate-700">
-                        {order.code || `#${order.id}`}
-                      </td>
-                      <td className="px-6 py-4">
-                        <div
-                          className="max-w-[200px] truncate font-medium text-slate-900"
-                          title={order.productName}
+                    const { productName, imageUrl, type } =
+                        resolveOrderDisplay(order);
+
+                    const content = orderStatusContent[order.status] || {
+                        title: order.status,
+                        icon: Calendar,
+                        color: "text-slate-500",
+                    };
+
+                    return (
+                        <tr
+                            key={order.id}
+                            className="hover:bg-slate-50/50 transition-colors"
                         >
-                          {order.productName || "Đơn hàng đấu giá"}
-                        </div>
-                        <div className="text-xs text-slate-400 capitalize">
-                          {order.type.toLowerCase()}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 text-slate-600 font-medium">
-                        {order.buyerName}
-                      </td>
-                      <td className="px-6 py-4 text-slate-600 font-medium">
-                        {order.sellerName}
-                      </td>
-                      <td className="px-6 py-4 font-bold text-slate-900">
-                        {formatCurrency(order.totalAmount)}
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 ${content.color}`}
-                        >
-                          <content.icon size={12} />
-                          {ORDER_STATUS_LABEL[order.status]}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <button
-                          onClick={() => setSelectedOrder(order)}
-                          className="p-1.5 text-primary-600 hover:bg-primary-50 rounded-lg transition-all"
-                          title="Xem chi tiết"
-                        >
-                          <Eye size={18} />
-                        </button>
-                      </td>
-                    </tr>
-                  );
+                            <td className="px-6 py-4 font-mono font-bold text-slate-700">
+                                {order.code || `#${order.id}`}
+                            </td>
+
+                            <td className="px-6 py-4">
+                                <div className="flex items-center gap-3">
+
+                                    {imageUrl ? (
+                                        <img
+                                            src={imageUrl}
+                                            alt={productName}
+                                            className="w-10 h-10 rounded-md object-cover"
+                                        />
+                                    ) : (
+                                        <div className="w-10 h-10 rounded-md bg-slate-100 flex items-center justify-center">
+                                            <ShoppingCart className="text-slate-400" size={16} />
+                                        </div>
+                                    )}
+
+                                    <div className="flex flex-col">
+                                        <div className="max-w-[200px] truncate font-medium text-slate-900" title={productName}>
+                                            {productName}
+                                            {order.items?.length > 1 && (
+                                                <span className="text-xs text-slate-400 ml-1">
+                                                    +{order.items.length - 1}
+                                                  </span>
+                                            )}
+                                        </div>
+
+                                        <div className="text-xs text-slate-400 capitalize">
+                                            {type}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td className="px-6 py-4 text-slate-600 font-medium">{order.buyerName}</td>
+                            <td className="px-6 py-4 text-slate-600 font-medium">{order.sellerName}</td>
+                            <td className="px-6 py-4 font-bold text-slate-900">{formatCurrency(order.totalAmount)}</td>
+
+                            <td className="px-6 py-4">
+                              <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 ${content.color}`}>
+                                <content.icon size={12} />
+                                  {ORDER_STATUS_LABEL[order.status]}
+                              </span>
+                            </td>
+
+                            <td className="px-6 py-4 text-right">
+                                <button
+                                    onClick={() => setSelectedOrder(order)}
+                                    className="p-1.5 text-primary-600 hover:bg-primary-50 rounded-lg"
+                                >
+                                    <Eye size={18} />
+                                </button>
+                            </td>
+                        </tr>
+                    );
                 })}
+
                 {filteredOrders.length === 0 && (
-                  <tr>
-                    <td
-                      colSpan={7}
-                      className="px-6 py-10 text-center text-slate-500"
-                    >
-                      Không tìm thấy đơn hàng nào phù hợp
-                    </td>
-                  </tr>
+                    <tr>
+                        <td colSpan={7} className="px-6 py-10 text-center text-slate-500">
+                            Không tìm thấy đơn hàng nào phù hợp
+                        </td>
+                    </tr>
                 )}
-              </tbody>
+                </tbody>
             </table>
           </div>
         )}
@@ -276,38 +313,104 @@ export default function AdminOrders() {
             </div>
 
             <div className="p-6 overflow-y-auto space-y-6 flex-1 text-sm text-slate-700">
-              {/* Product Info */}
-              <div className="p-4 bg-slate-50 rounded-lg border border-slate-100 flex gap-4">
-                {selectedOrder.imageUrl && (
-                  <img
-                    src={selectedOrder.imageUrl}
-                    alt={selectedOrder.productName}
-                    className="w-16 h-16 rounded-lg object-cover border bg-white"
-                  />
-                )}
-                <div>
-                  <h3 className="font-bold text-slate-900 text-base">
-                    {selectedOrder.productName || "Giao dịch từ đấu giá"}
-                  </h3>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Hãng sản xuất: {selectedOrder.brand || "N/A"}
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    Loại hình:{" "}
-                    <span className="font-semibold text-primary-600 uppercase">
-                      {selectedOrder.type}
-                    </span>
-                  </p>
-                  {selectedOrder.auctionTitle && (
-                    <p className="text-xs text-slate-500 mt-1">
-                      Phiên đấu giá gốc:{" "}
-                      <span className="font-semibold">
-                        {selectedOrder.auctionTitle}
-                      </span>
-                    </p>
-                  )}
+                {/* Product Info */}
+                <div className="p-2 overflow-y-auto space-y-4 flex-1 text-sm text-slate-700">
+
+                    <div className="p-2 bg-slate-50 rounded-lg border border-slate-100 flex gap-4">
+
+                        {selectedOrder.productName ? (
+                            selectedOrder.imageUrl ? (
+                                <img
+                                    src={selectedOrder.imageUrl}
+                                    alt={selectedOrder.productName}
+                                    className="w-16 h-16 rounded-lg object-cover bg-white"
+                                />
+                            ) : (
+                                <div className="w-16 h-16 rounded-lg bg-slate-100 flex items-center justify-center">
+                                    <ShoppingCart className="text-slate-400" size={18} />
+                                </div>
+                            )
+                        ) : selectedOrder.items?.[0]?.productImage ? (
+                            <img
+                                src={selectedOrder.items[0].productImage}
+                                alt={selectedOrder.items[0].productName}
+                                className="w-16 h-16 rounded-lg object-cover bg-white"
+                            />
+                        ) : (
+                            <div className="w-16 h-16 rounded-lg bg-slate-100 flex items-center justify-center">
+                                <ShoppingCart className="text-slate-400" size={18} />
+                            </div>
+                        )}
+
+                        <div>
+                            <h3 className="font-bold text-slate-900 text-base">
+                                {selectedOrder.productName
+                                    ? selectedOrder.productName
+                                    : selectedOrder.items?.[0]?.productName || "Giao dịch từ đấu giá"}
+                            </h3>
+
+                            <p className="text-xs text-slate-500 mt-1">
+                                Hãng sản xuất: {selectedOrder.brand || "N/A"}
+                            </p>
+
+                            <p className="text-xs text-slate-500">
+                                Loại hình:{" "}
+                                <span className="font-semibold text-primary-600 uppercase">
+          {selectedOrder.type}
+        </span>
+                            </p>
+
+                            {selectedOrder.auctionTitle && (
+                                <p className="text-xs text-slate-500 mt-1">
+                                    Phiên đấu giá gốc:{" "}
+                                    <span className="font-semibold">
+            {selectedOrder.auctionTitle}
+          </span>
+                                </p>
+                            )}
+                        </div>
+                    </div>
+
+                    {!selectedOrder.productName &&
+                        selectedOrder.items?.length > 0 && (
+                            <div className="p-4 bg-slate-100 rounded-lg space-y-3">
+                                <h4 className="font-semibold text-slate-900">
+                                    Danh sách sản phẩm
+                                </h4>
+
+                                {selectedOrder.items.map((item: any) => (
+                                    <div
+                                        key={item.id}
+                                        className="flex items-center justify-between py-2 border-b last:border-0"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            {item.imageUrl ? (
+                                                <img
+                                                    src={item.imageUrl}
+                                                    className="w-10 h-10 rounded-md object-cover border"
+                                                />
+                                            ) : (
+                                                <div className="w-10 h-10 bg-slate-100 border rounded-md" />
+                                            )}
+
+                                            <div>
+                                                <p className="font-medium text-slate-900">
+                                                    {item.productName}
+                                                </p>
+                                                <p className="text-xs text-slate-400">
+                                                    SL: {item.quantity || 1}
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        <div className="font-semibold text-slate-700">
+                                            {(item.unitPrice || 0).toLocaleString()}đ
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                 </div>
-              </div>
 
               {/* Transactions Participants */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -360,7 +463,7 @@ export default function AdminOrders() {
                 <div className="flex justify-between">
                   <span className="text-slate-500">Giá bán sản phẩm:</span>
                   <span className="font-semibold">
-                    {formatCurrency(selectedOrder.finalPrice)}
+                    {formatCurrency(selectedOrder.totalAmount)}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -372,7 +475,7 @@ export default function AdminOrders() {
                 <div className="flex justify-between border-t pt-2 font-bold text-base text-slate-900">
                   <span>Tổng tiền thanh toán:</span>
                   <span className="text-primary-700">
-                    {formatCurrency(selectedOrder.totalAmount)}
+                    {formatCurrency(selectedOrder.finalPrice)}
                   </span>
                 </div>
               </div>

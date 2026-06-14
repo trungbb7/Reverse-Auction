@@ -1,4 +1,6 @@
 package vn.edu.hcmuaf.reverseauction.dto;
+import vn.edu.hcmuaf.reverseauction.entity.ProductStatus;
+
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -12,6 +14,6 @@ public record UpdateProductRequest(
         List<String> imageUrls,
         Long categoryId,
         BigDecimal price,
-        Integer stockQuantity,
-        String status
+        ProductStatus status,
+        Integer stockQuantity
 ) {}

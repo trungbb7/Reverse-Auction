@@ -51,6 +51,8 @@ import SellerAuctions from "./components/pages/seller/SellerAuctions";
 import Demo from "./components/pages/Demo.tsx";
 import ShopPage from "@/components/pages/shopPage";
 import SearchPage from "./components/pages/SearchPage";
+import CartPage from "./components/pages/buyer/buyerCart/CartPage";
+import {CheckoutPage} from "./components/pages/buyer/buyerCheckout/Checkout.tsx";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -91,6 +93,8 @@ function App() {
             <Route path="auctions/:id" element={<AuctionDetail />} />
             <Route path="buyer/orders" element={<BuyerOrder />} />
             <Route path="buyer/orders/:id" element={<BuyerOrderDetail />} />
+            <Route path="cart" element={<CartPage />} />
+            <Route path="checkout" element={<CheckoutPage />} />
           </Route>
 
           {/* Any authenticated user routes */}

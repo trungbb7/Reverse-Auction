@@ -533,19 +533,26 @@ export default function BuyerOrderDetail() {
                     <Package className="w-8 h-8 text-slate-300" />
                   )}
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-black text-slate-900 text-base leading-snug">
-                    {order.productName ??
-                      order.auctionTitle ??
-                      "Đơn hàng đấu giá"}
-                  </p>
-                  {order.brand && (
-                    <p className="text-xs text-slate-400 mt-0.5">
-                      Thương hiệu:{" "}
-                      <span className="text-slate-600">{order.brand}</span>
-                    </p>
-                  )}
-                </div>
+                  <div className="flex-1 min-w-0">
+                      {order.items?.map((item, index) => (
+                          <div key={item.id ?? index} className="mb-2">
+                              <p className="font-black text-slate-900 text-base leading-snug">
+                                  {item.productName ?? "Sản phẩm"}
+                              </p>
+
+                              {item.brand && (
+                                  <p className="text-xs text-slate-400 mt-0.5">
+                                      Thương hiệu:{" "}
+                                      <span className="text-slate-600">{item.brand}</span>
+                                  </p>
+                              )}
+
+                              <p className="text-xs text-slate-500">
+                                  Số lượng: {item.quantity}
+                              </p>
+                          </div>
+                      ))}
+                  </div>
               </div>
             </div>
 
@@ -610,7 +617,7 @@ export default function BuyerOrderDetail() {
                 <div className="flex justify-between">
                   <span className="text-slate-500">Giá sản phẩm</span>
                   <span className="font-semibold text-slate-900">
-                    {formatCurrency(Number(order.finalPrice))}
+                    {formatCurrency(Number(order.totalAmount))}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -630,7 +637,7 @@ export default function BuyerOrderDetail() {
                 <div className="border-t border-slate-100 pt-2 flex justify-between">
                   <span className="font-black text-slate-900">Tổng cộng</span>
                   <span className="font-black text-lg text-[#375F97]">
-                    {formatCurrency(Number(order.totalAmount))}
+                    {formatCurrency(Number(order.finalPrice))}
                   </span>
                 </div>
               </div>
