@@ -7,9 +7,9 @@ import java.util.List;
 public interface OrderService {
     List<OrderResponseDTO> getOrdersByUserId(Long uid);
     List<OrderResponseDTO> getOrdersBySellerId(Long sellerId);
+    List<OrderResponseDTO> getAllOrders();
     OrderResponseDTO getOrderById(Long id);
     OrderResponseDTO updateStatus(Long id, OrderStatus status);
-    List<OrderResponseDTO> getAllOrders();
     OrderResponseDTO updateShipping(Long orderId, String address, String phone);
     OrderResponseDTO payWithBalance(Long orderId);
 }

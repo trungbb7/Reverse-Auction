@@ -21,7 +21,12 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
-
+import vn.edu.hcmuaf.reverseauction.repository.UserRepository;
+import vn.edu.hcmuaf.reverseauction.entity.User;
+import vn.edu.hcmuaf.reverseauction.entity.OrderType;
+import java.math.BigDecimal;
+import java.util.UUID;
+import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
@@ -32,6 +37,7 @@ public class OrderServiceImpl implements OrderService {
     private final SystemSettingRepository systemSettingRepository;
 
     @Override
+    @Transactional
     public List<OrderResponseDTO> getOrdersByUserId(Long uid) {
         List<Order> orders = orderRepository.findByBuyer_Id(uid);
         return orders.stream().map(this::toDTO).collect(Collectors.toList());

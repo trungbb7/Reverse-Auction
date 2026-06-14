@@ -152,6 +152,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public AuthenticationResponse refreshToken(RefreshTokenRequest request) {
         return refreshTokenService.findByToken(request.getRefreshToken())
                 .map(refreshTokenService::verifyExpiration)
@@ -220,6 +221,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional
     public AuthenticationResponse googleLogin(GoogleLoginRequest request) {
         String googleUserinfoUrl = "https://www.googleapis.com/oauth2/v3/userinfo";
         RestTemplate restTemplate = new RestTemplate();

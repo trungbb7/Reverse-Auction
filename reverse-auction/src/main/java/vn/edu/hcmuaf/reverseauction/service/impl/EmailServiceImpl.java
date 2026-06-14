@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import org.springframework.transaction.annotation.Transactional;
 import vn.edu.hcmuaf.reverseauction.service.EmailService;
 
 @Service

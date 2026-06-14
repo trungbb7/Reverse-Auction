@@ -33,7 +33,7 @@ export default function AdminDashboard() {
       try {
         const [statsData, rate] = await Promise.all([
           adminService.getAdminStats(),
-          adminService.getCommissionRate()
+          adminService.getCommissionRate(),
         ]);
         setStats(statsData);
         setCommissionRate(rate.toString());
@@ -202,7 +202,7 @@ export default function AdminDashboard() {
                       </div>
                       <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-primary-600 to-blue-400 rounded-full transition-all duration-1000"
+                          className="h-full bg-linear-to-r from-primary-600 to-blue-400 rounded-full transition-all duration-1000"
                           style={{ width: `${percent}%` }}
                         />
                       </div>
@@ -267,8 +267,13 @@ export default function AdminDashboard() {
         <h3 className="font-bold text-slate-800 text-lg">Cấu hình Hệ thống</h3>
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
           <div>
-            <p className="font-semibold text-slate-700 text-sm">Tỷ lệ hoa hồng (%)</p>
-            <p className="text-xs text-slate-400 mt-0.5">Tỷ lệ phần trăm hoa hồng trích từ mỗi đơn hàng thành công của người bán.</p>
+            <p className="font-semibold text-slate-700 text-sm">
+              Tỷ lệ hoa hồng (%)
+            </p>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Tỷ lệ phần trăm hoa hồng trích từ mỗi đơn hàng thành công của
+              người bán.
+            </p>
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <input

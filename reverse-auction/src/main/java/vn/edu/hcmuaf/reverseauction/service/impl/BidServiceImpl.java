@@ -74,6 +74,7 @@ public class BidServiceImpl implements BidService {
     }
 
     @Override
+    @Transactional
     public AllBidResponseDTO getBidsForAuction(long auctionId) {
         List<Bid> bids = bidRepository.findAllByAuctionId(auctionId);
         List<BidResponseDTO> bidsDTO = bids.stream().map(bid -> {
@@ -85,6 +86,7 @@ public class BidServiceImpl implements BidService {
     }
 
     @Override
+    @Transactional
     public BidResponseDTO getUserBidByAuctionId(long auctionId, long userId) {
         AuctionRequest auc = auctionRequestRepository.findById(auctionId)
                 .orElseThrow(() -> CustomException.builder()
@@ -162,6 +164,7 @@ public class BidServiceImpl implements BidService {
     }
 
     @Override
+    @Transactional
     public PageResponse<BidResponseDTO> getSellerBids(long sellerId, Pageable pageable) {
         Page<Bid> page = bidRepository.findAllBySellerId(sellerId, pageable);
         PageResponse<BidResponseDTO> response = bidMapper.toPageResponse(page);

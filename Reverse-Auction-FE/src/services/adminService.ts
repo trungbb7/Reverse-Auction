@@ -72,4 +72,10 @@ export const adminService = {
         });
         return res.data;
     },
+
+    // Order Management
+    getAllOrders: async (): Promise<any[]> => {
+        const res = await api.get("/admin/orders");
+        return res.data;
+    },
 };

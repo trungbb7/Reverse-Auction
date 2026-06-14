@@ -364,7 +364,7 @@ export default function SellerDashboard() {
                     {/* Bar Pillar */}
                     <div className="w-[45%] max-w-[40px] min-w-[12px] bg-slate-100 rounded-t-lg overflow-hidden h-64 flex items-end">
                       <div
-                        className="w-full bg-gradient-to-t from-[#375F97] to-blue-400 rounded-t-lg group-hover:from-emerald-600 group-hover:to-emerald-400 transition-all duration-300 shadow-inner"
+                        className="w-full bg-linear-to-t from-[#375F97] to-blue-400 rounded-t-lg group-hover:from-emerald-600 group-hover:to-emerald-400 transition-all duration-300 shadow-inner"
                         style={{ height: `${heightPercent}%` }}
                       />
                     </div>

@@ -70,12 +70,14 @@ public class AuctionRequestServiceImpl implements AuctionRequestService {
     }
 
     @Override
+    @Transactional
     public PageResponse<AuctionRequestResponseDTO> getAllAuctionRequests(Pageable pageable) {
         Page<AuctionRequest> page = auctionRequestRepository.findAll(pageable);
         return auctionRequestMapper.toPageResponse(page);
     }
 
     @Override
+    @Transactional
     public PageResponse<AuctionRequestResponseDTO> getMyAuctionRequests(String email, Pageable pageable) {
         User buyer = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
@@ -85,6 +87,7 @@ public class AuctionRequestServiceImpl implements AuctionRequestService {
     }
 
     @Override
+    @Transactional
     public AuctionRequestResponseDTO findById(long id) {
         AuctionRequest auc = auctionRequestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Auction not found with id: " + id));
@@ -203,6 +206,7 @@ public class AuctionRequestServiceImpl implements AuctionRequestService {
     }
 
     @Override
+    @Transactional
     public PageResponse<AuctionRequestResponseDTO> getFilteredAuction(String keyword, String categoryName, AuctionStatus status, BigDecimal minBudget, BigDecimal maxBudget, Pageable pageable) {
         Specification<AuctionRequest> spec = Specification.where(AuctionRequestSpecification.hasCategoryName(categoryName))
                 .and(AuctionRequestSpecification.hasStatus(status))

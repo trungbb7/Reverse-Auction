@@ -138,9 +138,13 @@ export default function Profile() {
             </div>
 
             {/* Wallet Section */}
-            <div className="w-full mt-6 bg-gradient-to-br from-[#375F97] to-blue-600 rounded-xl p-4 text-white shadow-md">
-              <p className="text-xs opacity-90 uppercase tracking-wider font-bold">Số dư tài khoản</p>
-              <p className="text-2xl font-black mt-1">{formatVND(user.balance || 0)}</p>
+            <div className="w-full mt-6 bg-linear-to-br from-[#375F97] to-blue-600 rounded-xl p-4 text-white shadow-md">
+              <p className="text-xs opacity-90 uppercase tracking-wider font-bold">
+                Số dư tài khoản
+              </p>
+              <p className="text-2xl font-black mt-1">
+                {formatVND(user.balance || 0)}
+              </p>
               <button
                 onClick={() => setIsTopupOpen(true)}
                 className="mt-3 w-full bg-white text-[#375F97] hover:bg-blue-50 font-bold text-xs py-2 px-4 rounded-lg transition-all shadow-sm active:scale-95"
@@ -234,7 +238,9 @@ export default function Profile() {
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
             <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-slate-800">Nạp tiền vào tài khoản</h2>
+              <h2 className="text-xl font-bold text-slate-800">
+                Nạp tiền vào tài khoản
+              </h2>
               <button
                 onClick={() => setIsTopupOpen(false)}
                 className="text-slate-400 hover:text-slate-600 p-1 hover:bg-slate-100 rounded-lg transition-all"
