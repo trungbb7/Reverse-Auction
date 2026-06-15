@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
 import { externalChatService } from "@/services/externalChatService";
 import { createExternalChatSocket } from "@/services/externalChatSocket";
+import { cloudinaryService } from "@/services/cloudinaryService";
 import type {
   ChatUser,
   ExternalConversation,
@@ -43,6 +44,7 @@ export const useExternalChat = ({ enabled }: UseExternalChatOptions) => {
     null,
   );
   const [draft, setDraft] = useState("");
+  const [attachment, setAttachment] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [sending, setSending] = useState(false);
   const [connectionState, setConnectionState] =
@@ -372,20 +374,27 @@ export const useExternalChat = ({ enabled }: UseExternalChatOptions) => {
   );
 
   const handleSend = useCallback(async () => {
-    if (!selectedContactId || !draft.trim()) return;
+    if (!selectedContactId || (!draft.trim() && !attachment)) return;
 
     const actualComplaintMode = isComplaintMode;
+    const textContent = draft.trim();
 
     // Use REST API for first message to create conversation
     if (!selectedConversationId) {
       setSending(true);
       try {
+        const uploadedAttachment = attachment
+          ? await cloudinaryService.uploadSingleMedia(attachment)
+          : null;
         const newMessage = await externalChatService.sendMessage({
           receiverId: selectedContactId,
-          content: draft.trim(),
+          content: textContent || attachment?.name || "",
+          type: uploadedAttachment?.type ?? "text",
+          url: uploadedAttachment?.url,
           complaintChat: actualComplaintMode,
         });
         setDraft("");
+        setAttachment(null);
         setSelectedConversationId(newMessage.conversationId);
         appendMessage(newMessage);
         void loadConversations().catch(() => undefined);
@@ -404,12 +413,18 @@ export const useExternalChat = ({ enabled }: UseExternalChatOptions) => {
 
     setSending(true);
     try {
+      const uploadedAttachment = attachment
+        ? await cloudinaryService.uploadSingleMedia(attachment)
+        : null;
       socketRef.current.send({
         receiverId: selectedContactId,
-        content: draft.trim(),
+        content: textContent || attachment?.name || "",
+        type: uploadedAttachment?.type ?? "text",
+        url: uploadedAttachment?.url,
         complaintChat: actualComplaintMode,
       });
       setDraft("");
+      setAttachment(null);
     } catch (error) {
       toast.error(
         formatChatError(error, "Không gửi được tin nhắn"),
@@ -417,7 +432,7 @@ export const useExternalChat = ({ enabled }: UseExternalChatOptions) => {
     } finally {
       setSending(false);
     }
-  }, [appendMessage, draft, isComplaintMode, loadConversations, selectedContactId, selectedConversationId]);
+  }, [appendMessage, attachment, draft, isComplaintMode, loadConversations, selectedContactId, selectedConversationId]);
 
   const handleToggleOpen = useCallback(() => {
     dispatch(toggleChat());
@@ -441,6 +456,8 @@ export const useExternalChat = ({ enabled }: UseExternalChatOptions) => {
     filteredContacts,
     draft,
     setDraft,
+    attachment,
+    setAttachment,
     loading,
     sending,
     connectionState,
@@ -458,4 +475,3 @@ export const useExternalChat = ({ enabled }: UseExternalChatOptions) => {
     loadMessages,
   };
 };
-

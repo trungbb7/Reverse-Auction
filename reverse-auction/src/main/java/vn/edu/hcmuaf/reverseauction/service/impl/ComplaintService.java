@@ -64,8 +64,26 @@ public class ComplaintService {
 
     @Transactional(readOnly = true)
     public List<ComplaintResponse> listComplaints() {
-        return complaintRepository.findAll(Sort.by(Sort.Direction.ASC, "id"))
+        return complaintRepository.findAll(Sort.by(Sort.Direction.DESC, "id"))
                 .stream()
+                .map(this::toComplaintSummary)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ComplaintResponse> listByBuyer(Long buyerId) {
+        return complaintRepository.findByBuyerId(buyerId)
+                .stream()
+                .sorted((a, b) -> b.getId().compareTo(a.getId()))
+                .map(this::toComplaintSummary)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ComplaintResponse> listBySeller(Long sellerId) {
+        return complaintRepository.findByOrderSellerId(sellerId)
+                .stream()
+                .sorted((a, b) -> b.getId().compareTo(a.getId()))
                 .map(this::toComplaintSummary)
                 .toList();
     }
@@ -110,6 +128,8 @@ public class ComplaintService {
         return new ComplaintResponse(
                 complaint.getId(),
                 complaint.getOrder().getId(),
+                complaint.getOrder().getCode(),
+                complaint.getOrder().getProduct().getName(),
                 complaint.getBuyer().getId(),
                 complaint.getBuyer().getFullName(),
                 complaint.getOrder().getSeller().getId(),

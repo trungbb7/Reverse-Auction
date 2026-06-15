@@ -13,4 +13,5 @@ public interface JwtService {
     String extractUsername(String token);
     <T> T extractClaim(String token, Function<Claims, T> claimsResolver);
     Long extractUserId(String token);
+    String extractRole(String token);
 }

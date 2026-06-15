@@ -50,7 +50,9 @@ public class ExternalChatService {
         if (request == null || request.receiverId() == null) {
             throw new IllegalArgumentException("Receiver is required");
         }
-        if (request.content() == null || request.content().isBlank()) {
+        boolean hasContent = request.content() != null && !request.content().isBlank();
+        boolean hasAttachment = request.url() != null && !request.url().isBlank();
+        if (!hasContent && !hasAttachment) {
             throw new IllegalArgumentException("Message content is required");
         }
 
@@ -69,7 +71,9 @@ public class ExternalChatService {
         message.setConversation(conversation);
         message.setSender(sender);
         message.setReceiver(receiver);
-        message.setMessage(request.content().trim());
+        message.setMessage(hasContent ? request.content().trim() : "");
+        message.setType(normalizeMessageType(request.type(), hasAttachment));
+        message.setUrl(hasAttachment ? request.url().trim() : null);
         message.setCreatedDate(Instant.now());
         message = messageRepository.save(message);
 
@@ -129,7 +133,7 @@ public class ExternalChatService {
                 participant.getFullName(),
                 participant.getEmail(),
                 participant.getRole() == null ? null : participant.getRole().name(),
-                lastMessage == null ? null : lastMessage.getMessage(),
+                lastMessage == null ? null : summarizeLastMessage(lastMessage),
                 lastMessage == null ? null : lastMessage.getCreatedDate(),
                 conversation.getCreatedDate(),
                 conversation.getUpdatedDate(),
@@ -146,8 +150,28 @@ public class ExternalChatService {
                 message.getReceiver().getId(),
                 message.getReceiver().getFullName(),
                 message.getMessage(),
+                message.getType(),
+                message.getUrl(),
                 message.getCreatedDate()
         );
+    }
+
+    private String normalizeMessageType(String rawType, boolean hasAttachment) {
+        if (!hasAttachment) {
+            return "text";
+        }
+        if (rawType == null || rawType.isBlank()) {
+            return "image";
+        }
+        String type = rawType.trim().toLowerCase();
+        return "video".equals(type) ? "video" : "image";
+    }
+
+    private String summarizeLastMessage(ExternalMessage message) {
+        if (message.getUrl() != null && !message.getUrl().isBlank()) {
+            return "video".equalsIgnoreCase(message.getType()) ? "[Video]" : "[Image]";
+        }
+        return message.getMessage();
     }
 
     private String buildParticipantsHash(Long firstUserId, Long secondUserId, boolean isComplaintChat) {

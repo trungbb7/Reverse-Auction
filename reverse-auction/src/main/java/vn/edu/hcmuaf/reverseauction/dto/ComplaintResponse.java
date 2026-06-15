@@ -6,6 +6,8 @@ import java.util.List;
 public record ComplaintResponse(
         Long complaintId,
         Long orderId,
+        String orderCode,
+        String productName,
         Long buyerId,
         String buyerName,
         Long sellerId,

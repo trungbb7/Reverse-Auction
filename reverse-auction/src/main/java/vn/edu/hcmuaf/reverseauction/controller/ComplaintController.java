@@ -23,6 +23,8 @@ import vn.edu.hcmuaf.reverseauction.service.impl.ComplaintService;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.bind.annotation.RequestHeader;
+import vn.edu.hcmuaf.reverseauction.service.JwtService;
 
 import java.util.List;
 
@@ -32,6 +34,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ComplaintController {
     private final ComplaintService complaintService;
+    private final JwtService jwtService;
 
     @PostMapping("/complaints")
     @PreAuthorize("hasRole('BUYER')")
@@ -50,9 +53,21 @@ public class ComplaintController {
     }
 
     @GetMapping("/complaints")
-    @PreAuthorize("hasAnyRole('SELLER', 'ADMIN')")
-    public ResponseEntity<List<ComplaintResponse>> listComplaints() {
-        return ResponseEntity.ok(complaintService.listComplaints());
+    @PreAuthorize("hasAnyRole('BUYER', 'SELLER', 'ADMIN')")
+    public ResponseEntity<List<ComplaintResponse>> listComplaints(
+            @RequestHeader("Authorization") String authHeader
+    ) {
+        String token = authHeader.substring(7);
+        Long userId = jwtService.extractUserId(token);
+        String role = jwtService.extractRole(token); // Assuming extractRole exists or similar
+
+        if (role.contains("ADMIN")) {
+            return ResponseEntity.ok(complaintService.listComplaints());
+        } else if (role.contains("SELLER")) {
+            return ResponseEntity.ok(complaintService.listBySeller(userId));
+        } else {
+            return ResponseEntity.ok(complaintService.listByBuyer(userId));
+        }
     }
 
     @PatchMapping("/complaints/{id}/respond")

@@ -1,6 +1,6 @@
-import { useState } from "react";
 import {
   ChevronLeft,
+  Paperclip,
   MessageSquare,
   Search,
   Send,
@@ -52,6 +52,8 @@ const GlobalChatWidget = () => {
     filteredContacts,
     draft,
     setDraft,
+    attachment,
+    setAttachment,
     loading,
     sending,
     connectionState,
@@ -66,6 +68,30 @@ const GlobalChatWidget = () => {
   } = useExternalChat({ enabled: true });
 
   if (!user) return null;
+
+  const renderMessageBody = (message: { content: string; type?: string | null; url?: string | null }) => (
+    <div className="space-y-2">
+      {message.url && message.type === "video" && (
+        <video
+          src={message.url}
+          controls
+          className="max-h-64 w-full rounded-2xl bg-black object-contain"
+        />
+      )}
+      {message.url && message.type !== "video" && (
+        <a href={message.url} target="_blank" rel="noreferrer">
+          <img
+            src={message.url}
+            alt={message.content || "Attachment"}
+            className="max-h-64 w-full rounded-2xl object-cover"
+          />
+        </a>
+      )}
+      {message.content && (
+        <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+      )}
+    </div>
+  );
 
   const renderConversationList = () => {
     if (loading && conversations.length === 0) {
@@ -331,9 +357,7 @@ const GlobalChatWidget = () => {
                                     : "rounded-bl-md border border-slate-200 bg-white text-slate-800"
                                 }`}
                               >
-                                <p className="whitespace-pre-wrap leading-relaxed">
-                                  {message.content}
-                                </p>
+                                {renderMessageBody(message)}
                                 <p
                                   className={`mt-2 text-[11px] ${
                                     isMine ? "text-slate-300" : "text-slate-400"
@@ -369,7 +393,36 @@ const GlobalChatWidget = () => {
               </div>
 
               <div className="border-t border-slate-200 bg-white p-3">
+                {attachment && (
+                  <div className="mb-2 flex items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                    <span className="truncate">
+                      {attachment.type.startsWith("video/") ? "Video" : "Image"}:{" "}
+                      {attachment.name}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setAttachment(null)}
+                      className="rounded-full p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700"
+                      aria-label="Remove attachment"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                )}
                 <div className="flex items-end gap-3 rounded-3xl border border-slate-200 bg-slate-50 px-3 py-3">
+                  <label className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-100">
+                    <Paperclip size={16} />
+                    <input
+                      type="file"
+                      accept="image/*,video/*"
+                      className="sr-only"
+                      disabled={!selectedContactId || sending || !isConnected}
+                      onChange={(event) => {
+                        setAttachment(event.target.files?.[0] ?? null);
+                        event.target.value = "";
+                      }}
+                    />
+                  </label>
                   <textarea
                     value={draft}
                     onChange={(event) => setDraft(event.target.value)}
@@ -401,7 +454,7 @@ const GlobalChatWidget = () => {
                     onClick={() => void handleSend()}
                     disabled={
                       !selectedContactId ||
-                      !draft.trim() ||
+                      (!draft.trim() && !attachment) ||
                       sending ||
                       !isConnected
                     }

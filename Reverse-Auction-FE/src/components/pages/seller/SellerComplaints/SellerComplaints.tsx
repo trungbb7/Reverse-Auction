@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   Clock3,
   Filter,
+  ImagePlus,
   Loader2,
   MessageSquare,
   Package,
@@ -11,6 +12,7 @@ import {
   ShieldAlert,
   TriangleAlert,
   User,
+  X,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import {
@@ -18,6 +20,7 @@ import {
   type Complaint,
   type RespondComplaintPayload,
 } from "@/services/complaintService";
+import { cloudinaryService } from "@/services/cloudinaryService";
 import { useAppDispatch } from "@/hooks/redux";
 import { selectContact } from "@/components/chat/chatSlice";
 
@@ -74,7 +77,8 @@ export default function SellerComplaints() {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [action, setAction] = useState(ACTION_OPTIONS[0].value);
   const [sellerMessage, setSellerMessage] = useState("");
-  const [sellerEvidence, setSellerEvidence] = useState("");
+  const [evidenceFiles, setEvidenceFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
 
   const loadComplaints = async () => {
     try {
@@ -109,8 +113,29 @@ export default function SellerComplaints() {
     }
     setAction(selectedComplaint.sellerAction ?? ACTION_OPTIONS[0].value);
     setSellerMessage(selectedComplaint.sellerMessage ?? "");
-    setSellerEvidence(selectedComplaint.sellerEvidence ?? "");
+    setEvidenceFiles([]);
+    setPreviews([]);
   }, [selectedComplaint]);
+
+  useEffect(() => {
+    const nextPreviews = evidenceFiles.map((file) => URL.createObjectURL(file));
+    setPreviews(nextPreviews);
+    return () => {
+      nextPreviews.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [evidenceFiles]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(e.target.files ?? []);
+    setEvidenceFiles((prev) => [...prev, ...selectedFiles]);
+  };
+
+  const removeFile = (index: number) => {
+    setEvidenceFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const isVideoFileUrl = (url: string) =>
+    /\.(mp4|webm|mov|m4v|ogg)(\?|$)/i.test(url) || url.includes("/video/upload/");
 
   const handleSubmit = async () => {
     if (!selectedComplaint) return;
@@ -121,16 +146,31 @@ export default function SellerComplaints() {
 
     try {
       setSubmitting(true);
+      let finalEvidenceUrl = selectedComplaint.sellerEvidence || "";
+
+      if (evidenceFiles.length > 0) {
+        toast.loading("Đang tải lên hình ảnh/video minh chứng...", {
+          id: "uploading",
+        });
+        const uploadResults = await cloudinaryService.uploadMultiMedia(evidenceFiles);
+        const urls = uploadResults.map((res) => res.url);
+        finalEvidenceUrl = urls.join(", ");
+        toast.dismiss("uploading");
+      }
+
       const payload: RespondComplaintPayload = {
         action,
         sellerMessage: sellerMessage.trim(),
-        sellerEvidence: sellerEvidence.trim(),
+        sellerEvidence: finalEvidenceUrl,
       };
       await complaintService.respondComplaint(selectedComplaint.complaintId, payload);
       toast.success("Đã gửi phản hồi cho khiếu nại.");
+      setEvidenceFiles([]);
+      setPreviews([]);
       await loadComplaints();
     } catch (error) {
       console.error(error);
+      toast.dismiss("uploading");
       toast.error("Không thể gửi phản hồi.");
     } finally {
       setSubmitting(false);
@@ -355,7 +395,7 @@ export default function SellerComplaints() {
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
                     Phản hồi của bạn
                   </p>
-                  {selectedComplaint.sellerAction || selectedComplaint.sellerMessage ? (
+                  {selectedComplaint.sellerAction || selectedComplaint.sellerMessage || selectedComplaint.sellerEvidence ? (
                     <div className="mt-3 space-y-3 text-sm text-slate-700">
                       <p>
                         <span className="font-semibold text-slate-900">Hành động: </span>
@@ -365,10 +405,28 @@ export default function SellerComplaints() {
                         <span className="font-semibold text-slate-900">Nội dung: </span>
                         {selectedComplaint.sellerMessage || "Không có"}
                       </p>
-                      <p>
-                        <span className="font-semibold text-slate-900">Bằng chứng: </span>
-                        {selectedComplaint.sellerEvidence || "Không có"}
-                      </p>
+                      {selectedComplaint.sellerEvidence && (
+                         <div className="mt-2">
+                           <span className="font-semibold text-slate-900">Bằng chứng: </span>
+                           <div className="mt-2 flex flex-wrap gap-2">
+                             {selectedComplaint.sellerEvidence.split(", ").map((url, i) => (
+                               <a
+                                 key={i}
+                                 href={url}
+                                 target="_blank"
+                                 rel="noreferrer"
+                                 className="block relative border rounded-lg overflow-hidden group"
+                               >
+                                 {isVideoFileUrl(url) ? (
+                                   <video src={url} className="w-20 h-20 object-cover" />
+                                 ) : (
+                                   <img src={url} className="w-20 h-20 object-cover" />
+                                 )}
+                               </a>
+                             ))}
+                           </div>
+                         </div>
+                      )}
                     </div>
                   ) : (
                     <p className="mt-3 text-sm text-slate-500">
@@ -442,16 +500,44 @@ export default function SellerComplaints() {
 
                     <div>
                       <label className="mb-2 block text-sm font-semibold text-slate-700">
-                        Bằng chứng / ghi chú thêm
+                        Hình ảnh / video minh chứng
                       </label>
-                      <textarea
-                        value={sellerEvidence}
-                        onChange={(e) => setSellerEvidence(e.target.value)}
-                        rows={3}
-                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-[#375F97] focus:bg-white"
-                        placeholder="Dán link ảnh, mô tả tình trạng hàng, hoặc thông tin bổ sung..."
-                      />
+                      <label className="flex cursor-pointer items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-500 transition hover:border-[#375F97] hover:bg-blue-50/50">
+                        <ImagePlus className="h-5 w-5 text-[#375F97]" />
+                        <span>Chọn tệp từ thiết bị</span>
+                        <input
+                          type="file"
+                          accept="image/*,video/*"
+                          multiple
+                          onChange={handleFileChange}
+                          className="hidden"
+                        />
+                      </label>
                     </div>
+
+                    {previews.length > 0 && (
+                      <div className="grid grid-cols-3 gap-3">
+                        {previews.map((preview, index) => (
+                          <div
+                            key={index}
+                            className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-slate-50"
+                          >
+                            {isVideoFileUrl(evidenceFiles[index].name) || evidenceFiles[index].type.startsWith("video/") ? (
+                              <video src={preview} className="h-24 w-full object-cover" />
+                            ) : (
+                              <img src={preview} alt="" className="h-24 w-full object-cover" />
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => removeFile(index)}
+                              className="absolute top-1 right-1 p-1 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
                     <div className="flex justify-end">
                       <button

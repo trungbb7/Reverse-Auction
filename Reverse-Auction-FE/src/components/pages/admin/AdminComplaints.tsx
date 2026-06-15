@@ -9,7 +9,6 @@ import {
   Package,
   ShieldAlert,
   ShieldCheck,
-  TriangleAlert,
   User,
 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -35,6 +34,9 @@ const VERDICT_OPTIONS = [
   { value: "REQUEST_REPLACEMENT", label: "Yêu cầu đổi sản phẩm" },
   { value: "REJECT_COMPLAINT", label: "Từ chối khiếu nại" },
 ];
+
+const isVideoUrl = (url: string) =>
+  /\.(mp4|webm|mov|m4v|ogg)(\?|$)/i.test(url) || url.includes("/video/upload/");
 
 function statusMeta(status: string) {
   switch (status) {
@@ -330,7 +332,7 @@ export default function AdminComplaints() {
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="rounded-2xl bg-slate-50 p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-                    Ảnh minh chứng
+                    Minh chứng
                   </p>
                   {selectedComplaint.evidenceUrls?.length ? (
                     <div className="mt-3 grid grid-cols-2 gap-3">
@@ -342,7 +344,15 @@ export default function AdminComplaints() {
                           rel="noreferrer"
                           className="overflow-hidden rounded-2xl border border-white bg-white shadow-sm"
                         >
-                          <img src={url} alt="Ảnh minh chứng" className="h-36 w-full object-cover" />
+                          {isVideoUrl(url) ? (
+                            <video
+                              src={url}
+                              controls
+                              className="h-36 w-full bg-black object-contain"
+                            />
+                          ) : (
+                            <img src={url} alt="Ảnh minh chứng" className="h-36 w-full object-cover" />
+                          )}
                         </a>
                       ))}
                     </div>
@@ -365,10 +375,32 @@ export default function AdminComplaints() {
                         <span className="font-semibold text-slate-900">Nội dung: </span>
                         {selectedComplaint.sellerMessage || "Không có"}
                       </p>
-                      <p>
-                        <span className="font-semibold text-slate-900">Bằng chứng: </span>
-                        {selectedComplaint.sellerEvidence || "Không có"}
-                      </p>
+                      {selectedComplaint.sellerEvidence && (
+                        <div className="mt-2">
+                          <span className="font-semibold text-slate-900">Bằng chứng: </span>
+                          {selectedComplaint.sellerEvidence.includes("http") ? (
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {selectedComplaint.sellerEvidence.split(", ").map((url, i) => (
+                                <a
+                                  key={i}
+                                  href={url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="block relative border rounded-lg overflow-hidden group"
+                                >
+                                  {isVideoUrl(url) ? (
+                                    <video src={url} className="w-20 h-20 object-cover" />
+                                  ) : (
+                                    <img src={url} alt="Minh chứng seller" className="w-20 h-20 object-cover" />
+                                  )}
+                                </a>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="text-slate-500 italic">{selectedComplaint.sellerEvidence}</span>
+                          )}
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <p className="mt-3 text-sm text-slate-500">Chưa có phản hồi từ seller.</p>

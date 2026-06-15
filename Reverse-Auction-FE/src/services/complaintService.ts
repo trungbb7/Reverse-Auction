@@ -11,11 +11,19 @@ export interface CreateComplaintPayload {
   orderId: number;
   reason: string;
   evidenceImages?: File[];
+  evidenceUrls?: string[];
 }
 
 export interface Complaint {
   complaintId: number;
   orderId: number;
+  orderCode?: string;
+  productName?: string;
+  totalAmount?: number;
+  buyerId: number;
+  buyerName: string;
+  sellerId: number;
+  sellerName: string;
   reason: string;
   evidenceUrls: string[];
   status: string;
@@ -29,6 +37,8 @@ export interface Complaint {
   updatedAt: string;
   resolvedAt?: string | null;
 }
+
+export type ComplaintResponse = Complaint;
 
 export interface RespondComplaintPayload {
   action: string;
@@ -61,15 +71,28 @@ export const complaintService = {
   createComplaint: async (
     payload: CreateComplaintPayload,
   ): Promise<CreateComplaintResponse> => {
-    const formData = new FormData();
-    formData.append("orderId", String(payload.orderId));
-    formData.append("reason", payload.reason);
+    // If we have images, we MUST use FormData
+    if (payload.evidenceImages && payload.evidenceImages.length > 0) {
+      const formData = new FormData();
+      formData.append("orderId", String(payload.orderId));
+      formData.append("reason", payload.reason);
 
-    payload.evidenceImages?.forEach((file) => {
-      formData.append("evidenceImages", file);
+      payload.evidenceImages.forEach((file) => {
+        formData.append("evidenceImages", file);
+      });
+
+      const res = await api.post("/complaints", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return res.data;
+    }
+
+    // Otherwise, use JSON endpoint
+    const res = await api.post("/complaints", {
+      orderId: payload.orderId,
+      reason: payload.reason,
+      evidenceUrls: payload.evidenceUrls || [],
     });
-
-    const res = await api.post("/complaints", formData);
 
     return res.data;
   },
