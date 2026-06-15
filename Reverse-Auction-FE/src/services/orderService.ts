@@ -49,4 +49,21 @@ export const orderService = {
       params: { orderId, status },
     });
   },
+
+  updateShippingInfo: async (orderId: number, address: string, phone: string): Promise<Order> => {
+    const res = await api.put(`/orders/${orderId}/shipping`, null, {
+      params: { address, phone }
+    });
+    return res.data;
+  },
+
+  payWithBalance: async (orderId: number): Promise<Order> => {
+    const res = await api.post(`/orders/${orderId}/pay-with-balance`);
+    return res.data;
+  },
+
+  getSellerStats: async (): Promise<any> => {
+    const res = await api.get("/stats/seller");
+    return res.data;
+  },
 };

@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import vn.edu.hcmuaf.reverseauction.dto.response.FileData;
 import vn.edu.hcmuaf.reverseauction.dto.response.FileResponse;
+import vn.edu.hcmuaf.reverseauction.entity.FileMgmt;
 import vn.edu.hcmuaf.reverseauction.exception.CustomException;
 import vn.edu.hcmuaf.reverseauction.mapper.FileMgmtMapper;
 import vn.edu.hcmuaf.reverseauction.repository.FileMgmtRepository;
@@ -31,7 +32,7 @@ public class FileService {
     public FileResponse uploadFile(MultipartFile file) throws IOException {
         var fileInfo = fileRepository.store(file);
 
-        var fileMgmt = fileMgmtMapper.toFileMgmt(fileInfo);
+        FileMgmt fileMgmt = fileMgmtMapper.toFileMgmt(fileInfo);
         var authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getName() != null) {
             fileMgmt.setOwnerId(authentication.getName());
@@ -59,7 +60,7 @@ public class FileService {
         var resource = fileRepository.read(fileName);
         if (resource == null) {
             throw CustomException.builder()
-                    .statusCode(HttpStatus.BAD_REQUEST)
+                    .status(HttpStatus.BAD_REQUEST)
                     .error("error")
                     .message("File Not Found")
                     .build();

@@ -1,6 +1,9 @@
 package vn.edu.hcmuaf.reverseauction.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -10,6 +13,7 @@ import vn.edu.hcmuaf.reverseauction.dto.*;
 import vn.edu.hcmuaf.reverseauction.dto.request.CreateBidRequestDTO;
 import vn.edu.hcmuaf.reverseauction.dto.request.UpdateBidRequestDTO;
 import vn.edu.hcmuaf.reverseauction.dto.response.AllBidResponseDTO;
+import vn.edu.hcmuaf.reverseauction.dto.response.PageResponse;
 import vn.edu.hcmuaf.reverseauction.entity.User;
 import vn.edu.hcmuaf.reverseauction.service.BidService;
 
@@ -21,7 +25,7 @@ public class BidController {
 
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('BUYER', 'SELLER')")
+    @PreAuthorize("hasAnyRole('BUYER', 'SELLER', 'ADMIN')")
     public ResponseEntity<AllBidResponseDTO> getAllBidForAuction(@RequestParam long auctionId) {
         AllBidResponseDTO response = bidService.getBidsForAuction(auctionId);
         return ResponseEntity.ok(response);
@@ -50,5 +54,13 @@ public class BidController {
         return ResponseEntity.ok(updated);
     }
 
-
+    @GetMapping("/seller")
+    @PreAuthorize("hasRole('SELLER')")
+    public ResponseEntity<PageResponse<BidResponseDTO>> getSellerBids(
+            @AuthenticationPrincipal User user,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by("createdAt").descending());
+        return ResponseEntity.ok(bidService.getSellerBids(user.getId(), pageable));
+    }
 }

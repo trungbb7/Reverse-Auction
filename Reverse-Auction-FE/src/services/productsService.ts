@@ -11,4 +11,24 @@ export const productService = {
         const res = await api.get("/categories");
         return res.data;
     },
+    searchProducts: async (params: {
+        keyword?: string;
+        categoryId?: number;
+        minPrice?: number;
+        maxPrice?: number;
+        page?: number;
+        size?: number;
+        sortBy?: string;
+        sortDir?: string;
+    }): Promise<{
+        content: Product[];
+        totalElements: number;
+        totalPages: number;
+        pageNo: number;
+        pageSize: number;
+        last: boolean;
+    }> => {
+        const res = await api.get("/products/search", { params });
+        return res.data;
+    },
 };

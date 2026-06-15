@@ -3,13 +3,26 @@ import {useState, useEffect } from "react";
 import {useNavigate} from "react-router";
 import {ArrowLeft, Phone, MapPin} from "lucide-react";
 import { orderService } from "@/services/orderService";
-import { type Order, ORDER_STEPS, ORDER_STATUS_INDEX, orderStatusContent} from "@/types/orders";
+import { type Order, type OrderStatus, ORDER_STEPS, ORDER_STATUS_INDEX, orderStatusContent, ORDER_TRANSITION_RULE, ORDER_STATUS_LABEL} from "@/types/orders";
+import toast from "react-hot-toast";
 
 export default function OrderDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
 
     const [order, setOrder] = useState<Order | null>(null);
+
+    const handleStatusChange = async (newStatus: OrderStatus) => {
+        if (!order) return;
+        try {
+            const updated = await orderService.updateStatus(order.id, newStatus);
+            setOrder(updated);
+            toast.success(`Đã cập nhật trạng thái đơn hàng: ${ORDER_STATUS_LABEL[newStatus]}`);
+        } catch (err) {
+            console.error(err);
+            toast.error("Cập nhật trạng thái thất bại. Vui lòng thử lại!");
+        }
+    };
 
     useEffect(() => {
         const fetchOrder = async () => {
@@ -98,10 +111,29 @@ export default function OrderDetail() {
                                         </div>
                                     </div>
                                 </div>
-                                <button
-                                    className="w-full px-4 rounded-full py-2 text-sm text-white bg-gradient-to-r from-primary-900 to-primary-400">
-                                    Cập nhật trạng thái
-                                </button>
+                                {(() => {
+                                    const allowedStatuses = ORDER_TRANSITION_RULE[order.status] || [];
+                                    return allowedStatuses.length > 1 ? (
+                                        <div className="flex flex-col gap-1 w-full mt-2">
+                                            <label className="text-xs text-gray-400 font-semibold mb-1">Cập nhật trạng thái đơn hàng</label>
+                                            <select
+                                                value={order.status}
+                                                onChange={(e) => handleStatusChange(e.target.value as OrderStatus)}
+                                                className="bg-black text-center text-white px-4 py-2.5 rounded-full text-sm outline-none w-full font-bold cursor-pointer hover:bg-slate-900 transition-colors"
+                                            >
+                                                {allowedStatuses.map((s) => (
+                                                    <option key={s} value={s}>
+                                                        {ORDER_STATUS_LABEL[s]}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-2.5 text-sm font-bold text-gray-500 bg-gray-200 rounded-full w-full mt-2">
+                                            Đơn hàng đã hoàn tất / hủy
+                                        </div>
+                                    );
+                                })()}
                             </div>
 
                         </div>

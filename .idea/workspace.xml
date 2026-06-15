@@ -5,24 +5,152 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="9de83c95-66f7-4a7d-af9b-f4ac4a01fad1" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/layout/NotificationDropdown.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/SearchPage.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/admin/AdminDashboard.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/admin/AdminOrderManagement.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/admin/AdminOrders.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/admin/AdminRevenue.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/admin/PolicyManagement.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/auth/VerifyEmail.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/seller/SellerAuctions.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/seller/SellerComplaints.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/seller/SellerDashboard.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/context/ConfirmContext.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/context/NotificationContext.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/services/notificationService.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/services/policyService.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/types/notification.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/controller/AdminOrderController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/controller/AdminPolicyController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/controller/AdminSettingController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/controller/NotificationController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/controller/PolicyController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/controller/StatsController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/dto/AdminStatsResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/dto/NotificationResponseDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/dto/PolicyDTO.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/dto/SellerStatsResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/dto/request/ChangePasswordRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/dto/request/GoogleLoginRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/entity/AuthProvider.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/entity/EmailVerificationToken.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/entity/Notification.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/entity/Policy.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/entity/ProductImage.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/entity/SystemSetting.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/mapper/NotificationMapper.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/repository/EmailVerificationTokenRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/repository/NotificationRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/repository/PolicyRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/repository/ProductImageRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/repository/SystemSettingRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/repository/specification/ProductSpecification.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/repository/specification/UserSpecification.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/NotificationService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/PolicyService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/StatsService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/impl/NotificationServiceImpl.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/impl/PolicyServiceImpl.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/impl/StatsServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/chat/GlobalChatWidget.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/chat/GlobalChatWidget.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/admin/AdminComplaints.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/admin/AdminComplaints.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/buyer/BuyerComplaints.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/buyer/BuyerComplaints.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/seller/SellerComplaints/SellerComplaints.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/seller/SellerComplaints/SellerComplaints.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/hooks/useExternalChat.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/hooks/useExternalChat.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/store.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/store.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/types/externalChat.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/types/externalChat.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/dto/ComplaintResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/dto/ComplaintResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/dto/request/ExternalMessageRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/dto/request/ExternalMessageRequest.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/dto/response/ExternalConversationResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/dto/response/ExternalConversationResponse.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/entity/ExternalConversation.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/entity/ExternalConversation.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/repository/ExternalConversationRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/repository/ExternalConversationRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/eslint.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/eslint.config.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/App.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/Auth/authSlice.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/Auth/authSlice.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/layout/Header.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/layout/Header.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/layout/Sidebar.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/layout/Sidebar.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/Home.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/Home.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/Profile.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/Profile.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/admin/AuctionManagement.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/admin/AuctionManagement.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/admin/CategoryManagement.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/admin/CategoryManagement.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/admin/UserManagement.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/admin/UserManagement.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/auctions/AuctionDetail/AuctionDetail.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/auctions/AuctionDetail/AuctionDetail.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/auctions/AuctionDetail/BidCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/auctions/AuctionDetail/BidCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/auctions/CreateAuction.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/auctions/CreateAuction.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/auth/ChangePassword.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/auth/ChangePassword.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/auth/Login.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/auth/Login.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/auth/Register.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/auth/Register.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/buyer/BuyerOrderDetail.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/buyer/BuyerOrderDetail.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/seller/SellerAuctionDetail/SellerAuctionDetail.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/seller/SellerAuctionDetail/SellerAuctionDetail.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/seller/SellerOrders/SellerOrderDetail.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/seller/SellerOrders/SellerOrderDetail.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/seller/SellerProduct/AddProductModal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/seller/SellerProduct/AddProductModal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/seller/SellerProduct/ProductCard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/seller/SellerProduct/ProductCard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/shopPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/components/pages/shopPage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/index.css" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/index.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/main.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/main.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/services/adminService.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/services/adminService.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/services/auctionService.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/services/auctionService.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/services/bidService.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/services/bidService.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/services/cloudinaryService.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/services/cloudinaryService.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/services/orderService.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/services/orderService.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/services/productsService.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/services/productsService.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/services/shopService.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/services/shopService.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/services/userService.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/services/userService.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/types/auction.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/types/auction.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/types/errorResponse.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/types/errorResponse.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/types/orders.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/types/orders.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/types/product.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/types/product.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/types/shopDetail.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/types/shopDetail.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/types/user.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/types/user.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Reverse-Auction-FE/src/utils/axios.ts" beforeDir="false" afterPath="$PROJECT_DIR$/Reverse-Auction-FE/src/utils/axios.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/config/DataInitializer.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/config/DataInitializer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/controller/AdminAuctionController.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/controller/AdminAuctionController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/controller/AuctionRequestController.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/controller/AuctionRequestController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/controller/AuthController.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/controller/AuthController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/controller/BidController.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/controller/BidController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/controller/OrdersController.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/controller/OrdersController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/controller/ProductController.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/controller/ProductController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/controller/ShopController.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/controller/ShopController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/controller/UsersController.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/controller/UsersController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/dto/AuctionRequestResponseDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/dto/AuctionRequestResponseDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/dto/BidResponseDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/dto/BidResponseDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/dto/CreateProductRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/dto/CreateProductRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/dto/OrderResponseDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/dto/OrderResponseDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/dto/ProductResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/dto/ProductResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/dto/ShopDetailResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/dto/ShopDetailResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/dto/UpdateProductRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/dto/UpdateProductRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/dto/UserDTO.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/dto/UserDTO.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/dto/response/AuthenticationResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/dto/response/AuthenticationResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/entity/AuctionRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/entity/AuctionRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/entity/Order.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/entity/Order.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/entity/Product.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/entity/Product.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/entity/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/entity/User.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/exception/CustomException.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/exception/CustomException.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/exception/GlobalExceptionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/exception/GlobalExceptionHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/mapper/BidMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/mapper/BidMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/repository/AuctionRequestRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/repository/AuctionRequestRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/repository/BidRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/repository/BidRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/repository/ProductRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/repository/ProductRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/repository/UserRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/repository/UserRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/scheduler/AuctionScheduler.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/scheduler/AuctionScheduler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/security/JwtAuthenticationFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/security/JwtAuthenticationFilter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/AuctionRequestService.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/AuctionRequestService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/AuthService.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/AuthService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/BidService.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/BidService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/EmailService.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/EmailService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/OrderService.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/OrderService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/ProductService.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/ProductService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/ShopService.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/ShopService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/UserService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/impl/AuctionRequestServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/impl/AuctionRequestServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/impl/AuthServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/impl/AuthServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/impl/BidServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/impl/BidServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/impl/CategoryServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/impl/CategoryServiceImpl.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/impl/ComplaintService.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/impl/ComplaintService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/impl/ExternalChatService.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/impl/ExternalChatService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/impl/EmailServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/impl/EmailServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/impl/FileService.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/impl/FileService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/impl/JwtServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/impl/JwtServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/impl/OrderServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/impl/OrderServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/impl/PaymentService.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/impl/PaymentService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/impl/ProductServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/impl/ProductServiceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/impl/ShopServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/impl/ShopServiceImpl.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/impl/UserServiceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/service/impl/UserServiceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/websocket/ChatWebSocketHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/websocket/ChatWebSocketHandler.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/reverse-auction/src/test/java/vn/edu/hcmuaf/reverseauction/ReverseAuctionApplicationTests.java" beforeDir="false" afterPath="$PROJECT_DIR$/reverse-auction/src/test/java/vn/edu/hcmuaf/reverseauction/ReverseAuctionApplicationTests.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -71,7 +199,7 @@
     <urls />
   </component>
   <component name="ProblemsViewState">
-    <option name="selectedTabId" value="QODANA_PROBLEMS_VIEW_TAB" />
+    <option name="selectedTabId" value="CurrentFile" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 7
@@ -83,22 +211,26 @@
   </component>
   <component name="PropertiesComponent">{
   &quot;keyToString&quot;: {
+    &quot;Application.ReverseAuctionApplication.executor&quot;: &quot;Run&quot;,
     &quot;Maven.reverse-auction [clean].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.reverse-auction [package].executor&quot;: &quot;Run&quot;,
     &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
     &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
     &quot;Spring Boot.ReverseAuctionApplication.executor&quot;: &quot;Run&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;feature/functional-group-2&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;Merging feature/functional-group-2&quot;,
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
     &quot;last_opened_file_path&quot;: &quot;D:/ecom/reverse-auction/src/main/java/vn/edu/hcmuaf/reverseauction/dto/response&quot;,
     &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;onboarding.tips.debug.path&quot;: &quot;D:/ecom/src/Main.java&quot;,
     &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15527344&quot;,
     &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.lookFeel&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;pProject Default&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
 }</component>
@@ -119,25 +251,16 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="ReverseAuctionApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" temporary="true" nameIsGenerated="true">
-      <option name="ALTERNATIVE_JRE_PATH" value="21" />
-      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
-      <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UnknownPolicyInFreeMode" />
+    <configuration name="ReverseAuctionApplication" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="vn.edu.hcmuaf.reverseauction.ReverseAuctionApplication" />
       <module name="reverse-auction" />
-      <option name="SPRING_BOOT_MAIN_CLASS" value="vn.edu.hcmuaf.reverseauction.ReverseAuctionApplication" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="vn.edu.hcmuaf.reverseauction.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Spring Boot.ReverseAuctionApplication" />
+        <item itemvalue="Application.ReverseAuctionApplication" />
       </list>
     </recent_temporary>
   </component>
@@ -158,6 +281,17 @@
       <workItem from="1778513655038" duration="43000" />
     </task>
     <servers />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/Main.java</url>
+          <line>11</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
   <component name="github-copilot-workspace">
     <instructionFileLocations>

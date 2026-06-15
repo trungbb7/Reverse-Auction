@@ -1,6 +1,8 @@
 import { Pencil, Trash2 } from "lucide-react";
 import StatusBadge from "./StatusBadge";
 import type { Product } from "@/types/product.ts";
+import { useConfirm } from "@/context/ConfirmContext";
+
 
 interface ProductRowProps {
     product: Product;
@@ -8,6 +10,7 @@ interface ProductRowProps {
     onDelete: (id: number) => void;
 }
 export default function ProductRow({product, onEdit, onDelete}: ProductRowProps) {
+    const { confirm } = useConfirm();
     return (
         <tr className="border-b border-slate-100 hover:bg-slate-50 transition-all duration-200">
             <td className="py-5 px-6">
@@ -72,8 +75,15 @@ export default function ProductRow({product, onEdit, onDelete}: ProductRowProps)
                     </button>
 
                     <button
-                        onClick={() => {
-                            if (confirm("Bạn có chắc muốn xóa sản phẩm này không?")) {
+                        onClick={async () => {
+                            const isConfirmed = await confirm({
+                                title: "Xóa sản phẩm",
+                                message: "Bạn có chắc muốn xóa sản phẩm này không?",
+                                type: "danger",
+                                confirmText: "Xóa",
+                                cancelText: "Hủy",
+                            });
+                            if (isConfirmed) {
                                 onDelete(product.id);
                             }
                         }}

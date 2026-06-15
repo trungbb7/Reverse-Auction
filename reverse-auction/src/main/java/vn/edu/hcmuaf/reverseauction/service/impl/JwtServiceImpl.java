@@ -5,6 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import vn.edu.hcmuaf.reverseauction.entity.User;
@@ -16,10 +17,10 @@ import java.util.function.Function;
 
 @Service
 public class JwtServiceImpl implements JwtService {
-    @org.springframework.beans.factory.annotation.Value("${app.jwt.secret}")
+    @Value("${app.jwt.secret}")
     private String secretKey;
 
-    @org.springframework.beans.factory.annotation.Value("${app.jwt.expiration-ms}")
+    @Value("${app.jwt.expiration-ms}")
     private long jwtExpiration;
 
     @Override
@@ -82,8 +83,8 @@ public class JwtServiceImpl implements JwtService {
     }
 
     private Key getSignInKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
-        return Keys.hmacShaKeyFor(keyBytes);
+//        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
+        return Keys.hmacShaKeyFor(secretKey.getBytes());
     }
 
 }

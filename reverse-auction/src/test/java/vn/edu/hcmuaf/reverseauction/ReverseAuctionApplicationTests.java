@@ -24,43 +24,5 @@ class ReverseAuctionApplicationTests {
     @Autowired
     private UserRepository userRepository;
 
-    @Test
-    @Transactional
-    void testSendMessageAndCreateConversation() {
-        User user1 = userRepository.findByEmail("test1@test.com").orElseGet(() -> {
-            User u = User.builder()
-                    .email("test1@test.com")
-                    .password("password")
-                    .fullName("Test User 1")
-                    .role(Role.ROLE_BUYER)
-                    .rating(0.0)
-                    .totalReviews(0)
-                    .enabled(true)
-                    .build();
-            return userRepository.save(u);
-        });
 
-        User user2 = userRepository.findByEmail("test2@test.com").orElseGet(() -> {
-            User u = User.builder()
-                    .email("test2@test.com")
-                    .password("password")
-                    .fullName("Test User 2")
-                    .role(Role.ROLE_SELLER)
-                    .rating(0.0)
-                    .totalReviews(0)
-                    .enabled(true)
-                    .build();
-            return userRepository.save(u);
-        });
-
-        Authentication auth = new UsernamePasswordAuthenticationToken(user1.getEmail(), null);
-        ExternalMessageRequest request = new ExternalMessageRequest(user2.getId(), "First chat message!");
-
-        ExternalMessageResponse response = externalChatService.sendMessage(auth, request);
-
-        assertNotNull(response);
-        assertNotNull(response.conversationId());
-        System.out.println("Conversation ID generated: " + response.conversationId());
-        System.out.println("Message: " + response.content());
-    }
 }

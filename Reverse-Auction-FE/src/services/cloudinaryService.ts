@@ -1,4 +1,4 @@
-const presetName = "unsinged_demo_preset";
+const presetName = import.meta.env.VITE_CLOUDINARY_PRESET_NAME || "";
 
 class CloudinaryService {
   async uploadSingleImage(file: File) {

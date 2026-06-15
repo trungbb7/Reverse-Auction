@@ -25,6 +25,7 @@ export interface Auction {
   location?: string;
   paymentMethod?: string;
   imageUrls?: string[];
+  orderId?: number;
 }
 
 export interface Bid {
@@ -38,6 +39,14 @@ export interface Bid {
   isTopBid?: boolean;
   createdAt: string;
   updatedAt: string;
+  auctionTitle?: string;
+  auctionStatus?: string;
+  auctionBudget?: number;
+  categoryName?: string;
+  sellerRating?: number;
+  sellerTotalReviews?: number;
+  sellerTotalOrders?: number;
+  sellerCompletionRate?: number;
 }
 
 export const auctionEmpty: Auction = {

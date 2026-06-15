@@ -3,15 +3,19 @@ package vn.edu.hcmuaf.reverseauction.exception;
 
 
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import vn.edu.hcmuaf.reverseauction.dto.response.ErrorResponse;
+import vn.edu.hcmuaf.reverseauction.service.ReviewService;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -19,6 +23,9 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    public GlobalExceptionHandler(ReviewService reviewService) {
+    }
 
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException ex) {
@@ -43,34 +50,34 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
     }
 
-    @ExceptionHandler(org.springframework.security.authentication.DisabledException.class)
-    public ResponseEntity<ErrorResponse> handleDisabledException(org.springframework.security.authentication.DisabledException ex) {
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<ErrorResponse> handleDisabledException(DisabledException ex) {
         ErrorResponse error = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .error("Unauthorized")
                 .status(HttpStatus.UNAUTHORIZED.value())
-                .message("Tài khoản của bạn đã bị khóa!")
+                .message("Tài khoản chưa được xác thực email. Vui lòng kiểm tra hộp thư!")
                 .build();
         return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
     }
 
-    @ExceptionHandler(org.springframework.security.authentication.LockedException.class)
-    public ResponseEntity<ErrorResponse> handleLockedException(org.springframework.security.authentication.LockedException ex) {
+    @ExceptionHandler(LockedException.class)
+    public ResponseEntity<ErrorResponse> handleLockedException(LockedException ex) {
         ErrorResponse error = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
-                .error("Unauthorized")
-                .status(HttpStatus.UNAUTHORIZED.value())
-                .message("Tài khoản của bạn đã bị khóa!")
+                .error("Forbidden")
+                .status(HttpStatus.FORBIDDEN.value())
+                .message("Tài khoản của bạn đã bị khóa hoặc cấm hoạt động!")
                 .build();
-        return new ResponseEntity<>(error, HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(error, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(ExpiredJwtException.class)
     public ResponseEntity<ErrorResponse> handleExpiredJwtException(ExpiredJwtException ex) {
         ErrorResponse error = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
-                .error("Unauthorized")
-                .status(HttpStatus.UNAUTHORIZED.value())
+                .error("Forbidden")
+                .status(HttpStatus.FORBIDDEN.value())
                 .message("JWT expired!")
                 .build();
 
@@ -96,15 +103,26 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(SignatureException.class)
+    public ResponseEntity<ErrorResponse> handleSignatureException(SignatureException ex) {
+        ErrorResponse response = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .error("Unauthorized")
+                .status(HttpStatus.UNAUTHORIZED.value())
+                .message("Token không hợp lệ!")
+                .build();
+        return new ResponseEntity<>(response, HttpStatus.UNAUTHORIZED);
+    }
+
     @ExceptionHandler(CustomException.class)
     public ResponseEntity<ErrorResponse> handleCustomException(CustomException ex) {
         ErrorResponse error = ErrorResponse.builder()
                 .timestamp(LocalDateTime.now())
                 .error(ex.getError())
-                .status(ex.getStatusCode().value())
+                .status(ex.getStatus().value())
                 .message(ex.getMessage())
                 .build();
-        return new ResponseEntity<>(error, ex.getStatusCode());
+        return new ResponseEntity<>(error, ex.getStatus());
     }
 
     @ExceptionHandler(RuntimeException.class)

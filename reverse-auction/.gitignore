@@ -35,3 +35,7 @@ build/
 
 # Configs
 **/src/main/resources/application**
+
+# AuctionRequest files
+AuctionRequestRepository.java
+AuctionRequest.java

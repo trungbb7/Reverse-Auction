@@ -6,6 +6,9 @@ export interface User {
   phone?: string;
   address?: string;
   enabled: boolean;
+  verified: boolean;
+  provider?: "LOCAL" | "GOOGLE";
+  balance?: number;
 }
 
 export interface UserWithToken {

@@ -17,4 +17,21 @@ export const shopService = {
         const res = await api.get("/shop/list");
         return res.data;
     },
+    searchShops: async (params: {
+        keyword?: string;
+        page?: number;
+        size?: number;
+        sortBy?: string;
+        sortDir?: string;
+    }): Promise<{
+        content: ShopDetail[];
+        totalElements: number;
+        totalPages: number;
+        pageNo: number;
+        pageSize: number;
+        last: boolean;
+    }> => {
+        const res = await api.get("/shop/search", { params });
+        return res.data;
+    },
 };

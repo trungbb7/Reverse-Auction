@@ -1,17 +1,17 @@
 import { Link, useLocation } from "react-router";
-import { 
-  LayoutDashboard, 
-  ShoppingCart, 
-  Package, 
-  Users, 
-  Settings, 
+import {
+  LayoutDashboard,
+  ShoppingCart,
+  Package,
+  Users,
+  Settings,
   LogOut,
   TrendingUp,
   FileText,
   Search,
   TriangleAlert,
   MessageSquare,
-  LayoutGrid
+  LayoutGrid,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -24,24 +24,64 @@ const Sidebar = ({ role = "admin" }: SidebarProps) => {
 
   const adminNavLinks = [
     { name: "Tổng quan", path: "/admin", icon: <LayoutDashboard size={20} /> },
-    { name: "Quản lý đơn hàng", path: "/admin/orders", icon: <ShoppingCart size={20} /> },
-    { name: "Quản lý đấu giá", path: "/admin/auctions", icon: <Package size={20} /> },
-    { name: "Danh mục", path: "/admin/categories", icon: <LayoutGrid size={20} /> },
+    {
+      name: "Quản lý đơn hàng",
+      path: "/admin/orders",
+      icon: <ShoppingCart size={20} />,
+    },
+    {
+      name: "Quản lý đấu giá",
+      path: "/admin/auctions",
+      icon: <Package size={20} />,
+    },
+    {
+      name: "Danh mục",
+      path: "/admin/categories",
+      icon: <LayoutGrid size={20} />,
+    },
     { name: "Người dùng", path: "/admin/users", icon: <Users size={20} /> },
-    { name: "Doanh thu", path: "/admin/revenue", icon: <TrendingUp size={20} /> },
-    { name: "Khiếu nại", path: "/admin/complaints", icon: <TriangleAlert size={20} /> },
-    { name: "Chính sách", path: "/admin/policies", icon: <FileText size={20} /> },
+    {
+      name: "Khiếu nại",
+      path: "/admin/complaints",
+      icon: <TriangleAlert size={20} />,
+    },
+    {
+      name: "Doanh thu",
+      path: "/admin/revenue",
+      icon: <TrendingUp size={20} />,
+    },
+    {
+      name: "Chính sách",
+      path: "/admin/policies",
+      icon: <FileText size={20} />,
+    },
     { name: "Cài đặt", path: "/admin/settings", icon: <Settings size={20} /> },
   ];
 
   const sellerNavLinks = [
-    { name: "Quản lý đấu giá", path: "/seller", icon: <LayoutDashboard size={20} /> },
+    {
+      name: "Quản lý đấu giá",
+      path: "/seller",
+      icon: <LayoutDashboard size={20} />,
+    },
     { name: "Tìm kiếm", path: "/seller/search", icon: <Search size={20} /> },
-    { name: "Đơn hàng", path: "/seller/orders", icon: <ShoppingCart size={20} /> },
+    {
+      name: "Đơn hàng",
+      path: "/seller/orders",
+      icon: <ShoppingCart size={20} />,
+    },
     { name: "Sản phẩm", path: "/seller/products", icon: <Package size={20} /> },
     { name: "Thống kê", path: "/seller/stats", icon: <TrendingUp size={20} /> },
-    { name: "Khiếu nại", path: "/seller/complaints", icon: <TriangleAlert size={20} /> },
-    { name: "Trò chuyện", path: "/seller/chat", icon: <MessageSquare size={20} /> },
+    {
+      name: "Khiếu nại",
+      path: "/seller/complaints",
+      icon: <TriangleAlert size={20} />,
+    },
+    {
+      name: "Trò chuyện",
+      path: "/seller/chat",
+      icon: <MessageSquare size={20} />,
+    },
   ];
 
   const navLinks = role === "admin" ? adminNavLinks : sellerNavLinks;
@@ -61,7 +101,7 @@ const Sidebar = ({ role = "admin" }: SidebarProps) => {
 
       <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">
         {navLinks.map((link) => {
-          const isActive = pathname === link.path || pathname.startsWith(`${link.path}/`);
+          const isActive = pathname === link.path;
           return (
             <Link
               key={link.path}

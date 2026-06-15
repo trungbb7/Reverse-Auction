@@ -19,12 +19,10 @@ import OrderManagement from "./components/pages/seller/SellerOrders/SellerOrders
 import OrderDetail from "./components/pages/seller/SellerOrders/SellerOrderDetail";
 import SellerProduct from "./components/pages/seller/SellerProduct/SellerProduct";
 import SellerAuctionDetail from "./components/pages/seller/SellerAuctionDetail/SellerAuctionDetail";
-import SellerComplaints from "./components/pages/seller/SellerComplaints/SellerComplaints";
 import ExternalChatPage from "./components/pages/chat/ExternalChatPage";
 import GlobalChatWidget from "./components/chat/GlobalChatWidget";
 import BuyerOrder from "./components/pages/buyer/BuyerOrder/BuyerOrder";
 import BuyerOrderDetail from "./components/pages/buyer/BuyerOrderDetail";
-import BuyerComplaints from "./components/pages/buyer/BuyerComplaints";
 import BuyerReview from "./components/pages/buyer/BuyerReview";
 import PaymentResult from "./components/pages/PaymentResult";
 import {
@@ -35,13 +33,15 @@ import {
 import { useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "./hooks/redux.ts";
 import { fetchCurrentUser } from "./components/Auth/authSlice.ts";
+import { NotificationProvider } from "./context/NotificationContext.tsx";
+import { ConfirmProvider } from "./context/ConfirmContext.tsx";
 
 import UserManagement from "./components/pages/admin/UserManagement";
 import CategoryManagement from "./components/pages/admin/CategoryManagement";
 import AuctionManagement from "./components/pages/admin/AuctionManagement";
-import AdminComplaints from "./components/pages/admin/AdminComplaints";
 import Demo from "./components/pages/Demo.tsx";
 import ShopPage from "@/components/pages/shopPage";
+import SearchPage from "./components/pages/SearchPage";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -56,13 +56,17 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
-      <Toaster position="top-right" />
-      <Routes>
-        {/* Public home route */}
-        <Route path="/" element={<MainLayout />}>
-          <Route index element={<Home />} />
-        </Route>
+    <NotificationProvider>
+      <ConfirmProvider>
+        <BrowserRouter>
+          <Toaster position="top-right" />
+
+        <Routes>
+          {/* Public home route */}
+          <Route path="/" element={<MainLayout />}>
+            <Route index element={<Home />} />
+            <Route path="search" element={<SearchPage />} />
+          </Route>
 
         {/* Buyer-only routes */}
         <Route
@@ -78,7 +82,6 @@ function App() {
           <Route path="auctions/:id" element={<AuctionDetail />} />
           <Route path="buyer/orders" element={<BuyerOrder />} />
           <Route path="buyer/orders/:id" element={<BuyerOrderDetail />} />
-          <Route path="buyer/complaints" element={<BuyerComplaints />} />
         </Route>
 
         {/* Any authenticated user routes */}
@@ -128,7 +131,6 @@ function App() {
           <Route path="users" element={<UserManagement />} />
           <Route path="categories" element={<CategoryManagement />} />
           <Route path="auctions" element={<AuctionManagement />} />
-          <Route path="complaints" element={<AdminComplaints />} />
         </Route>
 
         {/* Seller routes */}
@@ -143,7 +145,6 @@ function App() {
           <Route index element={<div>Seller Dashboard (To be built)</div>} />
           <Route path="search" element={<SellerSearch />} />
           <Route path="chat" element={<ExternalChatPage />} />
-          <Route path="complaints" element={<SellerComplaints />} />
           <Route path="auctions/:id" element={<SellerAuctionDetail />} />
           <Route path="orders" element={<OrderManagement />} />
           <Route path="products" element={<SellerProduct />} />
@@ -154,6 +155,8 @@ function App() {
       </Routes>
       <GlobalChatWidget />
     </BrowserRouter>
+    </ConfirmProvider>
+  </NotificationProvider>
   );
 }
 
