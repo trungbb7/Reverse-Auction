@@ -50,7 +50,9 @@ public class ExternalChatService {
         if (request == null || request.receiverId() == null) {
             throw new IllegalArgumentException("Receiver is required");
         }
-        if (request.content() == null || request.content().isBlank()) {
+        boolean hasContent = request.content() != null && !request.content().isBlank();
+        boolean hasAttachment = request.url() != null && !request.url().isBlank();
+        if (!hasContent && !hasAttachment) {
             throw new IllegalArgumentException("Message content is required");
         }
 
@@ -62,13 +64,16 @@ public class ExternalChatService {
             throw new IllegalArgumentException("Cannot send a message to yourself");
         }
 
-        ExternalConversation conversation = resolveOrCreateConversation(sender, receiver);
+        boolean isComplaintChat = request.complaintChat() != null && request.complaintChat();
+        ExternalConversation conversation = resolveOrCreateConversation(sender, receiver, isComplaintChat);
 
         ExternalMessage message = new ExternalMessage();
         message.setConversation(conversation);
         message.setSender(sender);
         message.setReceiver(receiver);
-        message.setMessage(request.content().trim());
+        message.setMessage(hasContent ? request.content().trim() : "");
+        message.setType(normalizeMessageType(request.type(), hasAttachment));
+        message.setUrl(hasAttachment ? request.url().trim() : null);
         message.setCreatedDate(Instant.now());
         message = messageRepository.save(message);
 
@@ -78,13 +83,14 @@ public class ExternalChatService {
         return toMessageResponse(message);
     }
 
-    private ExternalConversation resolveOrCreateConversation(User sender, User receiver) {
-        String hash = buildParticipantsHash(sender.getId(), receiver.getId());
+    private ExternalConversation resolveOrCreateConversation(User sender, User receiver, boolean isComplaintChat) {
+        String hash = buildParticipantsHash(sender.getId(), receiver.getId(), isComplaintChat);
         return conversationRepository.findByParticipantsHash(hash)
                 .orElseGet(() -> {
                     ExternalConversation conversation = new ExternalConversation();
                     conversation.setId(nextConversationId());
                     conversation.setParticipantsHash(hash);
+                    conversation.setComplaintChat(isComplaintChat);
                     if (sender.getId() < receiver.getId()) {
                         conversation.setUser1(sender);
                         conversation.setUser2(receiver);
@@ -100,7 +106,8 @@ public class ExternalChatService {
     }
 
     private Long nextConversationId() {
-        return conversationRepository.findMaxId() + 1;
+        Long maxId = conversationRepository.findMaxId();
+        return (maxId == null ? 0L : maxId) + 1;
     }
 
     private ExternalConversation resolveConversationForUser(Long conversationId, User currentUser) {
@@ -126,10 +133,11 @@ public class ExternalChatService {
                 participant.getFullName(),
                 participant.getEmail(),
                 participant.getRole() == null ? null : participant.getRole().name(),
-                lastMessage == null ? null : lastMessage.getMessage(),
+                lastMessage == null ? null : summarizeLastMessage(lastMessage),
                 lastMessage == null ? null : lastMessage.getCreatedDate(),
                 conversation.getCreatedDate(),
-                conversation.getUpdatedDate()
+                conversation.getUpdatedDate(),
+                conversation.getComplaintChat()
         );
     }
 
@@ -142,14 +150,34 @@ public class ExternalChatService {
                 message.getReceiver().getId(),
                 message.getReceiver().getFullName(),
                 message.getMessage(),
+                message.getType(),
+                message.getUrl(),
                 message.getCreatedDate()
         );
     }
 
-    private String buildParticipantsHash(Long firstUserId, Long secondUserId) {
+    private String normalizeMessageType(String rawType, boolean hasAttachment) {
+        if (!hasAttachment) {
+            return "text";
+        }
+        if (rawType == null || rawType.isBlank()) {
+            return "image";
+        }
+        String type = rawType.trim().toLowerCase();
+        return "video".equals(type) ? "video" : "image";
+    }
+
+    private String summarizeLastMessage(ExternalMessage message) {
+        if (message.getUrl() != null && !message.getUrl().isBlank()) {
+            return "video".equalsIgnoreCase(message.getType()) ? "[Video]" : "[Image]";
+        }
+        return message.getMessage();
+    }
+
+    private String buildParticipantsHash(Long firstUserId, Long secondUserId, boolean isComplaintChat) {
         long low = Math.min(firstUserId, secondUserId);
         long high = Math.max(firstUserId, secondUserId);
-        return low + ":" + high;
+        return low + ":" + high + (isComplaintChat ? ":COMPLAINT" : "");
     }
 
     private boolean isParticipant(ExternalConversation conversation, User user) {

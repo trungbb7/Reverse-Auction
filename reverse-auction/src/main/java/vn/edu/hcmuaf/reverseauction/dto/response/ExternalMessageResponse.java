@@ -10,6 +10,8 @@ public record ExternalMessageResponse(
         Long receiverId,
         String receiverName,
         String content,
+        String type,
+        String url,
         Instant time
 ) {
 }

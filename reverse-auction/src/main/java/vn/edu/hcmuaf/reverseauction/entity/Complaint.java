@@ -10,6 +10,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -21,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import vn.edu.hcmuaf.reverseauction.entity.Order;
+import vn.edu.hcmuaf.reverseauction.entity.User;
 
 @Entity
 @Table(name = "complaints")
@@ -36,6 +38,10 @@ public class Complaint {
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id", nullable = false, unique = true)
     private Order order;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "buyer_id", nullable = false)
+    private User buyer;
 
     @Column(length = 2000)
     private String reason;

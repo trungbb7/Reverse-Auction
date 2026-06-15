@@ -4,19 +4,23 @@ import {
   CheckCircle2,
   Clock3,
   Filter,
+  ImagePlus,
   Loader2,
   MessageSquare,
   Package,
+  Send,
   ShieldAlert,
-  ShieldCheck,
+  TriangleAlert,
   User,
+  X,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import {
   complaintService,
   type Complaint,
-  type ResolveComplaintPayload,
+  type RespondComplaintPayload,
 } from "@/services/complaintService";
+import { cloudinaryService } from "@/services/cloudinaryService";
 import { useAppDispatch } from "@/hooks/redux";
 import { selectContact } from "@/components/chat/chatSlice";
 
@@ -29,14 +33,11 @@ const FILTERS: Array<{ key: ComplaintFilter; label: string }> = [
   { key: "CLOSED", label: "Đã đóng" },
 ];
 
-const VERDICT_OPTIONS = [
-  { value: "REFUND_TO_BUYER", label: "Hoàn tiền cho người mua" },
-  { value: "REQUEST_REPLACEMENT", label: "Yêu cầu đổi sản phẩm" },
-  { value: "REJECT_COMPLAINT", label: "Từ chối khiếu nại" },
+const ACTION_OPTIONS = [
+  { value: "ACCEPT_COMPLAINT", label: "Chấp nhận khiếu nại" },
+  { value: "PROPOSE_SOLUTION", label: "Đề xuất xử lý" },
+  { value: "DISPUTE", label: "Không đồng ý" },
 ];
-
-const isVideoUrl = (url: string) =>
-  /\.(mp4|webm|mov|m4v|ogg)(\?|$)/i.test(url) || url.includes("/video/upload/");
 
 function statusMeta(status: string) {
   switch (status) {
@@ -67,15 +68,17 @@ function statusMeta(status: string) {
   }
 }
 
-export default function AdminComplaints() {
+export default function SellerComplaints() {
   const dispatch = useAppDispatch();
   const [complaints, setComplaints] = useState<Complaint[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [filter, setFilter] = useState<ComplaintFilter>("ALL");
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [verdict, setVerdict] = useState(VERDICT_OPTIONS[0].value);
-  const [adminNote, setAdminNote] = useState("");
+  const [action, setAction] = useState(ACTION_OPTIONS[0].value);
+  const [sellerMessage, setSellerMessage] = useState("");
+  const [evidenceFiles, setEvidenceFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<string[]>([]);
 
   const loadComplaints = async () => {
     try {
@@ -105,41 +108,77 @@ export default function AdminComplaints() {
 
   useEffect(() => {
     if (!selectedComplaint) return;
-    if (selectedComplaint.status !== "PENDING_ADMIN") return;
-    setVerdict(selectedComplaint.verdict ?? VERDICT_OPTIONS[0].value);
-    setAdminNote(selectedComplaint.adminNote ?? "");
-  }, [selectedComplaint]);
-
-  const handleResolve = async () => {
-    if (!selectedComplaint) return;
-    if (selectedComplaint.status !== "PENDING_ADMIN") {
-      toast.error("Chỉ có thể xử lý khiếu nại đang chờ admin.");
+    if (selectedComplaint.status !== "PENDING_SELLER") {
       return;
     }
-    if (!adminNote.trim()) {
-      toast.error("Nhập ghi chú của admin trước khi gửi.");
+    setAction(selectedComplaint.sellerAction ?? ACTION_OPTIONS[0].value);
+    setSellerMessage(selectedComplaint.sellerMessage ?? "");
+    setEvidenceFiles([]);
+    setPreviews([]);
+  }, [selectedComplaint]);
+
+  useEffect(() => {
+    const nextPreviews = evidenceFiles.map((file) => URL.createObjectURL(file));
+    setPreviews(nextPreviews);
+    return () => {
+      nextPreviews.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [evidenceFiles]);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(e.target.files ?? []);
+    setEvidenceFiles((prev) => [...prev, ...selectedFiles]);
+  };
+
+  const removeFile = (index: number) => {
+    setEvidenceFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const isVideoFileUrl = (url: string) =>
+    /\.(mp4|webm|mov|m4v|ogg)(\?|$)/i.test(url) || url.includes("/video/upload/");
+
+  const handleSubmit = async () => {
+    if (!selectedComplaint) return;
+    if (!sellerMessage.trim()) {
+      toast.error("Nhập nội dung phản hồi trước khi gửi.");
       return;
     }
 
     try {
       setSubmitting(true);
-      const payload: ResolveComplaintPayload = {
-        verdict,
-        adminNote: adminNote.trim(),
+      let finalEvidenceUrl = selectedComplaint.sellerEvidence || "";
+
+      if (evidenceFiles.length > 0) {
+        toast.loading("Đang tải lên hình ảnh/video minh chứng...", {
+          id: "uploading",
+        });
+        const uploadResults = await cloudinaryService.uploadMultiMedia(evidenceFiles);
+        const urls = uploadResults.map((res) => res.url);
+        finalEvidenceUrl = urls.join(", ");
+        toast.dismiss("uploading");
+      }
+
+      const payload: RespondComplaintPayload = {
+        action,
+        sellerMessage: sellerMessage.trim(),
+        sellerEvidence: finalEvidenceUrl,
       };
-      await complaintService.resolveComplaint(selectedComplaint.complaintId, payload);
-      toast.success("Đã ghi nhận phán quyết.");
+      await complaintService.respondComplaint(selectedComplaint.complaintId, payload);
+      toast.success("Đã gửi phản hồi cho khiếu nại.");
+      setEvidenceFiles([]);
+      setPreviews([]);
       await loadComplaints();
     } catch (error) {
       console.error(error);
-      toast.error("Không thể xử lý khiếu nại.");
+      toast.dismiss("uploading");
+      toast.error("Không thể gửi phản hồi.");
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleChatWithUser = (userId: number) => {
-    dispatch(selectContact({ contactId: userId, isComplaintMode: true }));
+  const handleChatWithBuyer = (buyerId: number) => {
+    dispatch(selectContact({ contactId: buyerId, isComplaintMode: true }));
   };
 
   return (
@@ -148,12 +187,12 @@ export default function AdminComplaints() {
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="mb-2 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
-              <ShieldCheck className="h-3.5 w-3.5" />
-              Admin Complaint Desk
+              <TriangleAlert className="h-3.5 w-3.5" />
+              Complaint Center
             </p>
-            <h1 className="text-3xl font-black">Phân xử khiếu nại</h1>
+            <h1 className="text-3xl font-black">Quản lý khiếu nại</h1>
             <p className="mt-2 max-w-2xl text-sm text-white/70">
-              Duyệt khiếu nại đã qua seller phản hồi và ghi nhận phán quyết cuối cùng.
+              Xem toàn bộ khiếu nại, phản hồi từ seller, và theo dõi trạng thái xử lý.
             </p>
           </div>
           <button
@@ -193,20 +232,27 @@ export default function AdminComplaints() {
           <div className="mb-4 flex items-center justify-between">
             <div>
               <p className="text-sm font-black text-slate-900">Danh sách</p>
-              <p className="text-xs text-slate-500">{filtered.length} khiếu nại</p>
+              <p className="text-xs text-slate-500">
+                {filtered.length} khiếu nại
+              </p>
             </div>
           </div>
 
           {loading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((item) => (
-                <div key={item} className="h-24 animate-pulse rounded-2xl bg-slate-100" />
+                <div
+                  key={item}
+                  className="h-24 animate-pulse rounded-2xl bg-slate-100"
+                />
               ))}
             </div>
           ) : filtered.length === 0 ? (
             <div className="flex min-h-[240px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 text-center">
               <Package className="mb-3 h-10 w-10 text-slate-300" />
-              <p className="text-sm font-semibold text-slate-500">Không có khiếu nại nào</p>
+              <p className="text-sm font-semibold text-slate-500">
+                Không có khiếu nại nào
+              </p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -235,7 +281,9 @@ export default function AdminComplaints() {
                           {item.reason}
                         </p>
                       </div>
-                      <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ${meta.className}`}>
+                      <span
+                        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ${meta.className}`}
+                      >
                         <ActiveIcon className="h-3 w-3" />
                         {meta.label}
                       </span>
@@ -270,7 +318,9 @@ export default function AdminComplaints() {
                       const meta = statusMeta(selectedComplaint.status);
                       const Icon = meta.icon;
                       return (
-                        <span className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${meta.className}`}>
+                        <span
+                          className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold ${meta.className}`}
+                        >
                           <Icon className="h-3.5 w-3.5" />
                           {meta.label}
                         </span>
@@ -280,41 +330,23 @@ export default function AdminComplaints() {
                   <h2 className="mt-2 text-2xl font-black text-slate-900">
                     Order #{selectedComplaint.orderId}
                   </h2>
-                  <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-8">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-[#375F97]">
-                        <User className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Buyer (Người khiếu nại)</p>
-                        <p className="text-sm font-black text-slate-900">{selectedComplaint.buyerName}</p>
-                        <button
-                          onClick={() => handleChatWithUser(selectedComplaint.buyerId)}
-                          className="mt-1 inline-flex items-center gap-1.5 text-xs font-bold text-[#375F97] hover:underline"
-                        >
-                          <MessageSquare className="h-3 w-3" />
-                          Chat với buyer
-                        </button>
-                      </div>
+                  <div className="mt-3 flex items-center gap-3">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-[#375F97]">
+                      <User className="h-5 w-5" />
                     </div>
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-600">
-                        <Package className="h-5 w-5" />
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Seller (Người bị khiếu nại)</p>
-                        <p className="text-sm font-black text-slate-900">{selectedComplaint.sellerName}</p>
-                        <button
-                          onClick={() => handleChatWithUser(selectedComplaint.sellerId)}
-                          className="mt-1 inline-flex items-center gap-1.5 text-xs font-bold text-[#375F97] hover:underline"
-                        >
-                          <MessageSquare className="h-3 w-3" />
-                          Chat với seller
-                        </button>
-                      </div>
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Người khiếu nại</p>
+                      <p className="text-sm font-black text-slate-900">{selectedComplaint.buyerName}</p>
                     </div>
+                    <button
+                      onClick={() => handleChatWithBuyer(selectedComplaint.buyerId)}
+                      className="ml-4 inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white transition hover:bg-slate-800"
+                    >
+                      <MessageSquare className="h-3.5 w-3.5" />
+                      Chat với buyer
+                    </button>
                   </div>
-                  <p className="mt-6 max-w-3xl text-sm leading-6 text-slate-600 bg-slate-50 p-4 rounded-2xl">
+                  <p className="mt-4 max-w-3xl text-sm leading-6 text-slate-600 bg-slate-50 p-4 rounded-2xl">
                     {selectedComplaint.reason}
                   </p>
                 </div>
@@ -332,7 +364,7 @@ export default function AdminComplaints() {
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="rounded-2xl bg-slate-50 p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-                    Minh chứng
+                    Ảnh minh chứng
                   </p>
                   {selectedComplaint.evidenceUrls?.length ? (
                     <div className="mt-3 grid grid-cols-2 gap-3">
@@ -344,31 +376,29 @@ export default function AdminComplaints() {
                           rel="noreferrer"
                           className="overflow-hidden rounded-2xl border border-white bg-white shadow-sm"
                         >
-                          {isVideoUrl(url) ? (
-                            <video
-                              src={url}
-                              controls
-                              className="h-36 w-full bg-black object-contain"
-                            />
-                          ) : (
-                            <img src={url} alt="Ảnh minh chứng" className="h-36 w-full object-cover" />
-                          )}
+                          <img
+                            src={url}
+                            alt="Ảnh minh chứng"
+                            className="h-36 w-full object-cover"
+                          />
                         </a>
                       ))}
                     </div>
                   ) : (
-                    <p className="mt-3 text-sm text-slate-500">Không có ảnh đính kèm.</p>
+                    <p className="mt-3 text-sm text-slate-500">
+                      Không có ảnh đính kèm.
+                    </p>
                   )}
                 </div>
 
                 <div className="rounded-2xl bg-slate-50 p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-                    Phản hồi seller
+                    Phản hồi của bạn
                   </p>
-                  {selectedComplaint.sellerAction || selectedComplaint.sellerMessage ? (
+                  {selectedComplaint.sellerAction || selectedComplaint.sellerMessage || selectedComplaint.sellerEvidence ? (
                     <div className="mt-3 space-y-3 text-sm text-slate-700">
                       <p>
-                        <span className="font-semibold text-slate-900">Action: </span>
+                        <span className="font-semibold text-slate-900">Hành động: </span>
                         {selectedComplaint.sellerAction}
                       </p>
                       <p>
@@ -376,111 +406,40 @@ export default function AdminComplaints() {
                         {selectedComplaint.sellerMessage || "Không có"}
                       </p>
                       {selectedComplaint.sellerEvidence && (
-                        <div className="mt-2">
-                          <span className="font-semibold text-slate-900">Bằng chứng: </span>
-                          {selectedComplaint.sellerEvidence.includes("http") ? (
-                            <div className="mt-2 flex flex-wrap gap-2">
-                              {selectedComplaint.sellerEvidence.split(", ").map((url, i) => (
-                                <a
-                                  key={i}
-                                  href={url}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="block relative border rounded-lg overflow-hidden group"
-                                >
-                                  {isVideoUrl(url) ? (
-                                    <video src={url} className="w-20 h-20 object-cover" />
-                                  ) : (
-                                    <img src={url} alt="Minh chứng seller" className="w-20 h-20 object-cover" />
-                                  )}
-                                </a>
-                              ))}
-                            </div>
-                          ) : (
-                            <span className="text-slate-500 italic">{selectedComplaint.sellerEvidence}</span>
-                          )}
-                        </div>
+                         <div className="mt-2">
+                           <span className="font-semibold text-slate-900">Bằng chứng: </span>
+                           <div className="mt-2 flex flex-wrap gap-2">
+                             {selectedComplaint.sellerEvidence.split(", ").map((url, i) => (
+                               <a
+                                 key={i}
+                                 href={url}
+                                 target="_blank"
+                                 rel="noreferrer"
+                                 className="block relative border rounded-lg overflow-hidden group"
+                               >
+                                 {isVideoFileUrl(url) ? (
+                                   <video src={url} className="w-20 h-20 object-cover" />
+                                 ) : (
+                                   <img src={url} className="w-20 h-20 object-cover" />
+                                 )}
+                               </a>
+                             ))}
+                           </div>
+                         </div>
                       )}
                     </div>
                   ) : (
-                    <p className="mt-3 text-sm text-slate-500">Chưa có phản hồi từ seller.</p>
+                    <p className="mt-3 text-sm text-slate-500">
+                      Bạn chưa gửi phản hồi.
+                    </p>
                   )}
                 </div>
               </div>
 
-              {selectedComplaint.status === "PENDING_ADMIN" ? (
-                <div className="rounded-3xl border border-slate-200 bg-white p-5">
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="h-4 w-4 text-[#375F97]" />
-                    <h3 className="text-base font-black text-slate-900">Ghi nhận phán quyết</h3>
-                  </div>
-
-                  <div className="mt-4 grid gap-4">
-                    <div>
-                      <label className="mb-2 block text-sm font-semibold text-slate-700">
-                        Phán quyết
-                      </label>
-                      <select
-                        value={verdict}
-                        onChange={(e) => setVerdict(e.target.value)}
-                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-[#375F97] focus:bg-white"
-                      >
-                        {VERDICT_OPTIONS.map((opt) => (
-                          <option key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="mb-2 block text-sm font-semibold text-slate-700">
-                        Ghi chú admin
-                      </label>
-                      <textarea
-                        value={adminNote}
-                        onChange={(e) => setAdminNote(e.target.value)}
-                        rows={4}
-                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-[#375F97] focus:bg-white"
-                        placeholder="Nêu rõ lý do phán quyết, hướng xử lý cuối cùng..."
-                      />
-                    </div>
-
-                    <div className="flex justify-end">
-                      <button
-                        type="button"
-                        onClick={handleResolve}
-                        disabled={submitting}
-                        className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#375F97] to-blue-500 px-5 py-3 text-sm font-bold text-white transition hover:from-[#2d4f80] hover:to-blue-600 disabled:cursor-not-allowed disabled:opacity-60"
-                      >
-                        {submitting ? (
-                          <>
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            Đang xử lý...
-                          </>
-                        ) : (
-                          <>
-                            <ShieldCheck className="h-4 w-4" />
-                            Ghi nhận phán quyết
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-                  <p className="font-semibold text-slate-900">Trạng thái hiện tại</p>
-                  <p className="mt-1">
-                    Chỉ các khiếu nại ở trạng thái chờ admin mới có thể ghi nhận phán quyết.
-                  </p>
-                </div>
-              )}
-
               {selectedComplaint.verdict || selectedComplaint.adminNote ? (
                 <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600">
-                    Phán quyết đã lưu
+                    Phán quyết admin
                   </p>
                   <div className="mt-3 space-y-2 text-sm text-emerald-900">
                     <p>
@@ -498,6 +457,118 @@ export default function AdminComplaints() {
                   </div>
                 </div>
               ) : null}
+
+              {selectedComplaint.status === "PENDING_SELLER" ? (
+                <div className="rounded-3xl border border-slate-200 bg-white p-5">
+                  <div className="flex items-center gap-2">
+                    <Send className="h-4 w-4 text-[#375F97]" />
+                    <h3 className="text-base font-black text-slate-900">
+                      Gửi phản hồi cho buyer
+                    </h3>
+                  </div>
+
+                  <div className="mt-4 grid gap-4">
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-slate-700">
+                        Hành động
+                      </label>
+                      <select
+                        value={action}
+                        onChange={(e) => setAction(e.target.value)}
+                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-[#375F97] focus:bg-white"
+                      >
+                        {ACTION_OPTIONS.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-slate-700">
+                        Nội dung phản hồi
+                      </label>
+                      <textarea
+                        value={sellerMessage}
+                        onChange={(e) => setSellerMessage(e.target.value)}
+                        rows={4}
+                        className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none transition focus:border-[#375F97] focus:bg-white"
+                        placeholder="Giải thích xử lý, hướng giải quyết hoặc yêu cầu bổ sung thông tin..."
+                      />
+                    </div>
+
+                    <div>
+                      <label className="mb-2 block text-sm font-semibold text-slate-700">
+                        Hình ảnh / video minh chứng
+                      </label>
+                      <label className="flex cursor-pointer items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-500 transition hover:border-[#375F97] hover:bg-blue-50/50">
+                        <ImagePlus className="h-5 w-5 text-[#375F97]" />
+                        <span>Chọn tệp từ thiết bị</span>
+                        <input
+                          type="file"
+                          accept="image/*,video/*"
+                          multiple
+                          onChange={handleFileChange}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+
+                    {previews.length > 0 && (
+                      <div className="grid grid-cols-3 gap-3">
+                        {previews.map((preview, index) => (
+                          <div
+                            key={index}
+                            className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-slate-50"
+                          >
+                            {isVideoFileUrl(evidenceFiles[index].name) || evidenceFiles[index].type.startsWith("video/") ? (
+                              <video src={preview} className="h-24 w-full object-cover" />
+                            ) : (
+                              <img src={preview} alt="" className="h-24 w-full object-cover" />
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => removeFile(index)}
+                              className="absolute top-1 right-1 p-1 bg-black/50 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        onClick={handleSubmit}
+                        disabled={submitting}
+                        className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#375F97] to-blue-500 px-5 py-3 text-sm font-bold text-white transition hover:from-[#2d4f80] hover:to-blue-600 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {submitting ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Đang gửi...
+                          </>
+                        ) : (
+                          <>
+                            <Send className="h-4 w-4" />
+                            Gửi phản hồi
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+                  <p className="font-semibold text-slate-900">Trạng thái hiện tại</p>
+                  <p className="mt-1">
+                    Khiếu nại này đã đi qua bước seller hoặc đã đóng. Không thể gửi phản hồi mới.
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </section>
