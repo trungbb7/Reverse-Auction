@@ -32,4 +32,13 @@ public class MessageController {
     public ResponseEntity<List<MessageResponse>> listMessages(@RequestParam(required = false) Long auctionId) {
         return ResponseEntity.ok(messageService.listMessages(auctionId));
     }
+
+    @GetMapping("/conversation")
+    public ResponseEntity<List<MessageResponse>> listConversation(
+            Authentication authentication,
+            @RequestParam Long auctionId,
+            @RequestParam(required = false) Long sellerId
+    ) {
+        return ResponseEntity.ok(messageService.listConversation(authentication, auctionId, sellerId));
+    }
 }
