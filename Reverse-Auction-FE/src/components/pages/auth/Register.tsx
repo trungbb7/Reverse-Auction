@@ -45,7 +45,13 @@ export default function Register() {
     } catch (err) {
       const axiosError = err as AxiosError;
       const errRes = axiosError.response?.data as ErrorResponse;
-      toast.error(errRes.message || "Đã xảy ra lỗi");
+      
+      if (errRes?.fieldErrors && Object.keys(errRes.fieldErrors).length > 0) {
+        const firstError = Object.values(errRes.fieldErrors)[0];
+        toast.error(firstError as string);
+      } else {
+        toast.error(errRes?.message || "Đã xảy ra lỗi");
+      }
       console.error(err);
     } finally {
       setIsLoading(false);

@@ -22,6 +22,10 @@ const initialState: AuthState = {
 export const fetchCurrentUser = createAsyncThunk(
   "auth/fetchCurrentUser",
   async (_, { rejectWithValue }) => {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      return rejectWithValue("No access token found");
+    }
     try {
       const response = await userService.fetchUser();
       return response;

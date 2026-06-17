@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final vn.edu.hcmuaf.reverseauction.service.FileStorageService fileStorageService;
 
     @Override
     public UserDTO getCurrentUser() {
@@ -82,7 +83,47 @@ public class UserServiceImpl implements UserService {
                 .phone(user.getPhone())
                 .id(user.getId())
                 .role(user.getRole())
+                .enabled(user.isEnabled())
+                .cccdNumber(user.getCccdNumber())
+                .cccdFrontImage(user.getCccdFrontImage())
+                .cccdBackImage(user.getCccdBackImage())
+                .kycStatus(user.getKycStatus())
+                .kycMessage(user.getKycMessage())
                 .build();
+    }
+
+    @Override
+    public UserDTO submitKyc(org.springframework.web.multipart.MultipartFile front, org.springframework.web.multipart.MultipartFile back, String cccdNumber) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        String frontPath = fileStorageService.storeFile(front);
+        String backPath = fileStorageService.storeFile(back);
+
+        user.setCccdNumber(cccdNumber);
+        user.setCccdFrontImage(frontPath);
+        user.setCccdBackImage(backPath);
+        user.setKycStatus(vn.edu.hcmuaf.reverseauction.entity.KycStatus.PENDING);
+        user.setKycMessage(null);
+
+        userRepository.save(user);
+
+        return mapToDTO(user);
+    }
+
+    @Override
+    public UserDTO verifyKyc(Long userId, vn.edu.hcmuaf.reverseauction.entity.KycStatus status, String message) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setKycStatus(status);
+        user.setKycMessage(message);
+
+        userRepository.save(user);
+
+        return mapToDTO(user);
     }
 
 }

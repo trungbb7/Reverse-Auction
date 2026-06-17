@@ -13,4 +13,9 @@ public class UserDTO {
     private String phone;
     private Role role;
     private boolean enabled;
+    private String cccdNumber;
+    private String cccdFrontImage;
+    private String cccdBackImage;
+    private vn.edu.hcmuaf.reverseauction.entity.KycStatus kycStatus;
+    private String kycMessage;
 }

@@ -28,4 +28,12 @@ public class UsersController {
     public List<UserDTO> listChatContacts() {
         return userService.listChatUsers();
     }
+
+    @PostMapping(value = "/kyc", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    public UserDTO submitKyc(
+            @RequestParam("frontImage") org.springframework.web.multipart.MultipartFile front,
+            @RequestParam("backImage") org.springframework.web.multipart.MultipartFile back,
+            @RequestParam("cccdNumber") String cccdNumber) {
+        return userService.submitKyc(front, back, cccdNumber);
+    }
 }

@@ -47,6 +47,32 @@ public class User implements UserDetails {
     @Builder.Default
     private Boolean enabled = true;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean verified = false;
+
+    @Column(name = "failed_attempts", nullable = false)
+    @Builder.Default
+    private Integer failedAttempts = 0;
+
+    // KYC fields
+    @Column(name = "cccd_number", length = 20)
+    private String cccdNumber;
+
+    @Column(name = "cccd_front_image")
+    private String cccdFrontImage;
+
+    @Column(name = "cccd_back_image")
+    private String cccdBackImage;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "kyc_status", nullable = false)
+    @Builder.Default
+    private KycStatus kycStatus = KycStatus.UNVERIFIED;
+
+    @Column(name = "kyc_message", columnDefinition = "TEXT")
+    private String kycMessage;
+
     @OneToMany(mappedBy = "buyer", fetch = FetchType.LAZY)
     @Builder.Default
     private List<AuctionRequest> auctionRequests = new ArrayList<>();

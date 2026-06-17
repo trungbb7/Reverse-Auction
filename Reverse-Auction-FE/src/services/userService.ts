@@ -11,4 +11,13 @@ export const userService = {
         const res = await api.put("/users/me", data);
         return res.data;
     },
+
+    submitKyc: async (formData: FormData): Promise<User> => {
+        const res = await api.post("/users/kyc", formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
+        });
+        return res.data;
+    },
 };

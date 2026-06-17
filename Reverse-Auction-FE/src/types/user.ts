@@ -5,6 +5,11 @@ export interface User {
   fullName?: string;
   phone?: string;
   enabled: boolean;
+  cccdNumber?: string;
+  cccdFrontImage?: string;
+  cccdBackImage?: string;
+  kycStatus?: 'UNVERIFIED' | 'PENDING' | 'APPROVED' | 'REJECTED';
+  kycMessage?: string;
 }
 
 export interface UserWithToken {
