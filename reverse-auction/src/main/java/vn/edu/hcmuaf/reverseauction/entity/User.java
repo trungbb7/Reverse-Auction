@@ -36,6 +36,8 @@ public class User implements UserDetails {
     private String address;
     @Column
     private String imageUrl;
+    @Column
+    private String description;
 
     @Column(nullable = false)
     @Builder.Default

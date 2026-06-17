@@ -53,6 +53,7 @@ import ShopPage from "@/components/pages/shopPage";
 import SearchPage from "./components/pages/SearchPage";
 import CartPage from "./components/pages/buyer/buyerCart/CartPage";
 import {CheckoutPage} from "./components/pages/buyer/buyerCheckout/Checkout.tsx";
+import SellerInfo from "./components/pages/seller//SellerInfo.tsx";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -189,6 +190,7 @@ function App() {
             <Route path="products" element={<SellerProduct />} />
             <Route path="orders-detail/:id" element={<OrderDetail />} />
             <Route path="complaints" element={<SellerComplaints />} />
+            <Route path="sellerInfo" element={<SellerInfo />} />
           </Route>
           <Route path="/demo" element={<Demo />} />
           <Route path="/payment/result" element={<PaymentResult />} />

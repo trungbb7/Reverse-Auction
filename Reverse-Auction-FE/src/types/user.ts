@@ -5,10 +5,12 @@ export interface User {
   fullName?: string;
   phone?: string;
   address?: string;
-  enabled: boolean;
-  verified: boolean;
+  enabled?: boolean;
+  verified?: boolean;
   provider?: "LOCAL" | "GOOGLE";
   balance?: number;
+  imageUrl?: string;
+  description?: string;
 }
 
 export interface UserWithToken {

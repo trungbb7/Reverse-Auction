@@ -45,6 +45,8 @@ public class UserServiceImpl implements UserService {
 
         user.setFullName(request.getFullName());
         user.setPhone(request.getPhone());
+        user.setImageUrl(request.getImageUrl());
+        user.setDescription(request.getDescription());
         user.setAddress(request.getAddress());
 
         userRepository.save(user);
@@ -92,6 +94,8 @@ public class UserServiceImpl implements UserService {
                 .id(user.getId())
                 .role(user.getRole())
                 .enabled(user.getEnabled())
+                .imageUrl(user.getImageUrl())
+                .description(user.getDescription())
                 .verified(user.getVerified())
                 .provider(user.getProvider())
                 .balance(user.getBalance())
