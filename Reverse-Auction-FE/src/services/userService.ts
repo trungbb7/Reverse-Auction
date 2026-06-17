@@ -12,9 +12,11 @@ export const userService = {
         return res.data;
     },
 
-    topupBalance: async (amount: number): Promise<User> => {
-        const res = await api.post("/users/me/topup", null, {
-            params: { amount }
+    submitKyc: async (formData: FormData): Promise<User> => {
+        const res = await api.post("/users/kyc", formData, {
+            headers: {
+                "Content-Type": "multipart/form-data",
+            },
         });
         return res.data;
     },

@@ -9,8 +9,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.ArrayList;
 import java.util.List;
-import java.time.LocalDateTime;
-import java.math.BigDecimal;
 
 
 @Entity
@@ -32,10 +30,6 @@ public class User implements UserDetails {
     private String fullName;
     @Column(length = 20)
     private String phone;
-    @Column
-    private String address;
-    @Column
-    private String imageUrl;
 
     @Column(nullable = false)
     @Builder.Default
@@ -49,29 +43,35 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private Role role;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    @Builder.Default
-    private AuthProvider provider = AuthProvider.LOCAL;
-
-    @Column(nullable = false)
-    @Builder.Default
-    private Boolean verified = false;
-
     @Column(nullable = false)
     @Builder.Default
     private Boolean enabled = true;
 
     @Column(nullable = false)
     @Builder.Default
+    private Boolean verified = false;
+
+    @Column(name = "failed_attempts", nullable = false)
+    @Builder.Default
     private Integer failedAttempts = 0;
 
-    @Column
-    private LocalDateTime lockoutTime;
+    // KYC fields
+    @Column(name = "cccd_number", length = 20)
+    private String cccdNumber;
 
-    @Column(nullable = false, columnDefinition = "DECIMAL(15,2) DEFAULT 0.00")
+    @Column(name = "cccd_front_image")
+    private String cccdFrontImage;
+
+    @Column(name = "cccd_back_image")
+    private String cccdBackImage;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "kyc_status", nullable = false)
     @Builder.Default
-    private BigDecimal balance = BigDecimal.ZERO;
+    private KycStatus kycStatus = KycStatus.UNVERIFIED;
+
+    @Column(name = "kyc_message", columnDefinition = "TEXT")
+    private String kycMessage;
 
     @OneToMany(mappedBy = "buyer", fetch = FetchType.LAZY)
     @Builder.Default
@@ -83,16 +83,7 @@ public class User implements UserDetails {
     }
     @Override public String getUsername() { return email; }
     @Override public boolean isAccountNonExpired() { return true; }
-    @Override
-    public boolean isAccountNonLocked() {
-        if (lockoutTime != null && lockoutTime.isAfter(LocalDateTime.now())) {
-            return false;
-        }
-        return enabled;
-    }
+    @Override public boolean isAccountNonLocked() { return enabled; }
     @Override public boolean isCredentialsNonExpired() { return true; }
-    @Override
-    public boolean isEnabled() {
-        return verified;
-    }
+    @Override public boolean isEnabled() { return enabled; }
 }
