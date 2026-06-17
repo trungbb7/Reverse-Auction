@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import {
   Clock,
@@ -8,6 +8,7 @@ import {
   Trophy,
   XCircle,
   ChevronRight,
+  MessageSquare,
 } from "lucide-react";
 import {
   auctionEmpty,
@@ -24,6 +25,8 @@ import { useAppSelector } from "@/hooks/redux";
 import toast from "react-hot-toast";
 import SockJS from "sockjs-client";
 import { Client } from "@stomp/stompjs";
+import AuctionChatSystem from "../../auctions/AuctionDetail/AuctionChatSystem";
+
 export default function SellerAuctionDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -38,6 +41,7 @@ export default function SellerAuctionDetail() {
   );
   const userId = useAppSelector((state) => state.auth.user?.id);
   const [stompClient, setStompClient] = useState<Client | null>(null);
+  const chatRef = useRef<HTMLDivElement>(null);
 
   const pad = (n: number) => String(n).padStart(2, "0");
 
@@ -139,7 +143,7 @@ export default function SellerAuctionDetail() {
   const winnerBid = bids.find((b) => b.isWinner === true);
 
   return (
-    <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6">
+    <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 relative space-y-8">
       {/* Top bar */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-3">
@@ -262,9 +266,19 @@ export default function SellerAuctionDetail() {
                   Người mua xác thực • 142 giao dịch
                 </p>
               </div>
-              <span className="text-xs font-bold text-blue-700 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full">
-                Priority Buyer
-              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => chatRef.current?.scrollIntoView({ behavior: "smooth" })}
+                  className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors shadow-sm"
+                  title="Đi đến thảo luận"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span className="text-xs font-bold">Thảo luận với người mua</span>
+                </button>
+                <span className="text-xs font-bold text-blue-700 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full">
+                  Priority Buyer
+                </span>
+              </div>
             </div>
 
             {/* Image gallery */}
@@ -334,6 +348,24 @@ export default function SellerAuctionDetail() {
           )}
           <BidStream bids={bids} myId={userId} />
         </div>
+      </div>
+
+      {/* Embedded Chat System */}
+      <div ref={chatRef} className="pt-10 border-t border-slate-100">
+        <h2 className="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3">
+          <MessageSquare className="w-8 h-8 text-[#375F97]" />
+          Trung tâm Thảo luận Phiên đấu giá
+        </h2>
+        <AuctionChatSystem
+          auctionId={Number(id)}
+          participants={
+            auction.buyerId
+              ? [{ id: auction.buyerId, name: auction.buyerName || "Người mua" }]
+              : []
+          }
+          stompClient={stompClient}
+          currentUserRole="SELLER"
+        />
       </div>
     </div>
   );
