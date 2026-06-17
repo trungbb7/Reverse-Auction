@@ -3,5 +3,5 @@ export interface ErrorResponse {
   message?: string;
   status?: number;
   timestamp?: string;
-  fieldErrors: Record<string, string>;
+  fieldErrors?: Record<string, string>;
 }

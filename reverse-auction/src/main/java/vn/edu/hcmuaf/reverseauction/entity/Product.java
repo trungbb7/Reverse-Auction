@@ -5,6 +5,8 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "product")
@@ -22,7 +24,6 @@ public class Product {
     @Column(nullable = false)
     private String name;
 
-    @Column(unique = true)
     private String sku;
 
     @Column(length = 3000)
@@ -56,6 +57,10 @@ public class Product {
     private Long viewCount;
 
     private Double ratingAverage;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<ProductImage> productImages = new ArrayList<>();
 
     private LocalDateTime createdAt;
 

@@ -3,8 +3,11 @@ import { adminService } from "@/services/adminService";
 import type { User } from "@/types/user";
 import { UserCheck, UserX, Search, Mail, Phone, Shield } from "lucide-react";
 import { toast } from "react-hot-toast";
+import { useConfirm } from "@/context/ConfirmContext";
+
 
 export default function UserManagement() {
+  const { confirm } = useConfirm();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -32,7 +35,15 @@ export default function UserManagement() {
 
   const handleToggleBlock = async (userId: number, currentStatus: boolean) => {
     const action = currentStatus ? "chặn" : "bỏ chặn";
-    if (confirm(`Bạn có chắc chắn muốn ${action} người dùng này?`)) {
+    const isConfirmed = await confirm({
+      title: `${currentStatus ? "Chặn" : "Bỏ chặn"} người dùng`,
+      message: `Bạn có chắc chắn muốn ${action} người dùng này?`,
+      type: currentStatus ? "danger" : "success",
+      confirmText: currentStatus ? "Chặn" : "Bỏ chặn",
+      cancelText: "Hủy",
+    });
+
+    if (isConfirmed) {
       try {
         await adminService.toggleUserBlock(userId);
         toast.success(`Đã ${action} người dùng thành công`);

@@ -33,9 +33,26 @@ export const auctionService = {
     return response.data;
   },
 
-  selectWinner: async (auctionId: string | number, bidId: string | number): Promise<Auction> => {
-    const response = await api.patch(`/auctions/${auctionId}/select-winner`, null, {
-      params: { bidId }
+  selectWinner: async (
+    auctionId: string | number,
+    bidId: string | number,
+  ): Promise<Auction> => {
+    const response = await api.patch(
+      `/auctions/${auctionId}/select-winner`,
+      null,
+      {
+        params: { bidId },
+      },
+    );
+    return response.data;
+  },
+
+  updateAuctionStatus: async (
+    auctionId: string | number,
+    status: string,
+  ): Promise<Auction> => {
+    const response = await api.patch(`/auctions/${auctionId}/status`, null, {
+      params: { status },
     });
     return response.data;
   },

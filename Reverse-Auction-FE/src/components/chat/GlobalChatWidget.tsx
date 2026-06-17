@@ -1,6 +1,6 @@
-import { useState } from "react";
 import {
   ChevronLeft,
+  Paperclip,
   MessageSquare,
   Search,
   Send,
@@ -34,7 +34,6 @@ const getInitials = (value?: string | null) =>
     .toUpperCase();
 
 const GlobalChatWidget = () => {
-  const [isOpen, setIsOpen] = useState(false);
   const {
     user,
     tab,
@@ -53,17 +52,46 @@ const GlobalChatWidget = () => {
     filteredContacts,
     draft,
     setDraft,
+    attachment,
+    setAttachment,
     loading,
     sending,
     connectionState,
     isConnected,
+    isOpen,
+    isComplaintMode,
     bottomRef,
     handleSelectConversation,
     handleSelectContact,
     handleSend,
-  } = useExternalChat({ enabled: isOpen });
+    handleToggleOpen,
+  } = useExternalChat({ enabled: true });
 
   if (!user) return null;
+
+  const renderMessageBody = (message: { content: string; type?: string | null; url?: string | null }) => (
+    <div className="space-y-2">
+      {message.url && message.type === "video" && (
+        <video
+          src={message.url}
+          controls
+          className="max-h-64 w-full rounded-2xl bg-black object-contain"
+        />
+      )}
+      {message.url && message.type !== "video" && (
+        <a href={message.url} target="_blank" rel="noreferrer">
+          <img
+            src={message.url}
+            alt={message.content || "Attachment"}
+            className="max-h-64 w-full rounded-2xl object-cover"
+          />
+        </a>
+      )}
+      {message.content && (
+        <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+      )}
+    </div>
+  );
 
   const renderConversationList = () => {
     if (loading && conversations.length === 0) {
@@ -88,7 +116,6 @@ const GlobalChatWidget = () => {
           type="button"
           onClick={() => {
             handleSelectConversation(conversation);
-            setIsOpen(true);
           }}
           className={`flex w-full items-start gap-3 border-b border-slate-100 px-4 py-3 text-left transition-colors hover:bg-slate-50 ${
             isActive ? "bg-primary-50" : ""
@@ -101,6 +128,11 @@ const GlobalChatWidget = () => {
             <div className="flex items-center justify-between gap-2">
               <p className="truncate text-sm font-semibold text-slate-900">
                 {displayName}
+                {conversation.complaintChat && (
+                  <span className="ml-1 rounded-full bg-red-500/10 px-1.5 py-0.5 text-[9px] font-bold text-red-500">
+                    COMPLAINT
+                  </span>
+                )}
               </p>
               <span className="shrink-0 text-[11px] text-slate-400">
                 {formatTime(
@@ -108,6 +140,7 @@ const GlobalChatWidget = () => {
                 )}
               </span>
             </div>
+
             <p className="truncate text-xs text-slate-500">
               {conversation.participantRole || "User"}
             </p>
@@ -125,7 +158,15 @@ const GlobalChatWidget = () => {
       return <p className="px-4 py-6 text-sm text-slate-500">Loading...</p>;
     }
 
-    if (filteredContacts.length === 0) {
+    const filtered = filteredContacts.filter((contact) => {
+      // Non-admin users cannot proactively message admins
+      if (user.role !== "ROLE_ADMIN" && contact.role === "ROLE_ADMIN") {
+        return false;
+      }
+      return true;
+    });
+
+    if (filtered.length === 0) {
       return (
         <div className="px-4 py-8 text-center text-sm text-slate-500">
           No matching users.
@@ -133,7 +174,7 @@ const GlobalChatWidget = () => {
       );
     }
 
-    return filteredContacts.map((contact) => {
+    return filtered.map((contact) => {
       const existingConversation = conversations.find(
         (conversation) => conversation.participantId === contact.id,
       );
@@ -146,7 +187,6 @@ const GlobalChatWidget = () => {
           type="button"
           onClick={() => {
             handleSelectContact(contact);
-            setIsOpen(true);
           }}
           className={`flex w-full items-start gap-3 border-b border-slate-100 px-4 py-3 text-left transition-colors hover:bg-slate-50 ${
             isActive ? "bg-primary-50" : ""
@@ -238,7 +278,7 @@ const GlobalChatWidget = () => {
               <div className="flex min-w-0 items-center gap-3">
                 <button
                   type="button"
-                  onClick={() => setIsOpen(false)}
+                  onClick={handleToggleOpen}
                   className="rounded-full border border-white/15 p-2 text-white transition-colors hover:bg-white/10 md:hidden"
                 >
                   <ChevronLeft size={18} />
@@ -249,6 +289,11 @@ const GlobalChatWidget = () => {
                 <div className="min-w-0">
                   <h3 className="truncate text-sm font-semibold">
                     {activePeerName}
+                    {isComplaintMode && (
+                      <span className="ml-2 rounded-full bg-red-500/20 px-2 py-0.5 text-[10px] font-bold text-red-200">
+                        COMPLAINT
+                      </span>
+                    )}
                   </h3>
                   <p className="truncate text-xs text-slate-300">
                     {selectedConversation?.participantRole ||
@@ -270,7 +315,7 @@ const GlobalChatWidget = () => {
                 </span>
                 <button
                   type="button"
-                  onClick={() => setIsOpen(false)}
+                  onClick={handleToggleOpen}
                   className="rounded-full border border-white/15 p-2 text-white transition-colors hover:bg-white/10"
                 >
                   <X size={18} />
@@ -312,9 +357,7 @@ const GlobalChatWidget = () => {
                                     : "rounded-bl-md border border-slate-200 bg-white text-slate-800"
                                 }`}
                               >
-                                <p className="whitespace-pre-wrap leading-relaxed">
-                                  {message.content}
-                                </p>
+                                {renderMessageBody(message)}
                                 <p
                                   className={`mt-2 text-[11px] ${
                                     isMine ? "text-slate-300" : "text-slate-400"
@@ -350,7 +393,36 @@ const GlobalChatWidget = () => {
               </div>
 
               <div className="border-t border-slate-200 bg-white p-3">
+                {attachment && (
+                  <div className="mb-2 flex items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+                    <span className="truncate">
+                      {attachment.type.startsWith("video/") ? "Video" : "Image"}:{" "}
+                      {attachment.name}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setAttachment(null)}
+                      className="rounded-full p-1 text-slate-400 hover:bg-slate-200 hover:text-slate-700"
+                      aria-label="Remove attachment"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                )}
                 <div className="flex items-end gap-3 rounded-3xl border border-slate-200 bg-slate-50 px-3 py-3">
+                  <label className="inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 transition-colors hover:bg-slate-100">
+                    <Paperclip size={16} />
+                    <input
+                      type="file"
+                      accept="image/*,video/*"
+                      className="sr-only"
+                      disabled={!selectedContactId || sending || !isConnected}
+                      onChange={(event) => {
+                        setAttachment(event.target.files?.[0] ?? null);
+                        event.target.value = "";
+                      }}
+                    />
+                  </label>
                   <textarea
                     value={draft}
                     onChange={(event) => setDraft(event.target.value)}
@@ -382,7 +454,7 @@ const GlobalChatWidget = () => {
                     onClick={() => void handleSend()}
                     disabled={
                       !selectedContactId ||
-                      !draft.trim() ||
+                      (!draft.trim() && !attachment) ||
                       sending ||
                       !isConnected
                     }
@@ -399,7 +471,7 @@ const GlobalChatWidget = () => {
       ) : (
         <button
           type="button"
-          onClick={() => setIsOpen(true)}
+          onClick={handleToggleOpen}
           className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-slate-950 to-slate-700 text-white shadow-[0_18px_40px_rgba(15,23,42,0.35)] transition-transform hover:scale-105"
           aria-label="Open chat"
         >

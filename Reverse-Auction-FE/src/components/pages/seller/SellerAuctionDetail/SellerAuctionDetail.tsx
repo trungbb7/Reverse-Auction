@@ -30,8 +30,12 @@ export default function SellerAuctionDetail() {
   const [auction, setAuction] = useState<Auction>(auctionEmpty);
   const [bids, setBids] = useState<Bid[]>([]);
   const [myBid, setMyBid] = useState<Bid | null>(null);
-  const [mainImage, setMainImage] = useState(auction.images?.[0] ?? "");
-  const countdown = useCountdown(auction.endDate || "");
+  const [mainImage, setMainImage] = useState(auction.imageUrls?.[0] ?? "");
+  const countdown = useCountdown(
+    auction?.status !== "OPEN"
+      ? new Date().toISOString()
+      : (auction?.endDate ?? new Date().toISOString()),
+  );
   const userId = useAppSelector((state) => state.auth.user?.id);
   const [stompClient, setStompClient] = useState<Client | null>(null);
 
@@ -48,7 +52,7 @@ export default function SellerAuctionDetail() {
         setAuction(auc);
         setBids(allBids);
         setMyBid(mine);
-        if (auc.images?.[0]) setMainImage(auc.images[0]);
+        if (auc.imageUrls?.[0]) setMainImage(auc.imageUrls[0]);
       } catch {
         toast.error("Đã xảy ra lỗi!");
       }
@@ -264,8 +268,8 @@ export default function SellerAuctionDetail() {
             </div>
 
             {/* Image gallery */}
-            <div className="flex gap-3 mb-5">
-              {(auction.images ?? []).map((src, idx) => (
+            <div className="flex gap-3 flex-wrap mb-5">
+              {(auction.imageUrls ?? []).map((src: string, idx: number) => (
                 <button
                   key={idx}
                   onClick={() => setMainImage(src)}
@@ -282,7 +286,7 @@ export default function SellerAuctionDetail() {
                   />
                 </button>
               ))}
-              {(auction.images ?? []).length === 0 && (
+              {(auction.imageUrls ?? []).length === 0 && (
                 <div className="w-44 h-32 rounded-xl bg-slate-100 flex items-center justify-center">
                   <ImageIcon className="w-8 h-8 text-slate-300" />
                 </div>

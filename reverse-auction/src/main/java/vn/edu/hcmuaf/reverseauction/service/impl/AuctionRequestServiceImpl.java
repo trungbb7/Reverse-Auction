@@ -17,6 +17,7 @@ import vn.edu.hcmuaf.reverseauction.mapper.AuctionRequestMapper;
 import vn.edu.hcmuaf.reverseauction.repository.*;
 import vn.edu.hcmuaf.reverseauction.repository.specification.AuctionRequestSpecification;
 import vn.edu.hcmuaf.reverseauction.service.AuctionRequestService;
+import vn.edu.hcmuaf.reverseauction.service.NotificationService;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -32,6 +33,7 @@ public class AuctionRequestServiceImpl implements AuctionRequestService {
     private final AuctionRequestMapper auctionRequestMapper;
     private final OrderRepository orderRepository;
     private final AuctionImageRepository auctionImageRepository;
+    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -68,12 +70,14 @@ public class AuctionRequestServiceImpl implements AuctionRequestService {
     }
 
     @Override
+    @Transactional
     public PageResponse<AuctionRequestResponseDTO> getAllAuctionRequests(Pageable pageable) {
         Page<AuctionRequest> page = auctionRequestRepository.findAll(pageable);
         return auctionRequestMapper.toPageResponse(page);
     }
 
     @Override
+    @Transactional
     public PageResponse<AuctionRequestResponseDTO> getMyAuctionRequests(String email, Pageable pageable) {
         User buyer = userRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
@@ -83,6 +87,7 @@ public class AuctionRequestServiceImpl implements AuctionRequestService {
     }
 
     @Override
+    @Transactional
     public AuctionRequestResponseDTO findById(long id) {
         AuctionRequest auc = auctionRequestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Auction not found with id: " + id));
@@ -100,7 +105,7 @@ public class AuctionRequestServiceImpl implements AuctionRequestService {
         // 2. Check: auction must be CLOSED to select winner
         if (auction.getStatus() != AuctionStatus.CLOSED) {
             throw CustomException.builder()
-                    .statusCode(HttpStatus.BAD_REQUEST)
+                    .status(HttpStatus.BAD_REQUEST)
                     .error("Invalid status")
                     .message("Chỉ có thể chọn winner khi auction đã CLOSED. Trạng thái hiện tại: " + auction.getStatus())
                     .build();
@@ -109,7 +114,7 @@ public class AuctionRequestServiceImpl implements AuctionRequestService {
         // 3. Check: API requester must be owner of auction
         if (!auction.getBuyer().getEmail().equals(buyerEmail)) {
             throw CustomException.builder()
-                    .statusCode(HttpStatus.FORBIDDEN)
+                    .status(HttpStatus.FORBIDDEN)
                     .error("Forbidden")
                     .message("Bạn không có quyền chọn winner cho auction này")
                     .build();
@@ -122,7 +127,7 @@ public class AuctionRequestServiceImpl implements AuctionRequestService {
         // 5. Check if bid along with auction
         if (winnerBid.getAuction().getId() != auctionId) {
             throw CustomException.builder()
-                    .statusCode(HttpStatus.BAD_REQUEST)
+                    .status(HttpStatus.BAD_REQUEST)
                     .error("Invalid bid")
                     .message("Bid này không thuộc auction id: " + auctionId)
                     .build();
@@ -153,12 +158,55 @@ public class AuctionRequestServiceImpl implements AuctionRequestService {
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
-        orderRepository.save(order);
+        Order savedOder = orderRepository.save(order);
 
-        return auctionRequestMapper.toDTO(saved);
+        // Notify the winning seller
+        String title = "Đề nghị đấu giá của bạn đã thắng!";
+        String content = String.format("Chúc mừng! Đề nghị đấu giá với giá %,.0fđ cho \"%s\" đã được chọn làm người thắng. Đơn hàng %s đã được tạo.",
+                winnerBid.getBidPrice(), auction.getTitle(), orderCode);
+        notificationService.createAndSendNotification(winnerBid.getSeller(), title, content, "AUCTION_WON", auction.getId());
+
+        AuctionRequestResponseDTO dto = auctionRequestMapper.toDTO(saved);
+        dto.setOrderId(savedOder.getId());
+        return dto;
     }
 
     @Override
+    @Transactional
+    public AuctionRequestResponseDTO updateAuctionStatus(long auctionId, AuctionStatus status, Long buyerId) {
+        AuctionRequest auction = auctionRequestRepository.findById(auctionId).orElseThrow(
+                () -> new ResourceNotFoundException("Không tìm thấy auction Id: " + auctionId));
+
+        User user = userRepository.findById(buyerId).orElseThrow(
+                () -> new ResourceNotFoundException("Không tìm thấy người dùng: " + buyerId));
+
+        boolean isBuyer = auction.getBuyer().getId().equals(buyerId);
+        boolean isAdmin = user.getRole() == Role.ROLE_ADMIN;
+        if (!isBuyer && !isAdmin) {
+            throw CustomException.builder()
+                    .error("Forbidden")
+                    .message("Bạn không có quyền cập nhật trạng thái phiên đấu giá này")
+                    .status(HttpStatus.FORBIDDEN)
+                    .build();
+        }
+
+        if (auction.getStatus() == AuctionStatus.COMPLETED || auction.getStatus() == AuctionStatus.CANCELLED) {
+            throw CustomException.builder()
+                    .error("Bad Request")
+                    .message("Không thể cập nhật trạng thái cho phiên đấu giá đã kết thúc hoặc đã hủy")
+                    .status(HttpStatus.BAD_REQUEST)
+                    .build();
+        }
+
+        auction.setStatus(status);
+
+        auctionRequestRepository.save(auction);
+
+        return auctionRequestMapper.toDTO(auction);
+    }
+
+    @Override
+    @Transactional
     public PageResponse<AuctionRequestResponseDTO> getFilteredAuction(String keyword, String categoryName, AuctionStatus status, BigDecimal minBudget, BigDecimal maxBudget, Pageable pageable) {
         Specification<AuctionRequest> spec = Specification.where(AuctionRequestSpecification.hasCategoryName(categoryName))
                 .and(AuctionRequestSpecification.hasStatus(status))

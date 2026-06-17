@@ -41,4 +41,7 @@ public class ExternalConversation {
 
     @Column(nullable = false)
     private Instant updatedDate;
+
+    @Column(name = "complaint_chat", nullable = false)
+    private Boolean complaintChat = false;
 }

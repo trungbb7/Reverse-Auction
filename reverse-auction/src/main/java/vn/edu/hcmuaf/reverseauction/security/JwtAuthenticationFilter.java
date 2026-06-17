@@ -1,6 +1,7 @@
 package vn.edu.hcmuaf.reverseauction.security;
 
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -60,8 +61,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
             filterChain.doFilter(request, response);
-        }catch (ExpiredJwtException ex) {
+        }catch (ExpiredJwtException | SignatureException ex) {
             resolver.resolveException(request, response, null, ex);
         }
+
     }
 }

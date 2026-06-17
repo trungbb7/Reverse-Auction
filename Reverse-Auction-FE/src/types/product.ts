@@ -19,6 +19,7 @@ export interface Product {
     model?: string;
 
     imageUrl?: string;
+    imageUrls?: string[];
 
     categoryId: number;
     categoryName: string;
@@ -26,6 +27,7 @@ export interface Product {
     price: number;
 
     stockQuantity: number;
+    rating: number;
 
     status: ProductStatus;
 
@@ -44,6 +46,7 @@ export interface ProductRequest {
     model?: string;
 
     imageUrl?: string;
+    imageUrls?: string[];
 
     categoryId: number;
 

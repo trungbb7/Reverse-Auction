@@ -45,6 +45,41 @@ export const adminService = {
         return res.data;
     },
 
+    getAuctionDetail: async (id: number): Promise<any> => {
+        const res = await api.get(`/admin/auctions/${id}`);
+        return res.data;
+    },
+
+    cancelAuction: async (auctionId: number): Promise<any> => {
+        const res = await api.patch(`/auctions/${auctionId}/status`, null, {
+            params: { status: "CANCELLED" }
+        });
+        return res.data;
+    },
+
+    // Order Management
+    getAllOrders: async (): Promise<any[]> => {
+        const res = await api.get("/orders/admin");
+        return res.data;
+    },
+
+    getAdminStats: async (): Promise<any> => {
+        const res = await api.get("/stats/admin");
+        return res.data;
+    },
+
+    getCommissionRate: async (): Promise<number> => {
+        const res = await api.get("/admin/settings/commission-rate");
+        return res.data;
+    },
+
+    updateCommissionRate: async (rate: number): Promise<number> => {
+        const res = await api.put("/admin/settings/commission-rate", null, {
+            params: { rate }
+        });
+        return res.data;
+    },
+
     // Order Management
     getAllOrders: async (): Promise<any[]> => {
         const res = await api.get("/admin/orders");

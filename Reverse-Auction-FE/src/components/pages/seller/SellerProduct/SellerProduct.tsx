@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import {Box, AlertTriangle, CircleCheck, TrendingUp, Plus,} from 'lucide-react'
 import ProductCardStat from './ProductCardStat'
 import ProductCard from './ProductCard'
-import {productService} from "@/services/productService";
+import {sellerProductService} from "@/services/sellerProductService.ts";
 import type { Product } from "@/types/product.ts";
 import toast from "react-hot-toast";
 import AddProductModal from "./AddProductModal";
@@ -27,7 +27,7 @@ export default function ProductManagement() {
     };
     const handleDelete = async (id: number) => {
         try {
-            await productService.deleteProduct(id);
+            await sellerProductService.deleteProduct(id);
 
             setProducts(prev =>
                 prev.filter(p => p.id !== id)
@@ -59,8 +59,8 @@ export default function ProductManagement() {
 
             try {
                 const [productsData, categoriesData] = await Promise.all([
-                    productService.fetchMyProducts(),
-                    productService.getAllCategories(),
+                    sellerProductService.fetchMyProducts(),
+                    sellerProductService.getAllCategories(),
                 ]);
 
                 setProducts(productsData);

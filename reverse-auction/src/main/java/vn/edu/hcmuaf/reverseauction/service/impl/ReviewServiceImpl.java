@@ -6,6 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import vn.edu.hcmuaf.reverseauction.dto.SellerRatingDTO;
 import vn.edu.hcmuaf.reverseauction.dto.request.ReviewRequest;
 import vn.edu.hcmuaf.reverseauction.dto.response.ReviewContextResponse;
+import vn.edu.hcmuaf.reverseauction.dto.response.ReviewResponse;
 import vn.edu.hcmuaf.reverseauction.entity.Order;
 import vn.edu.hcmuaf.reverseauction.entity.OrderStatus;
 import vn.edu.hcmuaf.reverseauction.entity.Review;
@@ -16,6 +17,7 @@ import vn.edu.hcmuaf.reverseauction.repository.UserRepository;
 import vn.edu.hcmuaf.reverseauction.service.ReviewService;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -87,6 +89,25 @@ public class ReviewServiceImpl implements ReviewService {
 
         updateSellerRating(order.getSeller(), request.getRating());
     }
+
+    @Override
+    public List<ReviewResponse> getShopReviews(Long sellerId) {
+        List<Review> reviews = reviewRepository.findBySellerId(sellerId);
+
+        return reviews.stream()
+                .map(this::toResponse)
+                .toList();
+    }
+    private ReviewResponse toResponse(Review review) {
+        return new ReviewResponse(
+                review.getId().toString(),
+                review.getBuyer().getFullName(),
+                review.getComment(),
+                review.getRating(),
+                review.getCreatedAt()
+        );
+    }
+
     private void updateSellerRating(User seller, int newRating) {
 
         int oldTotal = seller.getTotalReviews();

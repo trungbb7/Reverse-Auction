@@ -1,19 +1,26 @@
 package vn.edu.hcmuaf.reverseauction.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import vn.edu.hcmuaf.reverseauction.dto.CreateProductRequest;
 import vn.edu.hcmuaf.reverseauction.dto.ProductResponse;
 import vn.edu.hcmuaf.reverseauction.dto.UpdateProductRequest;
+import vn.edu.hcmuaf.reverseauction.dto.response.PageResponse;
 import vn.edu.hcmuaf.reverseauction.entity.Category;
 import vn.edu.hcmuaf.reverseauction.entity.Product;
+import vn.edu.hcmuaf.reverseauction.entity.ProductImage;
 import vn.edu.hcmuaf.reverseauction.entity.ProductStatus;
 import vn.edu.hcmuaf.reverseauction.entity.User;
 import vn.edu.hcmuaf.reverseauction.repository.CategoryRepository;
 import vn.edu.hcmuaf.reverseauction.repository.ProductRepository;
 import vn.edu.hcmuaf.reverseauction.repository.UserRepository;
+import vn.edu.hcmuaf.reverseauction.repository.specification.ProductSpecification;
 import vn.edu.hcmuaf.reverseauction.service.ProductService;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -76,6 +83,18 @@ public class ProductServiceImpl implements ProductService {
                 .map(this::toResponse)
                 .toList();
     }
+
+    @Override
+    public List<ProductResponse> getListProducts(int limit) {
+        List<Product> products = productRepository.findAll()
+                .stream()
+                .limit(limit)
+                .toList();
+        return products.stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     private void mapCreate(CreateProductRequest r, Product p) {
         p.setName(r.name());
         p.setDescription(r.description());
@@ -90,9 +109,20 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new RuntimeException("Category not found"));
 
         p.setCategory(c);
-    }
-    private void mapUpdate(UpdateProductRequest r, Product p) {
 
+        p.getProductImages().clear();
+        if (r.imageUrls() != null) {
+            for (String url : r.imageUrls()) {
+                ProductImage pi = ProductImage.builder()
+                        .imageUrl(url)
+                        .product(p)
+                        .build();
+                p.getProductImages().add(pi);
+            }
+        }
+    }
+
+    private void mapUpdate(UpdateProductRequest r, Product p) {
         if (r.name() != null) p.setName(r.name());
         if (r.description() != null) p.setDescription(r.description());
         if (r.specifications() != null) p.setSpecifications(r.specifications());
@@ -108,8 +138,23 @@ public class ProductServiceImpl implements ProductService {
                     .orElseThrow(() -> new RuntimeException("Category not found"));
             p.setCategory(c);
         }
+
+        if (r.imageUrls() != null) {
+            p.getProductImages().clear();
+            for (String url : r.imageUrls()) {
+                ProductImage pi = ProductImage.builder()
+                        .imageUrl(url)
+                        .product(p)
+                        .build();
+                p.getProductImages().add(pi);
+            }
+        }
     }
+
     private ProductResponse toResponse(Product p) {
+        List<String> urls = p.getProductImages() != null
+                ? p.getProductImages().stream().map(ProductImage::getImageUrl).toList()
+                : List.of();
 
         return new ProductResponse(
                 p.getId(),
@@ -119,15 +164,46 @@ public class ProductServiceImpl implements ProductService {
                 p.getBrand(),
                 p.getModel(),
                 p.getImageUrl(),
+                urls,
                 p.getPrice(),
                 p.getStockQuantity(),
                 p.getStatus().name(),
                 p.getCategory().getId(),
                 p.getCategory().getName(),
+                p.getRatingAverage(),
                 p.getSeller().getId(),
                 p.getSeller().getFullName(),
                 p.getCreatedAt(),
                 p.getUpdatedAt()
         );
+    }
+
+    @Override
+    public PageResponse<ProductResponse> getFilteredProducts(
+            String keyword,
+            Long categoryId,
+            BigDecimal minPrice,
+            BigDecimal maxPrice,
+            Pageable pageable
+    ) {
+        Specification<Product> spec = Specification.where(ProductSpecification.hasCategoryId(categoryId))
+                .and(ProductSpecification.hasStatus(ProductStatus.ACTIVE))
+                .and(ProductSpecification.inPriceRange(minPrice, maxPrice))
+                .and(ProductSpecification.hasKeyword(keyword));
+
+        Page<Product> page = productRepository.findAll(spec, pageable);
+
+        List<ProductResponse> responses = page.getContent().stream()
+                .map(this::toResponse)
+                .toList();
+
+        return PageResponse.<ProductResponse>builder()
+                .content(responses)
+                .pageNo(page.getNumber())
+                .pageSize(page.getSize())
+                .totalElements(page.getTotalElements())
+                .totalPages(page.getTotalPages())
+                .last(page.isLast())
+                .build();
     }
 }

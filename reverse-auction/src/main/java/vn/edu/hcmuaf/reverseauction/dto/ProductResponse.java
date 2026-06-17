@@ -2,6 +2,7 @@ package vn.edu.hcmuaf.reverseauction.dto;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record ProductResponse(
 
@@ -13,6 +14,7 @@ public record ProductResponse(
         String brand,
         String model,
         String imageUrl,
+        List<String> imageUrls,
 
         BigDecimal price,
         Integer stockQuantity,
@@ -21,6 +23,7 @@ public record ProductResponse(
 
         Long categoryId,
         String categoryName,
+        Double rating,
 
         Long sellerId,
         String sellerName,
