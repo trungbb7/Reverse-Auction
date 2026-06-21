@@ -6,6 +6,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.List;
 
 @Getter
@@ -29,7 +31,8 @@ public class AuctionRequest {
     private Category category;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "auction")
-    private List<Bid> bids;
+    //private List<Bid> bids;
+    private Set<Bid> bids = new HashSet<>();
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "auction", cascade = CascadeType.ALL)
     @Builder.Default

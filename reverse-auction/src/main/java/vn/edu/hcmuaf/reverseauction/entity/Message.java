@@ -46,5 +46,9 @@ public class Message {
     @Column(nullable = false, length = 2000)
     private String content;
     @Column(nullable = false)
+    private String type; // text, image, video
+    @Column
+    private String url;
+    @Column(nullable = false)
     private Instant time;
 }

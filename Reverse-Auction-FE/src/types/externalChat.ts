@@ -16,6 +16,7 @@ export interface ExternalConversation {
   lastMessageAt?: string | null;
   createdDate: string;
   updatedDate: string;
+  complaintChat?: boolean;
 }
 
 export interface ExternalMessage {
@@ -26,10 +27,15 @@ export interface ExternalMessage {
   receiverId: number;
   receiverName: string;
   content: string;
+  type?: "text" | "image" | "video" | null;
+  url?: string | null;
   time: string;
 }
 
 export interface SendExternalMessageRequest {
   receiverId: number;
   content: string;
+  type?: "text" | "image" | "video";
+  url?: string;
+  complaintChat?: boolean;
 }

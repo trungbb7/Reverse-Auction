@@ -16,6 +16,9 @@ import {
 } from "lucide-react";
 import { cloudinaryService } from "@/services/cloudinaryService";
 
+const isVideoUrl = (url: string) =>
+  /\.(mp4|webm|mov|m4v|ogg)(\?|$)/i.test(url) || url.includes("/video/upload/");
+
 export default function SellerComplaints() {
   const user = useAppSelector((state) => state.auth.user);
   const [complaints, setComplaints] = useState<ComplaintResponse[]>([]);
@@ -79,8 +82,9 @@ export default function SellerComplaints() {
         toast.loading("Đang tải lên tài liệu minh chứng...", {
           id: "uploading",
         });
-        const urls =
-          await cloudinaryService.uploadMultiImages(respondEvidenceFiles);
+        const urls = (await cloudinaryService.uploadMultiMedia(respondEvidenceFiles)).map(
+          (item) => item.url,
+        );
         sellerEvidenceUrl = urls.join(", ");
         toast.dismiss("uploading");
       }
@@ -195,7 +199,7 @@ export default function SellerComplaints() {
                         {c.productName}
                       </div>
                       <div className="text-xs text-slate-400 mt-0.5">
-                        Giá trị: {formatCurrency(c.totalAmount)}
+                        Giá trị: {formatCurrency(c.totalAmount ?? 0)}
                       </div>
                     </td>
                     <td className="px-6 py-4 font-medium text-slate-600">
@@ -292,11 +296,19 @@ export default function SellerComplaints() {
                             rel="noreferrer"
                             className="block relative border rounded-lg overflow-hidden group"
                           >
-                            <img
-                              src={url}
-                              alt="Bằng chứng"
-                              className="w-20 h-20 object-cover"
-                            />
+                            {isVideoUrl(url) ? (
+                              <video
+                                src={url}
+                                className="w-20 h-20 object-cover"
+                                muted
+                              />
+                            ) : (
+                              <img
+                                src={url}
+                                alt="Bằng chứng"
+                                className="w-20 h-20 object-cover"
+                              />
+                            )}
                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all text-white text-[10px] font-bold">
                               Phóng to
                             </div>
@@ -353,11 +365,19 @@ export default function SellerComplaints() {
                                   rel="noreferrer"
                                   className="block relative border rounded-lg overflow-hidden group"
                                 >
-                                  <img
-                                    src={url}
-                                    alt="Minh chứng seller"
-                                    className="w-20 h-20 object-cover"
-                                  />
+                                  {isVideoUrl(url) ? (
+                                    <video
+                                      src={url}
+                                      className="w-20 h-20 object-cover"
+                                      muted
+                                    />
+                                  ) : (
+                                    <img
+                                      src={url}
+                                      alt="Minh chứng seller"
+                                      className="w-20 h-20 object-cover"
+                                    />
+                                  )}
                                 </a>
                               ))}
                           </div>
@@ -512,12 +532,12 @@ export default function SellerComplaints() {
               {respondAction === "REJECT_COMPLAINT" && (
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Hình ảnh minh chứng đính kèm
+                    Hình ảnh / video minh chứng đính kèm
                   </label>
                   <input
                     type="file"
                     multiple
-                    accept="image/*"
+                    accept="image/*,video/*"
                     onChange={(e) => setRespondEvidenceFiles(e.target.files)}
                     className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-[#375F97] hover:file:bg-blue-100"
                   />

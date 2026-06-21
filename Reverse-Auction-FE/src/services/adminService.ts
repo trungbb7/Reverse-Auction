@@ -12,6 +12,13 @@ export const adminService = {
         await api.patch(`/admin/users/${userId}/toggle-block`);
     },
 
+    verifyKyc: async (userId: number, status: string, message?: string): Promise<User> => {
+        const res = await api.patch(`/admin/users/${userId}/kyc`, null, {
+            params: { status, message }
+        });
+        return res.data;
+    },
+
     // Category Management
     getAllCategories: async (): Promise<Category[]> => {
         const res = await api.get("/admin/categories");

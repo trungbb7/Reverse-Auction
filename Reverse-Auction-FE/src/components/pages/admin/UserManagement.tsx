@@ -12,6 +12,11 @@ export default function UserManagement() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
+  const [kycModalOpen, setKycModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [rejectMessage, setRejectMessage] = useState("");
+  const [kycLoading, setKycLoading] = useState(false);
+
   const fetchUsers = async () => {
     try {
       const data = await adminService.getAllUsers();
@@ -47,6 +52,27 @@ export default function UserManagement() {
         console.error("Failed to toggle block status", error);
         toast.error(`Không thể ${action} người dùng`);
       }
+    }
+  };
+
+  const handleVerifyKyc = async (status: 'APPROVED' | 'REJECTED') => {
+    if (!selectedUser) return;
+    if (status === 'REJECTED' && !rejectMessage) {
+      toast.error("Vui lòng nhập lý do từ chối");
+      return;
+    }
+
+    setKycLoading(true);
+    try {
+      await adminService.verifyKyc(selectedUser.id, status, status === 'REJECTED' ? rejectMessage : undefined);
+      toast.success("Đã cập nhật trạng thái KYC");
+      setKycModalOpen(false);
+      fetchUsers();
+    } catch (error) {
+      console.error("Failed to verify KYC", error);
+      toast.error("Lỗi khi cập nhật trạng thái KYC");
+    } finally {
+      setKycLoading(false);
     }
   };
 
@@ -95,6 +121,7 @@ export default function UserManagement() {
                 <th className="px-6 py-4">Vai trò</th>
                 <th className="px-6 py-4">Liên hệ</th>
                 <th className="px-6 py-4">Trạng thái</th>
+                <th className="px-6 py-4">KYC</th>
                 <th className="px-6 py-4 text-right">Thao tác</th>
               </tr>
             </thead>
@@ -143,9 +170,34 @@ export default function UserManagement() {
                       {user.enabled ? "Đang hoạt động" : "Bị chặn"}
                     </span>
                   </td>
+                  <td className="px-6 py-4">
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      user.kycStatus === 'APPROVED' ? 'bg-green-100 text-green-700' :
+                      user.kycStatus === 'REJECTED' ? 'bg-red-100 text-red-700' :
+                      user.kycStatus === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
+                      'bg-gray-100 text-gray-700'
+                    }`}>
+                      {user.kycStatus === 'APPROVED' ? 'Đã duyệt' :
+                       user.kycStatus === 'REJECTED' ? 'Từ chối' :
+                       user.kycStatus === 'PENDING' ? 'Đang chờ' : 'Chưa XM'}
+                    </span>
+                  </td>
                   <td className="px-6 py-4 text-right">
-                    <button
-                      onClick={() => handleToggleBlock(user.id, user.enabled)}
+                    <div className="flex items-center justify-end gap-2">
+                      {user.kycStatus === 'PENDING' && (
+                        <button
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setRejectMessage("");
+                            setKycModalOpen(true);
+                          }}
+                          className="px-3 py-1.5 rounded-lg text-sm font-medium bg-blue-50 text-blue-600 hover:bg-blue-100 transition-all border border-transparent hover:border-blue-200"
+                        >
+                          Duyệt KYC
+                        </button>
+                      )}
+                      <button
+                        onClick={() => handleToggleBlock(user.id, user.enabled)}
                       className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                         user.enabled
                           ? "text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200"
@@ -164,6 +216,7 @@ export default function UserManagement() {
                         </>
                       )}
                     </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -178,6 +231,85 @@ export default function UserManagement() {
           </table>
         </div>
       </div>
+
+      {/* KYC Modal */}
+      {kycModalOpen && selectedUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-slate-200 flex justify-between items-center">
+              <h2 className="text-xl font-bold">Duyệt hồ sơ KYC</h2>
+              <button onClick={() => setKycModalOpen(false)} className="text-slate-400 hover:text-slate-600">✕</button>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-slate-500">Họ và tên</p>
+                  <p className="font-medium text-lg">{selectedUser.fullName}</p>
+                </div>
+                <div>
+                  <p className="text-slate-500">Số CCCD</p>
+                  <p className="font-medium text-lg">{selectedUser.cccdNumber || "N/A"}</p>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <p className="text-slate-500 mb-2">Ảnh mặt trước</p>
+                  {selectedUser.cccdFrontImage ? (
+                    <img src={`http://localhost:8080${selectedUser.cccdFrontImage}`} alt="Front" className="w-full h-auto rounded-lg border" />
+                  ) : (
+                    <div className="w-full h-32 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400">Không có ảnh</div>
+                  )}
+                </div>
+                <div>
+                  <p className="text-slate-500 mb-2">Ảnh mặt sau</p>
+                  {selectedUser.cccdBackImage ? (
+                    <img src={`http://localhost:8080${selectedUser.cccdBackImage}`} alt="Back" className="w-full h-auto rounded-lg border" />
+                  ) : (
+                    <div className="w-full h-32 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400">Không có ảnh</div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-slate-500 mb-2 block">Lý do từ chối (nếu có)</label>
+                <textarea
+                  value={rejectMessage}
+                  onChange={(e) => setRejectMessage(e.target.value)}
+                  className="w-full p-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500"
+                  rows={3}
+                  placeholder="Nhập lý do nếu bạn từ chối hồ sơ này..."
+                />
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-slate-200 flex justify-end gap-3 bg-slate-50">
+              <button
+                onClick={() => setKycModalOpen(false)}
+                className="px-4 py-2 rounded-lg font-medium text-slate-600 hover:bg-slate-200 transition-colors"
+                disabled={kycLoading}
+              >
+                Hủy
+              </button>
+              <button
+                onClick={() => handleVerifyKyc('REJECTED')}
+                className="px-4 py-2 rounded-lg font-medium text-white bg-red-600 hover:bg-red-700 transition-colors"
+                disabled={kycLoading}
+              >
+                {kycLoading ? "Đang xử lý..." : "Từ chối"}
+              </button>
+              <button
+                onClick={() => handleVerifyKyc('APPROVED')}
+                className="px-4 py-2 rounded-lg font-medium text-white bg-emerald-600 hover:bg-emerald-700 transition-colors"
+                disabled={kycLoading}
+              >
+                {kycLoading ? "Đang xử lý..." : "Phê duyệt"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
