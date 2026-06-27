@@ -27,4 +27,12 @@ public class AdminUserController {
         userService.toggleUserBlock(id);
         return ResponseEntity.ok().build();
     }
+
+    @PatchMapping("/{id}/kyc")
+    public ResponseEntity<UserDTO> verifyKyc(
+            @PathVariable Long id,
+            @RequestParam("status") vn.edu.hcmuaf.reverseauction.entity.KycStatus status,
+            @RequestParam(value = "message", required = false) String message) {
+        return ResponseEntity.ok(userService.verifyKyc(id, status, message));
+    }
 }

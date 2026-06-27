@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router";
 import {
   Clock,
@@ -9,6 +9,7 @@ import {
   CheckCircle,
   ChevronRight,
   Image as ImageIcon,
+  MessageSquare,
 } from "lucide-react";
 import { auctionStatusMap, type Auction, type Bid } from "@/types/auction";
 import BidCard from "./BidCard";
@@ -22,6 +23,7 @@ import { useConfirm } from "@/context/ConfirmContext";
 
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
+import AuctionChatSystem from "./AuctionChatSystem";
 
 export default function AuctionDetail() {
   const { confirm } = useConfirm();
@@ -41,6 +43,10 @@ export default function AuctionDetail() {
   const [winner, setWinner] = useState<number | null>(null);
   const [orderId, setOrderId] = useState<number | undefined>(undefined);
   const currentUser = useAppSelector((state) => state.auth.user);
+
+  const [stompClient, setStompClient] = useState<Client | null>(null);
+  const chatRef = useRef<HTMLDivElement>(null);
+  const [selectedSellerId, setSelectedSellerId] = useState<number | null>(null);
 
   const handleSelectWinner = async (bidId: number) => {
     try {
@@ -177,6 +183,7 @@ export default function AuctionDetail() {
 
         onConnect: () => {
           console.log("Connected");
+          setStompClient(client);
 
           client?.subscribe(`/topic/auction/${id}`, (message) => {
             const responseBody = JSON.parse(message.body);
@@ -204,8 +211,18 @@ export default function AuctionDetail() {
     };
   }, [id, updateBidInfo]);
 
+  const uniqueParticipants = Array.from(new Set(bids.map((b) => b.sellerId))).map(
+    (sellerId) => {
+      const bid = bids.find((b) => b.sellerId === sellerId);
+      return {
+        id: sellerId,
+        name: bid?.sellerName || `Seller ${sellerId}`,
+      };
+    },
+  );
+
   return (
-    <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6">
+    <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 relative space-y-8">
       {/* Top action bar */}
       <div className="flex items-center justify-between mb-5">
         <div className="flex items-center gap-2">
@@ -424,16 +441,30 @@ export default function AuctionDetail() {
 
             <div className="p-4 space-y-3 max-h-130 overflow-y-auto">
               {bids.map((bid) => (
-                <BidCard
-                  key={bid.id}
-                  bid={bid}
-                  onSelectWinner={handleSelectWinner}
-                  winnerSelected={winner !== null}
-                  canSelectWinner={
-                    currentUser?.id === auction?.buyerId &&
-                    auction?.status === "CLOSED"
-                  }
-                />
+                <div key={bid.id} className="relative group">
+                  <BidCard
+                    bid={bid}
+                    onSelectWinner={handleSelectWinner}
+                    winnerSelected={winner !== null}
+                    canSelectWinner={
+                      currentUser?.id === auction?.buyerId &&
+                      auction?.status === "CLOSED"
+                    }
+                  />
+                  {currentUser?.id === auction?.buyerId && (
+                    <button
+                      onClick={() => {
+                        setSelectedSellerId(bid.sellerId);
+                        chatRef.current?.scrollIntoView({ behavior: "smooth" });
+                      }}
+                      className="absolute top-4 right-4 p-2 bg-blue-50 border border-blue-100 rounded-xl text-blue-600 hover:bg-blue-600 hover:text-white transition-all shadow-sm flex items-center gap-2 px-3"
+                      title="Đi đến thảo luận"
+                    >
+                      <MessageSquare className="w-4 h-4" />
+                      <span className="text-[10px] font-bold">CHAT</span>
+                    </button>
+                  )}
+                </div>
               ))}
             </div>
 
@@ -472,6 +503,21 @@ export default function AuctionDetail() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Embedded Chat System */}
+      <div ref={chatRef} className="pt-10 border-t border-slate-100">
+        <h2 className="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3">
+          <MessageSquare className="w-8 h-8 text-[#375F97]" />
+          Trung tâm Thảo luận Phiên đấu giá
+        </h2>
+        <AuctionChatSystem
+          auctionId={Number(id)}
+          participants={uniqueParticipants}
+          stompClient={stompClient}
+          currentUserRole="BUYER"
+          initialParticipantId={selectedSellerId}
+        />
       </div>
     </div>
   );

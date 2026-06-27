@@ -389,8 +389,9 @@ export default function BuyerOrderDetail() {
         toast.loading("Đang tải lên hình ảnh bằng chứng...", {
           id: "uploading",
         });
-        evidenceUrls =
-          await cloudinaryService.uploadMultiImages(complaintImages);
+        evidenceUrls = (await cloudinaryService.uploadMultiMedia(complaintImages)).map(
+          (item) => item.url,
+        );
         toast.dismiss("uploading");
       }
 
@@ -759,17 +760,17 @@ export default function BuyerOrderDetail() {
 
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Hình ảnh bằng chứng (Nếu có)
+                  Hình ảnh / video bằng chứng (Nếu có)
                 </label>
                 <input
                   type="file"
                   multiple
-                  accept="image/*"
+                  accept="image/*,video/*"
                   onChange={(e) => setComplaintImages(e.target.files)}
                   className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-[#375F97] hover:file:bg-blue-100"
                 />
                 <p className="text-[10px] text-slate-400 mt-1">
-                  Bạn có thể chọn nhiều ảnh cùng lúc.
+                  Bạn có thể chọn nhiều ảnh hoặc video cùng lúc.
                 </p>
               </div>
 

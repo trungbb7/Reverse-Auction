@@ -26,6 +26,12 @@ public class ExternalMessage {
     @Column(nullable = false, length = 2000)
     private String message;
 
+    @Column(length = 20)
+    private String type;
+
+    @Column(length = 1000)
+    private String url;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "sender_id")
     private User sender;

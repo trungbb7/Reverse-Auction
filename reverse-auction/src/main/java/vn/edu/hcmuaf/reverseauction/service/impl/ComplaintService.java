@@ -11,10 +11,11 @@ import vn.edu.hcmuaf.reverseauction.dto.RespondComplaintRequest;
 import vn.edu.hcmuaf.reverseauction.dto.RespondComplaintResponse;
 import vn.edu.hcmuaf.reverseauction.dto.ResolveComplaintRequest;
 import vn.edu.hcmuaf.reverseauction.dto.ResolveComplaintResponse;
+import vn.edu.hcmuaf.reverseauction.dto.response.FileResponse;
 import vn.edu.hcmuaf.reverseauction.entity.Complaint;
-import vn.edu.hcmuaf.reverseauction.entity.OrderStatus;
 import vn.edu.hcmuaf.reverseauction.repository.ComplaintRepository;
 import vn.edu.hcmuaf.reverseauction.repository.OrderRepository;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.util.List;
@@ -25,19 +26,34 @@ import java.util.Locale;
 public class ComplaintService {
     private final ComplaintRepository complaintRepository;
     private final OrderRepository orderRepository;
+    private final FileService fileService;
 
     @Transactional
     public CreateComplaintResponse createComplaint(CreateComplaintRequest request) {
-        var order = orderRepository.findById(request.orderId())
-                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + request.orderId()));
+        return createComplaint(request.orderId(), request.reason(), request.evidenceUrls());
+    }
 
-        order.setStatus(OrderStatus.DISPUTED);
-        orderRepository.save(order);
+    @Transactional
+    public CreateComplaintResponse createComplaint(Long orderId, String reason, MultipartFile[] evidenceImages) {
+        List<String> evidenceUrls = evidenceImages == null || evidenceImages.length == 0
+                ? List.of()
+                : fileService.uploadMultipleFiles(evidenceImages).stream()
+                .map(FileResponse::getUrl)
+                .toList();
+
+        return createComplaint(orderId, reason, evidenceUrls);
+    }
+
+    @Transactional
+    public CreateComplaintResponse createComplaint(Long orderId, String reason, List<String> evidenceUrls) {
+        var order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
 
         Complaint complaint = new Complaint();
         complaint.setOrder(order);
-        complaint.setReason(request.reason());
-        complaint.setEvidenceUrls(request.evidenceUrls() == null ? List.of() : List.copyOf(request.evidenceUrls()));
+        complaint.setBuyer(order.getBuyer());
+        complaint.setReason(reason);
+        complaint.setEvidenceUrls(evidenceUrls == null ? List.of() : List.copyOf(evidenceUrls));
         complaint.setStatus("PENDING_SELLER");
         complaint.setCreatedAt(Instant.now());
         complaint.setUpdatedAt(complaint.getCreatedAt());
@@ -48,8 +64,26 @@ public class ComplaintService {
 
     @Transactional(readOnly = true)
     public List<ComplaintResponse> listComplaints() {
-        return complaintRepository.findAll(Sort.by(Sort.Direction.ASC, "id"))
+        return complaintRepository.findAll(Sort.by(Sort.Direction.DESC, "id"))
                 .stream()
+                .map(this::toComplaintSummary)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ComplaintResponse> listByBuyer(Long buyerId) {
+        return complaintRepository.findByBuyerId(buyerId)
+                .stream()
+                .sorted((a, b) -> b.getId().compareTo(a.getId()))
+                .map(this::toComplaintSummary)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ComplaintResponse> listBySeller(Long sellerId) {
+        return complaintRepository.findByOrderSellerId(sellerId)
+                .stream()
+                .sorted((a, b) -> b.getId().compareTo(a.getId()))
                 .map(this::toComplaintSummary)
                 .toList();
     }
@@ -87,40 +121,19 @@ public class ComplaintService {
         complaint.setUpdatedAt(complaint.getResolvedAt());
         complaint = complaintRepository.save(complaint);
 
-        var order = complaint.getOrder();
-        if ("REFUND_TO_BUYER".equals(complaint.getVerdict())) {
-            order.setStatus(OrderStatus.CANCELLED);
-        } else {
-            order.setStatus(OrderStatus.COMPLETED);
-        }
-        orderRepository.save(order);
-
         return new ResolveComplaintResponse(complaint.getId(), complaint.getStatus(), complaint.getFinalAction(), complaint.getResolvedAt());
     }
 
     private ComplaintResponse toComplaintSummary(Complaint complaint) {
-        var order = complaint.getOrder();
-        String productName = order.getProduct() != null
-                ? order.getProduct().getName()
-                : (order.getAuction() != null ? order.getAuction().getTitle() : "Sản phẩm đấu giá");
-
         return new ComplaintResponse(
                 complaint.getId(),
-                order.getId(),
-                order.getCode(),
-                productName,
-                order.getBuyer().getFullName(),
-                order.getBuyer().getId(),
-                order.getBuyer().getEmail(),
-                order.getSeller().getFullName(),
-                order.getSeller().getId(),
-                order.getSeller().getEmail(),
-                order.getType().name(),
-                order.getFinalPrice(),
-                order.getShippingFee(),
-                order.getTotalAmount(),
-                order.getShippingAddress(),
-                order.getBuyerPhone(),
+                complaint.getOrder().getId(),
+                complaint.getOrder().getCode(),
+                complaint.getOrder().getProduct().getName(),
+                complaint.getBuyer().getId(),
+                complaint.getBuyer().getFullName(),
+                complaint.getOrder().getSeller().getId(),
+                complaint.getOrder().getSeller().getFullName(),
                 complaint.getReason(),
                 complaint.getEvidenceUrls(),
                 complaint.getStatus(),

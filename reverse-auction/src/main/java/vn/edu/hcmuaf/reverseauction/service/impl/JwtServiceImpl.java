@@ -51,8 +51,20 @@ public class JwtServiceImpl implements JwtService {
         return extractClaim(token, Claims::getSubject);
     }
     public Long extractUserId(String token) {
-        return extractClaim(token, claims -> claims.get("id", Integer.class)).longValue();
+        return extractClaim(token, claims -> {
+            Object idVal = claims.get("id");
+            if (idVal instanceof Number) {
+                return ((Number) idVal).longValue();
+            }
+            return null;
+        });
     }
+
+    @Override
+    public String extractRole(String token) {
+        return extractClaim(token, claims -> (String) claims.get("role"));
+    }
+
     @Override
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
