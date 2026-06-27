@@ -96,6 +96,7 @@ function App() {
             <Route path="buyer/orders/:id" element={<BuyerOrderDetail />} />
             <Route path="cart" element={<CartPage />} />
             <Route path="checkout" element={<CheckoutPage />} />
+            <Route path="review/order/:id" element={<BuyerReview />} />
           </Route>
 
           {/* Any authenticated user routes */}
@@ -109,7 +110,6 @@ function App() {
           >
             <Route path="profile" element={<Profile />} />
             <Route path="orderHistory" element={<BuyerOrder />} />
-            <Route path="review/order/:id" element={<BuyerReview />} />
             <Route path="shopPage/:id" element={<ShopPage />} />
           </Route>
 

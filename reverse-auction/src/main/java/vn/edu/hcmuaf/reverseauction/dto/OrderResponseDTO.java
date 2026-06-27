@@ -1,6 +1,7 @@
 package vn.edu.hcmuaf.reverseauction.dto;
 
 import lombok.*;
+import vn.edu.hcmuaf.reverseauction.dto.response.ReviewResponse;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -33,6 +34,7 @@ public class OrderResponseDTO {
 
     private String status;
     private boolean alreadyReviewed;
+    private ReviewResponse review;
 
     private Long auctionId;
     private Long bidId;

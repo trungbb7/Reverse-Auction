@@ -23,6 +23,7 @@ public class ReviewController {
             @PathVariable Long orderId,
             @AuthenticationPrincipal User user
     ) {
+        System.out.println("orderId = " + orderId);
         return reviewService.getContext(orderId, user.getId());
     }
 

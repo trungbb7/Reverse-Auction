@@ -13,6 +13,7 @@ import {
   Gavel,
   ExternalLink,
   Loader2,
+  Star,
   X,
 } from "lucide-react";
 import {
@@ -520,40 +521,32 @@ export default function BuyerOrderDetail() {
           {/* LEFT — main content */}
           <div className="lg:col-span-2 space-y-5">
             {/* Product / Auction card */}
-            <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
-              <div className="flex gap-4">
-                <div className="w-20 h-20 rounded-xl bg-slate-100 flex items-center justify-center shrink-0 overflow-hidden">
-                  {order.imageUrl ? (
-                    <img
-                      src={order.imageUrl}
-                      alt=""
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <Package className="w-8 h-8 text-slate-300" />
-                  )}
-                </div>
-                  <div className="flex-1 min-w-0">
-                      {order.items?.map((item, index) => (
-                          <div key={item.id ?? index} className="mb-2">
-                              <p className="font-black text-slate-900 text-base leading-snug">
-                                  {item.productName ?? "Sản phẩm"}
-                              </p>
+              <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+                  <div className="flex gap-4">
+                      <div className="w-20 h-20 rounded-xl bg-slate-100 flex items-center justify-center shrink-0 overflow-hidden">
+                          {order.imageUrl ? (
+                              <img src={order.imageUrl} alt="" className="w-full h-full object-cover"/>
+                          ) : (
+                              <Package className="w-8 h-8 text-slate-300" />
+                          )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                          {order.type === "BID" ? (
+                              <p className="font-black text-slate-900 text-base leading-snug">{order.productName ?? "Sản phẩm"}</p>
+                          ) : (
+                              order.items?.map((item, index) => (
+                                  <div key={item.id ?? index} className="mb-2">
+                                      <p className="font-black text-slate-900 text-base leading-snug">{item.productName ?? "Sản phẩm"}</p>
+                                      {item.brand && (
+                                          <p className="text-xs text-slate-400 mt-0.5">Thương hiệu:{" "}<span className="text-slate-600">{item.brand}</span></p>
+                                      )}
+                                      <p className="text-xs text-slate-500">Số lượng: {item.quantity}</p>
+                                  </div>
+                              ))
+                          )}
 
-                              {item.brand && (
-                                  <p className="text-xs text-slate-400 mt-0.5">
-                                      Thương hiệu:{" "}
-                                      <span className="text-slate-600">{item.brand}</span>
-                                  </p>
-                              )}
-
-                              <p className="text-xs text-slate-500">
-                                  Số lượng: {item.quantity}
-                              </p>
-                          </div>
-                      ))}
+                      </div>
                   </div>
-              </div>
             </div>
 
             {/* Timeline */}
@@ -688,14 +681,45 @@ export default function BuyerOrderDetail() {
                   </div>
                 )}
 
-                {order.status === "COMPLETED" && !order.alreadyReviewed && (
-                  <button
-                    onClick={() => navigate(`/review/order/${order.id}`)}
-                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#375F97] to-blue-500 hover:from-[#2d4f80] hover:to-blue-600 text-white font-black text-sm transition-all shadow-sm hover:shadow active:scale-98"
-                  >
-                    Đánh giá dịch vụ
-                  </button>
-                )}
+                  {order.status === "COMPLETED" && (
+                      !order.alreadyReviewed ? (
+                          <button
+                              onClick={() => navigate(`/review/order/${order.id}`)}
+                              className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#375F97] to-blue-500 text-white font-black text-sm">
+                              Đánh giá dịch vụ
+                          </button>
+                      ) : (
+                          <div className="p-4 rounded-xl bg-gray-50 border border-gray-200">
+                              <div className="flex items-center justify-between mb-2">
+                                  <h3 className="font-semibold text-gray-800">Đã đánh giá</h3>
+                                  <span className="text-sm text-gray-500">{order.review?.rating}/5</span>
+                              </div>
+                              <div className="flex items-center gap-1 mb-3">
+                                  {[1,2,3,4,5].map((i)=>(
+                                      <Star
+                                          key={i}
+                                          size={18}
+                                          className={
+                                              i <= (order.review?.rating ?? 0)
+                                                  ? "fill-yellow-400 text-yellow-400"
+                                                  : "text-gray-300"
+                                          }
+                                      />
+                                  ))}
+                              </div>
+                              {order.review?.content ? (
+                                  <p className="text-sm text-gray-600 leading-relaxed">"{order.review.content}"</p>
+                              ) : (
+                                  <p className="text-sm text-gray-400 italic">Không có nhận xét</p>
+                              )}
+                              {order.review?.createdAt && (
+                                  <p className="text-xs text-gray-400 mt-3">
+                                      Đánh giá ngày:{" "}{new Date(order.review.createdAt).toLocaleDateString("vi-VN")}
+                                  </p>
+                              )}
+                          </div>
+                      )
+                  )}
               </div>
             )}
           </div>

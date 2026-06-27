@@ -7,6 +7,7 @@ import {
     ShieldAlert,
     Wallet,
 } from "lucide-react";
+import type { Review } from "@/types/review";
 export const ORDER_STATUS_LIST = [
     "AWAITING_PAYMENT",
     "PAID",
@@ -65,6 +66,7 @@ export interface Order {
 
     status: OrderStatus;
     alreadyReviewed: boolean;
+    review?: Review;
 
     commissionRate?: number;
     commissionAmount?: number;

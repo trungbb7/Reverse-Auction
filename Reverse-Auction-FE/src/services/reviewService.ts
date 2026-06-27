@@ -4,7 +4,7 @@ import api from "@/utils/axios";
 export const reviewService = {
 
     getReviewContext: async (
-        orderId: string | number
+        orderId: number | string
     ): Promise<ReviewContextResponse> => {
         const res = await api.get(`/reviews/order/${orderId}`);
         return res.data;

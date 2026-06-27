@@ -73,7 +73,9 @@ function OrderCard({order, onStatusUpdate,}: {
                 </div>
                 <div className="flex justify-between text-sm items-start">
                     <h2 className="font-semibold text-lg">
-                        {order.productName}
+                        {order.items?.length > 0
+                            ? order.items.map(item => item.productName).join(", ")
+                            : order.productName}
                     </h2>
                     <div className="text-right">
                         <div className="flex justify-end items-center gap-2">
@@ -172,12 +174,14 @@ export default function OrderManagement() {
     const [totalPages] = useState(1);
 
     const [activeTab, setActiveTab] = useState<"orders" | "auction">("orders");
-    const [filter, setFilter] = useState<"ALL" | "PROCESSING" | "SHIPPING" | "COMPLETED" | "CANCEL">("ALL");
+    const [filter, setFilter] = useState<"ALL" | "AWAITING_PAYMENT" | "PROCESSING" | "SHIPPING" | "DELIVERED"| "COMPLETED" | "CANCEL">("ALL");
     const filteredOrders = orders.filter((o) => {
         if (filter === "ALL") return true;
+        if (filter === "AWAITING_PAYMENT") return o.status === "AWAITING_PAYMENT";
         if (filter === "PROCESSING") return o.status === "PROCESSING";
         if (filter === "SHIPPING") return o.status === "SHIPPED";
-        if (filter === "COMPLETED") return o.status === "COMPLETED", "DELIVERED";
+        if (filter === "DELIVERED") return o.status === "DELIVERED";
+        if (filter === "COMPLETED") return o.status === "COMPLETED";
         if (filter === "CANCEL") return o.status === "CANCELLED";
         return true;
     });
@@ -222,10 +226,14 @@ export default function OrderManagement() {
                         </button>
                     </div>
                 </div>
-                <div className="flex items-center gap-15 mb-6 text-sm">
+                <div className="flex items-center gap-10 mb-6 text-sm">
                     <button onClick={() => setFilter("ALL")}
                             className={`pb-1 transition ${filter === "ALL" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-gray-700"}`}>
                         Tất cả
+                    </button>
+                    <button onClick={() => setFilter("AWAITING_PAYMENT")}
+                            className={`pb-1 transition ${filter === "AWAITING_PAYMENT" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-gray-700"}`}>
+                        Đã thanh toán
                     </button>
                     <button onClick={() => setFilter("PROCESSING")}
                             className={`pb-1 transition ${filter === "PROCESSING" ? "text-blue-600 border-b-2 border-blue-600" : "text-gray-500 hover:text-gray-700"}`}>

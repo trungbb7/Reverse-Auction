@@ -18,6 +18,7 @@ import vn.edu.hcmuaf.reverseauction.service.ReviewService;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -39,8 +40,20 @@ public class ReviewServiceImpl implements ReviewService {
 
         ReviewContextResponse res = new ReviewContextResponse();
         res.setOrderId(order.getId());
-        res.setProductName(order.getProduct().getName());
-        res.setProductImage(order.getProduct().getImageUrl());
+        if (order.getAuction() != null) {
+            res.setProductName(order.getAuction().getTitle());
+        } else if (order.getItems() != null && !order.getItems().isEmpty()) {
+            String productNames = order.getItems()
+                    .stream()
+                    .map(item -> item.getProduct().getName())
+                    .collect(Collectors.joining(", "));
+            res.setProductName(productNames);
+        } else {
+            res.setProductName(null);
+        }
+        res.setProductImage(
+                order.getProduct() != null ? order.getProduct().getImageUrl() : null
+        );
 
         SellerRatingDTO sellerDTO = new SellerRatingDTO();
         sellerDTO.setId(seller.getId());

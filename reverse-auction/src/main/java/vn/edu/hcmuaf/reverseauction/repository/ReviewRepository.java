@@ -7,10 +7,12 @@ import vn.edu.hcmuaf.reverseauction.dto.RatingBreakdown;
 import vn.edu.hcmuaf.reverseauction.entity.Review;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ReviewRepository extends JpaRepository<Review, Long> {
     boolean existsByOrderId(Long orderId);
     long countBySellerId(Long sellerId);
+    Optional<Review> findByOrderId(Long orderId);
     List<Review> findBySellerId(Long sellerId);
     @Query("""
         SELECT AVG(r.rating)

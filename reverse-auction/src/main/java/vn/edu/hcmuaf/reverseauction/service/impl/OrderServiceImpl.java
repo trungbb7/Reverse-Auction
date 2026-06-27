@@ -8,6 +8,7 @@ import vn.edu.hcmuaf.reverseauction.dto.OrderItemResponseDTO;
 import vn.edu.hcmuaf.reverseauction.dto.OrderResponseDTO;
 import vn.edu.hcmuaf.reverseauction.dto.request.CheckoutRequest;
 import vn.edu.hcmuaf.reverseauction.dto.response.CheckoutResponse;
+import vn.edu.hcmuaf.reverseauction.dto.response.ReviewResponse;
 import vn.edu.hcmuaf.reverseauction.entity.*;
 import vn.edu.hcmuaf.reverseauction.exception.CustomException;
 import vn.edu.hcmuaf.reverseauction.repository.OrderRepository;
@@ -143,7 +144,8 @@ public class OrderServiceImpl implements OrderService {
                 ? o.getProduct().getImageUrl()
                 : null;
         String auctionTitle = o.getAuction() != null ? o.getAuction().getTitle() : null;
-
+        Review review = reviewRepository.findByOrderId(o.getId())
+                .orElse(null);
         return OrderResponseDTO.builder()
                 .id(o.getId())
                 .code(o.getCode() != null ? o.getCode() : null)
@@ -167,6 +169,17 @@ public class OrderServiceImpl implements OrderService {
 
                 .status(o.getStatus().name())
                 .alreadyReviewed(reviewRepository.existsByOrderId(o.getId()))
+                .review(
+                        review != null
+                                ? new ReviewResponse(
+                                review.getId().toString(),
+                                review.getBuyer().getFullName(),
+                                review.getComment(),
+                                review.getRating(),
+                                review.getCreatedAt()
+                        )
+                                : null
+                )
 
                 .auctionId(o.getAuction() != null ? o.getAuction().getId() : null)
                 .bidId(o.getBid() != null ? o.getBid().getId() : null)
