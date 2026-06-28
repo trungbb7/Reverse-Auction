@@ -4,7 +4,13 @@ export interface User {
   role: string;
   fullName?: string;
   phone?: string;
-  enabled: boolean;
+  address?: string;
+  enabled?: boolean;
+  verified?: boolean;
+  provider?: "LOCAL" | "GOOGLE";
+  balance?: number;
+  imageUrl?: string;
+  description?: string;
   cccdNumber?: string;
   cccdFrontImage?: string;
   cccdBackImage?: string;

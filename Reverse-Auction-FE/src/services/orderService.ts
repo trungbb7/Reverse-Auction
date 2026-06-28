@@ -1,5 +1,5 @@
 import api from "@/utils/axios";
-import type { Order } from "@/types/orders";
+import type { Order, CheckoutRequest, CheckoutResponse } from "@/types/orders";
 
 export interface PaymentResult {
   paymentId: number;
@@ -42,6 +42,15 @@ export const orderService = {
     const res = await api.post("/payments/vnpay", { orderId, amount, bankCode });
     return res.data;
   },
+    createCheckout: async (data: CheckoutRequest): Promise<CheckoutResponse> => {
+        const response = await api.post("/checkout/checkout", data);
+        return response.data;
+    },
+
+    paySessionWithBalance: async (sessionId: number): Promise<{ success: boolean }> => {
+        const res = await api.post(`/checkout/session/${sessionId}/pay-balance`);
+        return res.data;
+    },
 
   /** Xác nhận kết quả thanh toán (callback từ VNPay hoặc thủ công sandbox) */
   confirmPayment: async (orderId: number, status: "success" | "fail"): Promise<void> => {
@@ -49,6 +58,11 @@ export const orderService = {
       params: { orderId, status },
     });
   },
+    confirmPaymentSession: async (sessionCode: string, status: "success" | "fail"): Promise<void> => {
+        await api.post("/checkout/vnpay/callback", null, {
+            params: { sessionCode, status },
+        });
+    },
 
   updateShippingInfo: async (orderId: number, address: string, phone: string): Promise<Order> => {
     const res = await api.put(`/orders/${orderId}/shipping`, null, {

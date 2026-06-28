@@ -23,13 +23,13 @@ public class PaymentUtils {
     @Value("${vnpay.hashsecret}")
     private String vnp_HashSecret_v;
 
-    public String buildPaymentUrl(Long amount_p, String bankCode, Long orderId) throws NoSuchAlgorithmException, InvalidKeyException {
+    public String buildPaymentUrl(Long amount_p, String bankCode, Long refId, String type) throws NoSuchAlgorithmException, InvalidKeyException {
         log.debug("Hash Secrete: {}", vnp_HashSecret_v);
         String vnp_Version = "2.1.0";
         String vnp_Command = "pay";
         String vnp_OrderInfo = "Thanh toán đơn hàng";
         String orderType = "other";
-        String vnp_TxnRef = generateFixedLengthString(8);
+        String vnp_TxnRef = type + "_" + refId;
         String vnp_IpAddr = "127.0.0.1";
         String vnp_TmnCode = vnp_TmnCode_v;
 
@@ -49,7 +49,7 @@ public class PaymentUtils {
         vnp_Params.put("vnp_Locale", "vn");
 
 
-        vnp_Params.put("vnp_ReturnUrl", "http://localhost:5173/payment/result?orderId=" + orderId);
+        vnp_Params.put("vnp_ReturnUrl", "http://localhost:5173/payment/result");
         vnp_Params.put("vnp_IpAddr", vnp_IpAddr);
         Calendar cld = Calendar.getInstance(TimeZone.getTimeZone("GMT+7"));
 

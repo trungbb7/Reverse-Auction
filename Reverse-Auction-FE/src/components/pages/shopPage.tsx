@@ -1,12 +1,13 @@
 import {useEffect, useState} from "react";
 import {useParams} from "react-router";
-import {Star, MapPin, ShoppingCart } from "lucide-react";
+import {Star, MapPin } from "lucide-react";
 import {shopService} from "@/services/shopService.ts";
 import {reviewService} from "@/services/reviewService.ts";
 import type {Product} from "@/types/product.ts";
 import toast from "react-hot-toast";
 import type {ShopDetail} from "@/types/shopDetail.ts";
 import type {Review} from "@/types/review.ts";
+import CartButton from "@/components/ui/CartButton.tsx";
 
 export default function ShopPage() {
     const {id} = useParams();
@@ -242,9 +243,10 @@ export default function ShopPage() {
                                         <span className="text-blue-900 font-bold text-lg">
                         {p.price} đ
                     </span>
-                                        <button className="p-2 rounded-full bg-slate-600 hover:bg-slate-700 text-white transition">
-                                            <ShoppingCart  size={18} />
-                                        </button>
+                                        <CartButton
+                                            productId={p.id}
+                                            productName={p.name}
+                                        />
                                     </div>
                                 </div>
                             </div>

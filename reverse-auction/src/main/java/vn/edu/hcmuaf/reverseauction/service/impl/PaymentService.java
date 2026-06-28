@@ -38,7 +38,7 @@ public class PaymentService {
         payment.setOrder(order);
         payment.setAmount(request.amount());
         payment.setBankCode(normalizeBankCode(request.bankCode()));
-        payment.setPaymentUrl(paymentUtils.buildPaymentUrl(request.amount(), request.bankCode(), request.orderId()));
+        payment.setPaymentUrl(paymentUtils.buildPaymentUrl(request.amount(), request.bankCode(), request.orderId(), "ORD"));
         payment.setCreatedAt(Instant.now());
         payment = paymentRepository.save(payment);
 

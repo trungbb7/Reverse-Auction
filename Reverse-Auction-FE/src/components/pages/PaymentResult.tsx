@@ -23,7 +23,8 @@ export default function PaymentResult() {
   const navigate = useNavigate();
   const [state, setState] = useState<PaymentState>("loading");
   const [transactionInfo, setTransactionInfo] = useState<{
-    orderId: string;
+    txnRef: string;
+    type: string;
     amount: number;
     transactionNo: string;
     bankCode: string;
@@ -33,16 +34,17 @@ export default function PaymentResult() {
   useEffect(() => {
     const processResult = async () => {
       const vnpResponseCode = searchParams.get("vnp_ResponseCode");
-      const orderId = searchParams.get("orderId");
+      const txnRef = searchParams.get("vnp_TxnRef");
       const vnpAmount = searchParams.get("vnp_Amount");
       const vnpTransactionNo = searchParams.get("vnp_TransactionNo");
       const vnpBankCode = searchParams.get("vnp_BankCode");
       const vnpPayDate = searchParams.get("vnp_PayDate");
 
-      if (!orderId) {
+      if (!txnRef) {
         setState("error");
         return;
       }
+      const [type, idStr] = txnRef.split("_");
 
       // VNPay trả về amount * 100
       const amount = vnpAmount ? Number(vnpAmount) / 100 : 0;
@@ -60,26 +62,31 @@ export default function PaymentResult() {
       }
 
       setTransactionInfo({
-        orderId,
+        txnRef: idStr,
+        type,
         amount,
         transactionNo: vnpTransactionNo ?? "—",
         bankCode: vnpBankCode ?? "—",
         payDate: formattedDate || new Date().toLocaleString("vi-VN"),
       });
 
-      if (vnpResponseCode === "00") {
-        // Thanh toán thành công → gọi backend callback để cập nhật đơn hàng
-        try {
-          await orderService.confirmPayment(Number(orderId), "success");
-          setState("success");
-        } catch (err) {
-          console.error("Callback failed:", err);
-          // Vẫn hiển thị thành công vì VNPay đã xác nhận
-          setState("success");
+        if (vnpResponseCode === "00") {
+            try {
+                if (type === "ORD") {
+                    await orderService.confirmPayment(Number(idStr), "success");
+                }
+                if (type === "PS") {
+                    await orderService.confirmPaymentSession(txnRef, "success");
+                }
+                setState("success");
+
+            } catch (err) {
+                console.error("Callback failed:", err);
+                setState("success");
+            }
+        } else {
+            setState("failed");
         }
-      } else {
-        setState("failed");
-      }
     };
 
     processResult();
@@ -188,7 +195,7 @@ export default function PaymentResult() {
                   {
                     icon: BadgeCheck,
                     label: "Mã đơn hàng",
-                    value: `#${transactionInfo.orderId}`,
+                    value: `#${transactionInfo.txnRef}`,
                     color: "text-emerald-600",
                   },
                   {
@@ -231,7 +238,7 @@ export default function PaymentResult() {
               <div className="bg-red-50 rounded-2xl p-5 space-y-2">
                 <p className="text-sm font-bold text-red-800">Giao dịch không thành công</p>
                 <p className="text-sm text-red-600">
-                  Đơn hàng #{transactionInfo.orderId} chưa được thanh toán. Bạn có thể thử lại
+                  Đơn hàng #{transactionInfo.txnRef} chưa được thanh toán. Bạn có thể thử lại
                   hoặc chọn phương thức thanh toán khác.
                 </p>
               </div>
@@ -243,7 +250,7 @@ export default function PaymentResult() {
             {isSuccess ? (
               <>
                 <button
-                  onClick={() => navigate(`/buyer/orders/${transactionInfo?.orderId}`)}
+                  onClick={() => navigate(`/buyer/orders/${transactionInfo?.txnRef}`)}
                   className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-black text-sm hover:from-emerald-600 hover:to-teal-700 transition-all shadow-lg shadow-emerald-200"
                 >
                   Xem chi tiết đơn hàng
@@ -258,7 +265,7 @@ export default function PaymentResult() {
             ) : (
               <>
                 <button
-                  onClick={() => navigate(`/buyer/orders/${transactionInfo?.orderId}`)}
+                  onClick={() => navigate(`/buyer/orders/${transactionInfo?.txnRef}`)}
                   className="w-full py-3.5 rounded-xl bg-gradient-to-r from-red-500 to-rose-600 text-white font-black text-sm hover:from-red-600 hover:to-rose-700 transition-all shadow-lg shadow-red-200"
                 >
                   Thử thanh toán lại

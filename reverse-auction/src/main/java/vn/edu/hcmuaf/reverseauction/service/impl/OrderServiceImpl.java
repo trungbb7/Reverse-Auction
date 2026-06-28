@@ -4,11 +4,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.http.HttpStatus;
+import vn.edu.hcmuaf.reverseauction.dto.OrderItemResponseDTO;
 import vn.edu.hcmuaf.reverseauction.dto.OrderResponseDTO;
-import vn.edu.hcmuaf.reverseauction.entity.Order;
-import vn.edu.hcmuaf.reverseauction.entity.OrderStatus;
-import vn.edu.hcmuaf.reverseauction.entity.User;
-import vn.edu.hcmuaf.reverseauction.entity.SystemSetting;
+import vn.edu.hcmuaf.reverseauction.dto.request.CheckoutRequest;
+import vn.edu.hcmuaf.reverseauction.dto.response.CheckoutResponse;
+import vn.edu.hcmuaf.reverseauction.dto.response.ReviewResponse;
+import vn.edu.hcmuaf.reverseauction.entity.*;
 import vn.edu.hcmuaf.reverseauction.exception.CustomException;
 import vn.edu.hcmuaf.reverseauction.repository.OrderRepository;
 import vn.edu.hcmuaf.reverseauction.repository.ReviewRepository;
@@ -23,7 +24,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import vn.edu.hcmuaf.reverseauction.repository.UserRepository;
 import vn.edu.hcmuaf.reverseauction.entity.User;
-import vn.edu.hcmuaf.reverseauction.entity.OrderType;
+
 import java.math.BigDecimal;
 import java.util.UUID;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,6 +56,7 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new RuntimeException("Order not found"));
         return toDTO(order);
     }
+
 
     @Override
     @Transactional
@@ -92,7 +94,11 @@ public class OrderServiceImpl implements OrderService {
         Order savedOrder = orderRepository.save(order);
 
         // Send notifications based on status changes
-        String orderTitle = order.getAuction() != null ? order.getAuction().getTitle() : (order.getProduct() != null ? order.getProduct().getName() : "sản phẩm");
+        String orderTitle = order.getAuction() != null ? order.getAuction().getTitle() : ( order.getItems() != null
+                ? order.getItems().stream()
+                .map(i -> i.getProduct().getName())
+                .collect(Collectors.joining(", "))
+                : null);
         String title = "";
         String content = "";
 
@@ -138,7 +144,8 @@ public class OrderServiceImpl implements OrderService {
                 ? o.getProduct().getImageUrl()
                 : null;
         String auctionTitle = o.getAuction() != null ? o.getAuction().getTitle() : null;
-
+        Review review = reviewRepository.findByOrderId(o.getId())
+                .orElse(null);
         return OrderResponseDTO.builder()
                 .id(o.getId())
                 .code(o.getCode() != null ? o.getCode() : null)
@@ -162,6 +169,17 @@ public class OrderServiceImpl implements OrderService {
 
                 .status(o.getStatus().name())
                 .alreadyReviewed(reviewRepository.existsByOrderId(o.getId()))
+                .review(
+                        review != null
+                                ? new ReviewResponse(
+                                review.getId().toString(),
+                                review.getBuyer().getFullName(),
+                                review.getComment(),
+                                review.getRating(),
+                                review.getCreatedAt()
+                        )
+                                : null
+                )
 
                 .auctionId(o.getAuction() != null ? o.getAuction().getId() : null)
                 .bidId(o.getBid() != null ? o.getBid().getId() : null)
@@ -173,6 +191,26 @@ public class OrderServiceImpl implements OrderService {
 
                 .createdAt(o.getCreatedAt())
                 .updatedAt(o.getUpdatedAt())
+                .items(
+                        o.getItems().stream()
+                                .map(this::toItemDTO)
+                                .toList()
+                )
+
+                .build();
+    }
+    private OrderItemResponseDTO toItemDTO(OrderItem i) {
+        return OrderItemResponseDTO.builder()
+                .id(i.getId())
+                .productId(i.getProduct().getId())
+                .productName(i.getProduct().getName())
+                .productImage(i.getProduct().getImageUrl())
+                .brand(i.getProduct().getBrand())
+                .quantity(i.getQuantity())
+                .unitPrice(i.getUnitPrice())
+                .subtotal(i.getSubtotal())
+//                .reviewed(i.isReviewed())
+//                .rating(i.getRating())
                 .build();
     }
 

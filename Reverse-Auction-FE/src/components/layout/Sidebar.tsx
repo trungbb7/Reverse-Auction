@@ -6,6 +6,7 @@ import {
   Users,
   Settings,
   LogOut,
+  User,
   TrendingUp,
   FileText,
   Search,
@@ -59,6 +60,11 @@ const Sidebar = ({ role = "admin" }: SidebarProps) => {
   ];
 
   const sellerNavLinks = [
+     {
+       name: "Thông tin",
+       path: "/seller/sellerInfo",
+       icon: <User size={20} />,
+     },
     {
       name: "Quản lý đấu giá",
       path: "/seller",

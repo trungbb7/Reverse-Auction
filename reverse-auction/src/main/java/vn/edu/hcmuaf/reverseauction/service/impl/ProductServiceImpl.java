@@ -104,6 +104,7 @@ public class ProductServiceImpl implements ProductService {
         p.setImageUrl(r.imageUrl());
         p.setPrice(r.price());
         p.setStockQuantity(r.stockQuantity());
+        p.setStatus(r.status());
 
         Category c = categoryRepository.findById(r.categoryId())
                 .orElseThrow(() -> new RuntimeException("Category not found"));
@@ -129,6 +130,7 @@ public class ProductServiceImpl implements ProductService {
         if (r.brand() != null) p.setBrand(r.brand());
         if (r.model() != null) p.setModel(r.model());
         if (r.imageUrl() != null) p.setImageUrl(r.imageUrl());
+        if (r.status() != null) p.setStatus(r.status());
 
         if (r.price() != null) p.setPrice(r.price());
         if (r.stockQuantity() != null) p.setStockQuantity(r.stockQuantity());

@@ -11,7 +11,12 @@ public class UserDTO {
     private String fullName;
     private String email;
     private String phone;
+
+    private String address;
+    private String imageUrl;
+
     private Role role;
+    private String description;
     private boolean enabled;
     private String cccdNumber;
     private String cccdFrontImage;

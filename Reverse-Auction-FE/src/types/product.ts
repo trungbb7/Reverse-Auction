@@ -2,6 +2,7 @@ export const ProductStatus = {
     ACTIVE: "ACTIVE",
     HIDDEN: "HIDDEN",
     OUT_OF_STOCK: "OUT_OF_STOCK",
+    INACTIVE : "INACTIVE",
 } as const;
 
 export type ProductStatus =
@@ -52,4 +53,6 @@ export interface ProductRequest {
 
     price: number;
     stockQuantity: number;
+
+    status: ProductStatus;
 }

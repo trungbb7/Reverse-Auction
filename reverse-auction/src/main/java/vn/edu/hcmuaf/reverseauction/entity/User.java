@@ -31,6 +31,14 @@ public class User implements UserDetails {
     @Column(length = 20)
     private String phone;
 
+    @Column
+    private String address;
+    @Column
+    private String imageUrl;
+    @Column
+    private String description;
+
+
     @Column(nullable = false)
     @Builder.Default
     private Double rating = 0.0;

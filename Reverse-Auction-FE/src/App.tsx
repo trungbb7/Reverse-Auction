@@ -45,6 +45,9 @@ import SellerComplaints from "./components/pages/seller/SellerComplaints/SellerC
 import Demo from "./components/pages/Demo.tsx";
 import ShopPage from "@/components/pages/shopPage";
 import SearchPage from "./components/pages/SearchPage";
+import CartPage from "./components/pages/buyer/buyerCart/CartPage";
+import {CheckoutPage} from "./components/pages/buyer/buyerCheckout/Checkout.tsx";
+import SellerInfo from "./components/pages/seller//SellerInfo.tsx";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -71,22 +74,24 @@ function App() {
             <Route path="search" element={<SearchPage />} />
           </Route>
 
-        {/* Buyer-only routes */}
-        <Route
-          path="/"
-          element={
-            <RequireRole roles={["ROLE_BUYER"]}>
-              <MainLayout />
-            </RequireRole>
-          }
-        >
-          <Route path="create-auction" element={<CreateAuction />} />
-          <Route path="my-auctions" element={<MyAuctions />} />
-          <Route path="auctions/:id" element={<AuctionDetail />} />
-          <Route path="buyer/orders" element={<BuyerOrder />} />
-          <Route path="buyer/orders/:id" element={<BuyerOrderDetail />} />
-          <Route path="buyer/complaints" element={<BuyerComplaints />} />
-        </Route>
+          {/* Buyer-only routes */}
+          <Route
+            path="/"
+            element={
+              <RequireRole roles={["ROLE_BUYER"]}>
+                <MainLayout />
+              </RequireRole>
+            }
+          >
+            <Route path="create-auction" element={<CreateAuction />} />
+            <Route path="my-auctions" element={<MyAuctions />} />
+            <Route path="auctions/:id" element={<AuctionDetail />} />
+            <Route path="buyer/orders" element={<BuyerOrder />} />
+            <Route path="buyer/orders/:id" element={<BuyerOrderDetail />} />
+            <Route path="cart" element={<CartPage />} />
+            <Route path="checkout" element={<CheckoutPage />} />
+            <Route path="review/order/:id" element={<BuyerReview />} />
+          </Route>
 
         {/* Any authenticated user routes */}
         <Route
@@ -138,6 +143,7 @@ function App() {
           <Route path="complaints" element={<AdminComplaints />} />
         </Route>
 
+
         {/* Seller routes */}
         <Route
           path="/seller"
@@ -155,6 +161,7 @@ function App() {
           <Route path="products" element={<SellerProduct />} />
           <Route path="orders-detail/:id" element={<OrderDetail />} />
           <Route path="complaints" element={<SellerComplaints />} />
+          <Route path="sellerInfo" element={<SellerInfo />} />
         </Route>
         <Route path="/demo" element={<Demo />} />
         <Route path="/payment/result" element={<PaymentResult />} />
