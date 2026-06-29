@@ -24,13 +24,13 @@ import { cloudinaryService } from "@/services/cloudinaryService";
 import { useAppDispatch } from "@/hooks/redux";
 import { selectContact } from "@/components/chat/chatSlice";
 
-type ComplaintFilter = "ALL" | "PENDING_SELLER" | "PENDING_ADMIN" | "CLOSED";
+type ComplaintFilter = "ALL" | "PENDING_SELLER" | "PENDING_ADMIN" | "SOLVED";
 
 const FILTERS: Array<{ key: ComplaintFilter; label: string }> = [
   { key: "ALL", label: "Tất cả" },
   { key: "PENDING_SELLER", label: "Chờ seller" },
   { key: "PENDING_ADMIN", label: "Chờ admin" },
-  { key: "CLOSED", label: "Đã đóng" },
+  { key: "SOLVED", label: "Đã xử lý" },
 ];
 
 const ACTION_OPTIONS = [
@@ -53,9 +53,9 @@ function statusMeta(status: string) {
         className: "bg-blue-100 text-blue-800",
         icon: ShieldAlert,
       };
-    case "CLOSED":
+    case "SOLVED":
       return {
-        label: "Đã đóng",
+        label: "Đã xử lý",
         className: "bg-emerald-100 text-emerald-800",
         icon: CheckCircle2,
       };
@@ -99,11 +99,17 @@ export default function SellerComplaints() {
   }, []);
 
   const filtered = useMemo(() => {
-    return complaints.filter((item) => filter === "ALL" || item.status === filter);
+    return complaints.filter(
+      (item) => filter === "ALL" || item.status === filter,
+    );
   }, [complaints, filter]);
 
   const selectedComplaint = useMemo(() => {
-    return filtered.find((item) => item.complaintId === selectedId) ?? filtered[0] ?? null;
+    return (
+      filtered.find((item) => item.complaintId === selectedId) ??
+      filtered[0] ??
+      null
+    );
   }, [filtered, selectedId]);
 
   useEffect(() => {
@@ -135,7 +141,8 @@ export default function SellerComplaints() {
   };
 
   const isVideoFileUrl = (url: string) =>
-    /\.(mp4|webm|mov|m4v|ogg)(\?|$)/i.test(url) || url.includes("/video/upload/");
+    /\.(mp4|webm|mov|m4v|ogg)(\?|$)/i.test(url) ||
+    url.includes("/video/upload/");
 
   const handleSubmit = async () => {
     if (!selectedComplaint) return;
@@ -152,7 +159,8 @@ export default function SellerComplaints() {
         toast.loading("Đang tải lên hình ảnh/video minh chứng...", {
           id: "uploading",
         });
-        const uploadResults = await cloudinaryService.uploadMultiMedia(evidenceFiles);
+        const uploadResults =
+          await cloudinaryService.uploadMultiMedia(evidenceFiles);
         const urls = uploadResults.map((res) => res.url);
         finalEvidenceUrl = urls.join(", ");
         toast.dismiss("uploading");
@@ -163,7 +171,10 @@ export default function SellerComplaints() {
         sellerMessage: sellerMessage.trim(),
         sellerEvidence: finalEvidenceUrl,
       };
-      await complaintService.respondComplaint(selectedComplaint.complaintId, payload);
+      await complaintService.respondComplaint(
+        selectedComplaint.complaintId,
+        payload,
+      );
       toast.success("Đã gửi phản hồi cho khiếu nại.");
       setEvidenceFiles([]);
       setPreviews([]);
@@ -183,7 +194,7 @@ export default function SellerComplaints() {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-3xl bg-gradient-to-r from-slate-900 via-slate-800 to-[#375F97] px-6 py-7 text-white shadow-xl">
+      <div className="rounded-3xl bg-linear-to-r from-slate-900 via-slate-800 to-[#375F97] px-6 py-7 text-white shadow-xl">
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
             <p className="mb-2 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-white/80">
@@ -192,7 +203,8 @@ export default function SellerComplaints() {
             </p>
             <h1 className="text-3xl font-black">Quản lý khiếu nại</h1>
             <p className="mt-2 max-w-2xl text-sm text-white/70">
-              Xem toàn bộ khiếu nại, phản hồi từ seller, và theo dõi trạng thái xử lý.
+              Xem toàn bộ khiếu nại, phản hồi từ seller, và theo dõi trạng thái
+              xử lý.
             </p>
           </div>
           <button
@@ -335,11 +347,17 @@ export default function SellerComplaints() {
                       <User className="h-5 w-5" />
                     </div>
                     <div>
-                      <p className="text-xs font-bold uppercase tracking-widest text-slate-400">Người khiếu nại</p>
-                      <p className="text-sm font-black text-slate-900">{selectedComplaint.buyerName}</p>
+                      <p className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                        Người khiếu nại
+                      </p>
+                      <p className="text-sm font-black text-slate-900">
+                        {selectedComplaint.buyerName}
+                      </p>
                     </div>
                     <button
-                      onClick={() => handleChatWithBuyer(selectedComplaint.buyerId)}
+                      onClick={() =>
+                        handleChatWithBuyer(selectedComplaint.buyerId)
+                      }
                       className="ml-4 inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white transition hover:bg-slate-800"
                     >
                       <MessageSquare className="h-3.5 w-3.5" />
@@ -353,10 +371,15 @@ export default function SellerComplaints() {
                 <div className="rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
                   <p className="font-semibold text-slate-900">Thời gian</p>
                   <p className="mt-1">
-                    {new Date(selectedComplaint.createdAt).toLocaleString("vi-VN")}
+                    {new Date(selectedComplaint.createdAt).toLocaleString(
+                      "vi-VN",
+                    )}
                   </p>
                   <p className="mt-1 text-xs text-slate-400">
-                    Cập nhật: {new Date(selectedComplaint.updatedAt).toLocaleString("vi-VN")}
+                    Cập nhật:{" "}
+                    {new Date(selectedComplaint.updatedAt).toLocaleString(
+                      "vi-VN",
+                    )}
                   </p>
                 </div>
               </div>
@@ -364,7 +387,7 @@ export default function SellerComplaints() {
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="rounded-2xl bg-slate-50 p-4">
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
-                    Ảnh minh chứng
+                    Minh chứng
                   </p>
                   {selectedComplaint.evidenceUrls?.length ? (
                     <div className="mt-3 grid grid-cols-2 gap-3">
@@ -376,11 +399,19 @@ export default function SellerComplaints() {
                           rel="noreferrer"
                           className="overflow-hidden rounded-2xl border border-white bg-white shadow-sm"
                         >
-                          <img
-                            src={url}
-                            alt="Ảnh minh chứng"
-                            className="h-36 w-full object-cover"
-                          />
+                          {isVideoFileUrl(url) ? (
+                            <video
+                              src={url}
+                              className="h-36 w-full object-cover"
+                              controls
+                            />
+                          ) : (
+                            <img
+                              src={url}
+                              alt="Ảnh minh chứng"
+                              className="h-36 w-full object-cover"
+                            />
+                          )}
                         </a>
                       ))}
                     </div>
@@ -395,37 +426,53 @@ export default function SellerComplaints() {
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
                     Phản hồi của bạn
                   </p>
-                  {selectedComplaint.sellerAction || selectedComplaint.sellerMessage || selectedComplaint.sellerEvidence ? (
+                  {selectedComplaint.sellerAction ||
+                  selectedComplaint.sellerMessage ||
+                  selectedComplaint.sellerEvidence ? (
                     <div className="mt-3 space-y-3 text-sm text-slate-700">
                       <p>
-                        <span className="font-semibold text-slate-900">Hành động: </span>
+                        <span className="font-semibold text-slate-900">
+                          Hành động:{" "}
+                        </span>
                         {selectedComplaint.sellerAction}
                       </p>
                       <p>
-                        <span className="font-semibold text-slate-900">Nội dung: </span>
+                        <span className="font-semibold text-slate-900">
+                          Nội dung:{" "}
+                        </span>
                         {selectedComplaint.sellerMessage || "Không có"}
                       </p>
                       {selectedComplaint.sellerEvidence && (
-                         <div className="mt-2">
-                           <span className="font-semibold text-slate-900">Bằng chứng: </span>
-                           <div className="mt-2 flex flex-wrap gap-2">
-                             {selectedComplaint.sellerEvidence.split(", ").map((url, i) => (
-                               <a
-                                 key={i}
-                                 href={url}
-                                 target="_blank"
-                                 rel="noreferrer"
-                                 className="block relative border rounded-lg overflow-hidden group"
-                               >
-                                 {isVideoFileUrl(url) ? (
-                                   <video src={url} className="w-20 h-20 object-cover" />
-                                 ) : (
-                                   <img src={url} className="w-20 h-20 object-cover" />
-                                 )}
-                               </a>
-                             ))}
-                           </div>
-                         </div>
+                        <div className="mt-2">
+                          <span className="font-semibold text-slate-900">
+                            Bằng chứng:{" "}
+                          </span>
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            {selectedComplaint.sellerEvidence
+                              .split(", ")
+                              .map((url, i) => (
+                                <a
+                                  key={i}
+                                  href={url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="block relative border rounded-lg overflow-hidden group"
+                                >
+                                  {isVideoFileUrl(url) ? (
+                                    <video
+                                      src={url}
+                                      className="w-20 h-20 object-cover"
+                                    />
+                                  ) : (
+                                    <img
+                                      src={url}
+                                      className="w-20 h-20 object-cover"
+                                    />
+                                  )}
+                                </a>
+                              ))}
+                          </div>
+                        </div>
                       )}
                     </div>
                   ) : (
@@ -522,10 +569,18 @@ export default function SellerComplaints() {
                             key={index}
                             className="group relative overflow-hidden rounded-2xl border border-slate-100 bg-slate-50"
                           >
-                            {isVideoFileUrl(evidenceFiles[index].name) || evidenceFiles[index].type.startsWith("video/") ? (
-                              <video src={preview} className="h-24 w-full object-cover" />
+                            {isVideoFileUrl(evidenceFiles[index].name) ||
+                            evidenceFiles[index].type.startsWith("video/") ? (
+                              <video
+                                src={preview}
+                                className="h-24 w-full object-cover"
+                              />
                             ) : (
-                              <img src={preview} alt="" className="h-24 w-full object-cover" />
+                              <img
+                                src={preview}
+                                alt=""
+                                className="h-24 w-full object-cover"
+                              />
                             )}
                             <button
                               type="button"
@@ -544,7 +599,7 @@ export default function SellerComplaints() {
                         type="button"
                         onClick={handleSubmit}
                         disabled={submitting}
-                        className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-[#375F97] to-blue-500 px-5 py-3 text-sm font-bold text-white transition hover:from-[#2d4f80] hover:to-blue-600 disabled:cursor-not-allowed disabled:opacity-60"
+                        className="inline-flex items-center gap-2 rounded-2xl bg-linear-to-r from-[#375F97] to-blue-500 px-5 py-3 text-sm font-bold text-white transition hover:from-[#2d4f80] hover:to-blue-600 disabled:cursor-not-allowed disabled:opacity-60"
                       >
                         {submitting ? (
                           <>
@@ -563,9 +618,12 @@ export default function SellerComplaints() {
                 </div>
               ) : (
                 <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-                  <p className="font-semibold text-slate-900">Trạng thái hiện tại</p>
+                  <p className="font-semibold text-slate-900">
+                    Trạng thái hiện tại
+                  </p>
                   <p className="mt-1">
-                    Khiếu nại này đã đi qua bước seller hoặc đã đóng. Không thể gửi phản hồi mới.
+                    Khiếu nại này đã đi qua bước seller hoặc đã đóng. Không thể
+                    gửi phản hồi mới.
                   </p>
                 </div>
               )}

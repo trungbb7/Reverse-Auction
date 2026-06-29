@@ -160,7 +160,7 @@ export default function Profile() {
             </button>
 
             <button
-              onClick={() => navigate("")}
+              onClick={() => navigate("/auth/change-password")}
               className="mt-3 w-full border border-blue-500 text-blue-600 py-2 rounded-full hover:bg-blue-50"
             >
               Đặt lại mật khẩu
@@ -209,95 +209,103 @@ export default function Profile() {
           </div>
 
           {/* KYC SECTION */}
-          <div className="col-span-3 bg-white rounded-2xl p-6 shadow-sm mt-6">
-            <h2 className="text-lg font-semibold mb-4">
-              Xác minh danh tính (KYC)
-            </h2>
+          {user.role === "ROLE_SELLER" && (
+            <div className="col-span-3 bg-white rounded-2xl p-6 shadow-sm mt-6">
+              <h2 className="text-lg font-semibold mb-4">
+                Xác minh danh tính (KYC)
+              </h2>
 
-            <div className="mb-4">
-              <span className="text-sm font-medium">Trạng thái hiện tại: </span>
-              <span
-                className={`font-bold ${user.kycStatus === "APPROVED" ? "text-green-600" : user.kycStatus === "REJECTED" ? "text-red-600" : user.kycStatus === "PENDING" ? "text-yellow-600" : "text-gray-500"}`}
-              >
-                {user.kycStatus === "APPROVED"
-                  ? "Đã xác minh"
-                  : user.kycStatus === "REJECTED"
-                    ? "Bị từ chối"
-                    : user.kycStatus === "PENDING"
-                      ? "Đang chờ duyệt"
-                      : "Chưa xác minh"}
-              </span>
-              {user.kycStatus === "REJECTED" && user.kycMessage && (
-                <p className="text-red-500 text-sm mt-1">
-                  Lý do: {user.kycMessage}
-                </p>
+              <div className="mb-4">
+                <span className="text-sm font-medium">
+                  Trạng thái hiện tại:{" "}
+                </span>
+                <span
+                  className={`font-bold ${user.kycStatus === "APPROVED" ? "text-green-600" : user.kycStatus === "REJECTED" ? "text-red-600" : user.kycStatus === "PENDING" ? "text-yellow-600" : "text-gray-500"}`}
+                >
+                  {user.kycStatus === "APPROVED"
+                    ? "Đã xác minh"
+                    : user.kycStatus === "REJECTED"
+                      ? "Bị từ chối"
+                      : user.kycStatus === "PENDING"
+                        ? "Đang chờ duyệt"
+                        : "Chưa xác minh"}
+                </span>
+                {user.kycStatus === "REJECTED" && user.kycMessage && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Lý do: {user.kycMessage}
+                  </p>
+                )}
+              </div>
+
+              {(user.kycStatus === "UNVERIFIED" ||
+                user.kycStatus === "REJECTED") && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div>
+                    <label className="text-sm text-gray-500">Số CCCD</label>
+                    <input
+                      type="text"
+                      value={identityNumber}
+                      onChange={(e) => setIdentityNumber(e.target.value)}
+                      className="w-full mt-1 px-4 py-2 bg-gray-100 rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-500">
+                      Ảnh mặt trước CCCD
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        setFrontImage(e.target.files?.[0] || null)
+                      }
+                      className="w-full mt-1 px-4 py-2 bg-gray-100 rounded-lg"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-500">
+                      Ảnh mặt sau CCCD
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        setBackImage(e.target.files?.[0] || null)
+                      }
+                      className="w-full mt-1 px-4 py-2 bg-gray-100 rounded-lg"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-sm text-gray-500">
+                      Giấy phép kinh doanh
+                    </label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        setBusinessLicense(e.target.files?.[0] || null)
+                      }
+                      className="w-full mt-1 px-4 py-2 bg-gray-100 rounded-lg"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {(user.kycStatus === "UNVERIFIED" ||
+                user.kycStatus === "REJECTED") && (
+                <div className="flex justify-end mt-6">
+                  <button
+                    onClick={handleKycSubmit}
+                    disabled={kycLoading}
+                    className="bg-green-600 text-white px-6 py-2 rounded-full hover:bg-green-700 disabled:opacity-50"
+                  >
+                    {kycLoading ? "Đang gửi..." : "Gửi xác minh"}
+                  </button>
+                </div>
               )}
             </div>
-
-            {(user.kycStatus === "UNVERIFIED" ||
-              user.kycStatus === "REJECTED") && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div>
-                  <label className="text-sm text-gray-500">Số CCCD</label>
-                  <input
-                    type="text"
-                    value={identityNumber}
-                    onChange={(e) => setIdentityNumber(e.target.value)}
-                    className="w-full mt-1 px-4 py-2 bg-gray-100 rounded-lg"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm text-gray-500">
-                    Ảnh mặt trước CCCD
-                  </label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setFrontImage(e.target.files?.[0] || null)}
-                    className="w-full mt-1 px-4 py-2 bg-gray-100 rounded-lg"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm text-gray-500">
-                    Ảnh mặt sau CCCD
-                  </label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setBackImage(e.target.files?.[0] || null)}
-                    className="w-full mt-1 px-4 py-2 bg-gray-100 rounded-lg"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm text-gray-500">
-                    Giấy phép kinh doanh
-                  </label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) =>
-                      setBusinessLicense(e.target.files?.[0] || null)
-                    }
-                    className="w-full mt-1 px-4 py-2 bg-gray-100 rounded-lg"
-                  />
-                </div>
-              </div>
-            )}
-
-            {(user.kycStatus === "UNVERIFIED" ||
-              user.kycStatus === "REJECTED") && (
-              <div className="flex justify-end mt-6">
-                <button
-                  onClick={handleKycSubmit}
-                  disabled={kycLoading}
-                  className="bg-green-600 text-white px-6 py-2 rounded-full hover:bg-green-700 disabled:opacity-50"
-                >
-                  {kycLoading ? "Đang gửi..." : "Gửi xác minh"}
-                </button>
-              </div>
-            )}
-          </div>
+          )}
         </div>
 
         {/* LOGOUT */}

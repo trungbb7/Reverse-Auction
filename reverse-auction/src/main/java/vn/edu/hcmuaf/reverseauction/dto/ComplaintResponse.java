@@ -1,5 +1,8 @@
 package vn.edu.hcmuaf.reverseauction.dto;
 
+import vn.edu.hcmuaf.reverseauction.entity.ComplaintStatus;
+import vn.edu.hcmuaf.reverseauction.entity.Verdict;
+
 import java.time.Instant;
 import java.util.List;
 
@@ -14,11 +17,11 @@ public record ComplaintResponse(
         String sellerName,
         String reason,
         List<String> evidenceUrls,
-        String status,
+        ComplaintStatus status,
         String sellerAction,
         String sellerMessage,
         String sellerEvidence,
-        String verdict,
+        Verdict verdict,
         String adminNote,
         String finalAction,
         Instant createdAt,

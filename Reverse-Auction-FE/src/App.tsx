@@ -116,6 +116,7 @@ function App() {
             </Route>
 
             {/* Auth routes */}
+            <Route path="/auth/change-password" element={<ChangePassword />} />
             <Route
               path="/auth"
               element={
@@ -127,7 +128,7 @@ function App() {
               <Route path="login" element={<Login />} />
               <Route path="register" element={<Register />} />
               <Route path="forgot-password" element={<ForgotPassword />} />
-              <Route path="change-password" element={<ChangePassword />} />
+
               <Route path="reset-password" element={<ResetPassword />} />
             </Route>
 
@@ -162,10 +163,8 @@ function App() {
                 </RequireRole>
               }
             >
-              <Route
-                index
-                element={<div>Seller Dashboard (To be built)</div>}
-              />
+              <Route index element={<SellerDashboard />} />
+              <Route path="stats" element={<SellerDashboard />} />
               <Route path="search" element={<SellerSearch />} />
               <Route path="chat" element={<ExternalChatPage />} />
               <Route path="auctions/:id" element={<SellerAuctionDetail />} />
@@ -175,7 +174,6 @@ function App() {
               <Route path="complaints" element={<SellerComplaints />} />
               <Route path="sellerInfo" element={<SellerInfo />} />
               <Route path="auction-management" element={<SellerAuctions />} />
-              <Route path="stats" element={<SellerDashboard />} />
             </Route>
             <Route path="/demo" element={<Demo />} />
             <Route path="/payment/result" element={<PaymentResult />} />

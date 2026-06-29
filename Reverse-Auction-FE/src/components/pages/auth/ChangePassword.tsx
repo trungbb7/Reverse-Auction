@@ -64,13 +64,19 @@ export default function ChangePassword() {
         </div>
         <h1 className="text-3xl font-bold text-slate-900 mb-2">Đổi mật khẩu</h1>
         <p className="text-slate-500 leading-relaxed text-sm">
-          Mật khẩu mới của bạn phải có độ bảo mật cao và khác với mật khẩu hiện tại.
+          Mật khẩu mới của bạn phải có độ bảo mật cao và khác với mật khẩu hiện
+          tại.
         </p>
       </div>
 
-      <form className="space-y-4 bg-white p-6 border border-slate-100 rounded-2xl shadow-sm" onSubmit={handleSubmit}>
+      <form
+        className="space-y-4 bg-white p-6 border border-slate-100 rounded-2xl shadow-sm"
+        onSubmit={handleSubmit}
+      >
         <div className="space-y-1.5">
-          <label className="text-sm font-medium text-slate-700">Mật khẩu hiện tại</label>
+          <label className="text-sm font-medium text-slate-700">
+            Mật khẩu hiện tại
+          </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
               <Lock size={18} />
@@ -87,7 +93,9 @@ export default function ChangePassword() {
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-sm font-medium text-slate-700">Mật khẩu mới</label>
+          <label className="text-sm font-medium text-slate-700">
+            Mật khẩu mới
+          </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
               <Lock size={18} />
@@ -102,11 +110,15 @@ export default function ChangePassword() {
               required
             />
           </div>
-          <p className="text-xs text-slate-400">Mật khẩu phải dài tối thiểu 8 ký tự.</p>
+          <p className="text-xs text-slate-400">
+            Mật khẩu phải dài tối thiểu 8 ký tự.
+          </p>
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-sm font-medium text-slate-700">Xác nhận mật khẩu mới</label>
+          <label className="text-sm font-medium text-slate-700">
+            Xác nhận mật khẩu mới
+          </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
               <Lock size={18} />
