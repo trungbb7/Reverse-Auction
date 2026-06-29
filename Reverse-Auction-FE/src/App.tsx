@@ -21,6 +21,7 @@ import SellerProduct from "./components/pages/seller/SellerProduct/SellerProduct
 import SellerAuctionDetail from "./components/pages/seller/SellerAuctionDetail/SellerAuctionDetail";
 import ExternalChatPage from "./components/pages/chat/ExternalChatPage";
 import GlobalChatWidget from "./components/chat/GlobalChatWidget";
+import AiChatWidget from "./components/chat/AiChatWidget";
 import BuyerOrder from "./components/pages/buyer/BuyerOrder/BuyerOrder";
 import BuyerOrderDetail from "./components/pages/buyer/BuyerOrderDetail";
 import BuyerComplaints from "./components/pages/buyer/BuyerComplaints";
@@ -177,9 +178,10 @@ function App() {
             </Route>
             <Route path="/demo" element={<Demo />} />
             <Route path="/payment/result" element={<PaymentResult />} />
-          </Routes>
-          <GlobalChatWidget />
-        </BrowserRouter>
+      </Routes>
+      <AiChatWidget />
+      <GlobalChatWidget />
+    </BrowserRouter>
       </ConfirmProvider>
     </NotificationProvider>
   );
