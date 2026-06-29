@@ -5,7 +5,6 @@ import { UserCheck, UserX, Search, Mail, Phone, Shield } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useConfirm } from "@/context/ConfirmContext";
 
-
 export default function UserManagement() {
   const { confirm } = useConfirm();
   const [users, setUsers] = useState<User[]>([]);
@@ -55,16 +54,20 @@ export default function UserManagement() {
     }
   };
 
-  const handleVerifyKyc = async (status: 'APPROVED' | 'REJECTED') => {
+  const handleVerifyKyc = async (status: "APPROVED" | "REJECTED") => {
     if (!selectedUser) return;
-    if (status === 'REJECTED' && !rejectMessage) {
+    if (status === "REJECTED" && !rejectMessage) {
       toast.error("Vui lòng nhập lý do từ chối");
       return;
     }
 
     setKycLoading(true);
     try {
-      await adminService.verifyKyc(selectedUser.id, status, status === 'REJECTED' ? rejectMessage : undefined);
+      await adminService.verifyKyc(
+        selectedUser.id,
+        status,
+        status === "REJECTED" ? rejectMessage : undefined,
+      );
       toast.success("Đã cập nhật trạng thái KYC");
       setKycModalOpen(false);
       fetchUsers();
@@ -79,7 +82,7 @@ export default function UserManagement() {
   const filteredUsers = users.filter(
     (user) =>
       user.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase())
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   if (loading) {
@@ -94,15 +97,22 @@ export default function UserManagement() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Quản lý người dùng</h1>
-          <p className="text-slate-500">Xem và quản lý trạng thái hoạt động của người dùng trong hệ thống</p>
+          <h1 className="text-2xl font-bold text-slate-800">
+            Quản lý người dùng
+          </h1>
+          <p className="text-slate-500">
+            Xem và quản lý trạng thái hoạt động của người dùng trong hệ thống
+          </p>
         </div>
       </div>
 
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="p-4 border-b border-slate-200 bg-slate-50/50">
           <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <Search
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+              size={18}
+            />
             <input
               type="text"
               placeholder="Tìm kiếm theo tên hoặc email..."
@@ -127,22 +137,33 @@ export default function UserManagement() {
             </thead>
             <tbody className="divide-y divide-slate-200">
               {filteredUsers.map((user) => (
-                <tr key={user.id} className="hover:bg-slate-50/50 transition-colors">
+                <tr
+                  key={user.id}
+                  className="hover:bg-slate-50/50 transition-colors"
+                >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold border border-slate-200">
-                        {user.fullName ? user.fullName.charAt(0).toUpperCase() : user.email.charAt(0).toUpperCase()}
+                        {user.fullName
+                          ? user.fullName.charAt(0).toUpperCase()
+                          : user.email.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <div className="font-medium text-slate-900">{user.fullName || "N/A"}</div>
-                        <div className="text-xs text-slate-500">ID: #{user.id}</div>
+                        <div className="font-medium text-slate-900">
+                          {user.fullName || "N/A"}
+                        </div>
+                        <div className="text-xs text-slate-500">
+                          ID: #{user.id}
+                        </div>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-1.5 text-sm">
                       <Shield size={14} className="text-slate-400" />
-                      <span className="capitalize">{user.role.replace("ROLE_", "").toLowerCase()}</span>
+                      <span className="capitalize">
+                        {user.role.replace("ROLE_", "").toLowerCase()}
+                      </span>
                     </div>
                   </td>
                   <td className="px-6 py-4">
@@ -171,20 +192,29 @@ export default function UserManagement() {
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      user.kycStatus === 'APPROVED' ? 'bg-green-100 text-green-700' :
-                      user.kycStatus === 'REJECTED' ? 'bg-red-100 text-red-700' :
-                      user.kycStatus === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
-                      'bg-gray-100 text-gray-700'
-                    }`}>
-                      {user.kycStatus === 'APPROVED' ? 'Đã duyệt' :
-                       user.kycStatus === 'REJECTED' ? 'Từ chối' :
-                       user.kycStatus === 'PENDING' ? 'Đang chờ' : 'Chưa XM'}
+                    <span
+                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        user.kycStatus === "APPROVED"
+                          ? "bg-green-100 text-green-700"
+                          : user.kycStatus === "REJECTED"
+                            ? "bg-red-100 text-red-700"
+                            : user.kycStatus === "PENDING"
+                              ? "bg-yellow-100 text-yellow-700"
+                              : "bg-gray-100 text-gray-700"
+                      }`}
+                    >
+                      {user.kycStatus === "APPROVED"
+                        ? "Đã duyệt"
+                        : user.kycStatus === "REJECTED"
+                          ? "Từ chối"
+                          : user.kycStatus === "PENDING"
+                            ? "Đang chờ"
+                            : "Chưa XM"}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      {user.kycStatus === 'PENDING' && (
+                      {user.kycStatus === "PENDING" && (
                         <button
                           onClick={() => {
                             setSelectedUser(user);
@@ -198,31 +228,34 @@ export default function UserManagement() {
                       )}
                       <button
                         onClick={() => handleToggleBlock(user.id, user.enabled)}
-                      className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                        user.enabled
-                          ? "text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200"
-                          : "text-emerald-600 hover:bg-emerald-50 border border-transparent hover:border-emerald-200"
-                      }`}
-                    >
-                      {user.enabled ? (
-                        <>
-                          <UserX size={16} />
-                          Chặn
-                        </>
-                      ) : (
-                        <>
-                          <UserCheck size={16} />
-                          Bỏ chặn
-                        </>
-                      )}
-                    </button>
+                        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                          user.enabled
+                            ? "text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200"
+                            : "text-emerald-600 hover:bg-emerald-50 border border-transparent hover:border-emerald-200"
+                        }`}
+                      >
+                        {user.enabled ? (
+                          <>
+                            <UserX size={16} />
+                            Chặn
+                          </>
+                        ) : (
+                          <>
+                            <UserCheck size={16} />
+                            Bỏ chặn
+                          </>
+                        )}
+                      </button>
                     </div>
                   </td>
                 </tr>
               ))}
               {filteredUsers.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-10 text-center text-slate-500">
+                  <td
+                    colSpan={5}
+                    className="px-6 py-10 text-center text-slate-500"
+                  >
                     Không tìm thấy người dùng nào phù hợp
                   </td>
                 </tr>
@@ -238,9 +271,14 @@ export default function UserManagement() {
           <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-slate-200 flex justify-between items-center">
               <h2 className="text-xl font-bold">Duyệt hồ sơ KYC</h2>
-              <button onClick={() => setKycModalOpen(false)} className="text-slate-400 hover:text-slate-600">✕</button>
+              <button
+                onClick={() => setKycModalOpen(false)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                ✕
+              </button>
             </div>
-            
+
             <div className="p-6 space-y-6">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
@@ -249,31 +287,61 @@ export default function UserManagement() {
                 </div>
                 <div>
                   <p className="text-slate-500">Số CCCD</p>
-                  <p className="font-medium text-lg">{selectedUser.cccdNumber || "N/A"}</p>
+                  <p className="font-medium text-lg">
+                    {selectedUser.identityNumber || "N/A"}
+                  </p>
                 </div>
               </div>
 
               <div className="space-y-4">
                 <div>
                   <p className="text-slate-500 mb-2">Ảnh mặt trước</p>
-                  {selectedUser.cccdFrontImage ? (
-                    <img src={`http://localhost:8080${selectedUser.cccdFrontImage}`} alt="Front" className="w-full h-auto rounded-lg border" />
+                  {selectedUser.frontIdentity ? (
+                    <img
+                      src={selectedUser.frontIdentity}
+                      alt="Front"
+                      className="rounded-lg border size-80"
+                    />
                   ) : (
-                    <div className="w-full h-32 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400">Không có ảnh</div>
+                    <div className="w-full h-32 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400">
+                      Không có ảnh
+                    </div>
                   )}
                 </div>
                 <div>
                   <p className="text-slate-500 mb-2">Ảnh mặt sau</p>
-                  {selectedUser.cccdBackImage ? (
-                    <img src={`http://localhost:8080${selectedUser.cccdBackImage}`} alt="Back" className="w-full h-auto rounded-lg border" />
+                  {selectedUser.backIdentity ? (
+                    <img
+                      src={selectedUser.backIdentity}
+                      alt="Back"
+                      className="rounded-lg border size-80"
+                    />
                   ) : (
-                    <div className="w-full h-32 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400">Không có ảnh</div>
+                    <div className="w-full h-32 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400">
+                      Không có ảnh
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <p className="text-slate-500 mb-2">Giấy phép kinh doanh</p>
+                  {selectedUser.businessLicense ? (
+                    <img
+                      src={selectedUser.businessLicense}
+                      alt="Business License"
+                      className="rounded-lg border size-80"
+                    />
+                  ) : (
+                    <div className="w-full h-32 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400">
+                      Không có ảnh
+                    </div>
                   )}
                 </div>
               </div>
 
               <div>
-                <label className="text-slate-500 mb-2 block">Lý do từ chối (nếu có)</label>
+                <label className="text-slate-500 mb-2 block">
+                  Lý do từ chối (nếu có)
+                </label>
                 <textarea
                   value={rejectMessage}
                   onChange={(e) => setRejectMessage(e.target.value)}
@@ -293,14 +361,14 @@ export default function UserManagement() {
                 Hủy
               </button>
               <button
-                onClick={() => handleVerifyKyc('REJECTED')}
+                onClick={() => handleVerifyKyc("REJECTED")}
                 className="px-4 py-2 rounded-lg font-medium text-white bg-red-600 hover:bg-red-700 transition-colors"
                 disabled={kycLoading}
               >
                 {kycLoading ? "Đang xử lý..." : "Từ chối"}
               </button>
               <button
-                onClick={() => handleVerifyKyc('APPROVED')}
+                onClick={() => handleVerifyKyc("APPROVED")}
                 className="px-4 py-2 rounded-lg font-medium text-white bg-emerald-600 hover:bg-emerald-700 transition-colors"
                 disabled={kycLoading}
               >

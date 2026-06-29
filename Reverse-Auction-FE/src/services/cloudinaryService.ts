@@ -39,7 +39,7 @@ class CloudinaryService {
     return data.url;
   }
 
-  async uploadMultiImages(files: FileList) {
+  async uploadMultiImages(files: FileList | File[]) {
     const uploadPromise = Array.from(files, (f) => this.uploadSingleImage(f));
     const fileURLs = await Promise.all(uploadPromise);
     return fileURLs;

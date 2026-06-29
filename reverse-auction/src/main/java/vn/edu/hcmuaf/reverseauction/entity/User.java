@@ -79,14 +79,17 @@ public class User implements UserDetails {
 
 
     // KYC fields
-    @Column(name = "cccd_number", length = 20)
-    private String cccdNumber;
+    @Column(name = "identity_number", length = 20)
+    private String identityNumber;
 
-    @Column(name = "cccd_front_image")
-    private String cccdFrontImage;
+    @Column(name = "identity_front_image")
+    private String identityFrontImage;
 
-    @Column(name = "cccd_back_image")
-    private String cccdBackImage;
+    @Column(name = "identity_back_image")
+    private String identityBackImage;
+
+    @Column(name = "business_license")
+    private String businessLicense;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "kyc_status", nullable = false)

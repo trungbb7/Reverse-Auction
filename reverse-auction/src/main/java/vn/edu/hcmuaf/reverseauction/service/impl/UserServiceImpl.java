@@ -9,7 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.hcmuaf.reverseauction.dto.UserDTO;
 import vn.edu.hcmuaf.reverseauction.dto.request.ChangePasswordRequest;
+import vn.edu.hcmuaf.reverseauction.dto.request.SubmitKycRequest;
 import vn.edu.hcmuaf.reverseauction.entity.AuthProvider;
+import vn.edu.hcmuaf.reverseauction.entity.KycStatus;
 import vn.edu.hcmuaf.reverseauction.entity.User;
 import vn.edu.hcmuaf.reverseauction.exception.CustomException;
 import vn.edu.hcmuaf.reverseauction.repository.UserRepository;
@@ -149,28 +151,29 @@ public class UserServiceImpl implements UserService {
                 .verified(user.getVerified())
                 .provider(user.getProvider())
                 .balance(user.getBalance())
-                .cccdNumber(user.getCccdNumber())
-                .cccdFrontImage(user.getCccdFrontImage())
-                .cccdBackImage(user.getCccdBackImage())
+                .identityNumber(user.getIdentityNumber())
+                .frontIdentity(user.getIdentityFrontImage())
+                .backIdentity(user.getIdentityBackImage())
+                .businessLicense(user.getBusinessLicense())
                 .kycStatus(user.getKycStatus())
                 .kycMessage(user.getKycMessage())
                 .build();
     }
 
     @Override
-    public UserDTO submitKyc(org.springframework.web.multipart.MultipartFile front, org.springframework.web.multipart.MultipartFile back, String cccdNumber) {
+    public UserDTO submitKyc(String identityNumber, String frontIdentity, String backIdentity, String businessLicense) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        String frontPath = fileStorageService.storeFile(front);
-        String backPath = fileStorageService.storeFile(back);
+;
 
-        user.setCccdNumber(cccdNumber);
-        user.setCccdFrontImage(frontPath);
-        user.setCccdBackImage(backPath);
-        user.setKycStatus(vn.edu.hcmuaf.reverseauction.entity.KycStatus.PENDING);
+        user.setIdentityNumber(identityNumber);
+        user.setIdentityFrontImage(frontIdentity);
+        user.setIdentityBackImage(backIdentity);
+        user.setBusinessLicense(businessLicense);
+        user.setKycStatus(KycStatus.PENDING);
         user.setKycMessage(null);
 
         userRepository.save(user);

@@ -5,8 +5,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.hcmuaf.reverseauction.dto.UserDTO;
 import vn.edu.hcmuaf.reverseauction.dto.request.ChangePasswordRequest;
+import vn.edu.hcmuaf.reverseauction.dto.request.SubmitKycRequest;
 import vn.edu.hcmuaf.reverseauction.service.impl.UserServiceImpl;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -27,7 +29,7 @@ public class UsersController {
     }
 
     @PostMapping("/me/topup")
-    public UserDTO topupBalance(@RequestParam java.math.BigDecimal amount) {
+    public UserDTO topupBalance(@RequestParam BigDecimal amount) {
         return userService.topupBalance(amount);
     }
 
@@ -41,11 +43,8 @@ public class UsersController {
         return userService.listChatUsers();
     }
 
-    @PostMapping(value = "/kyc", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
-    public UserDTO submitKyc(
-            @RequestParam("frontImage") org.springframework.web.multipart.MultipartFile front,
-            @RequestParam("backImage") org.springframework.web.multipart.MultipartFile back,
-            @RequestParam("cccdNumber") String cccdNumber) {
-        return userService.submitKyc(front, back, cccdNumber);
+    @PostMapping(value = "/kyc")
+    public UserDTO submitKyc(@RequestBody SubmitKycRequest request) {
+        return userService.submitKyc(request.getIdentityNumber(), request.getFrontIdentity(), request.getBackIdentity(), request.getBusinessLicense());
     }
 }

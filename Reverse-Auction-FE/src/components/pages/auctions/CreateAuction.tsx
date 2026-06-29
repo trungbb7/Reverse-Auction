@@ -16,16 +16,6 @@ import type { Category } from "@/types/category";
 import { categoryService } from "@/services/categoryService";
 import { cloudinaryService } from "@/services/cloudinaryService";
 
-// const CATEGORIES = [
-//   { id: 1, name: "CPU - Bộ vi xử lý" },
-//   { id: 2, name: "VGA - Card màn hình" },
-//   { id: 3, name: "RAM - Bộ nhớ trong" },
-//   { id: 4, name: "Ổ cứng (SSD/HDD)" },
-//   { id: 5, name: "Mainboard - Bo mạch chủ" },
-//   { id: 6, name: "Nguồn (PSU)" },
-//   { id: 7, name: "Khác" },
-// ];
-
 const CreateAuction = () => {
   const navigate = useNavigate();
   const [categories, setCategories] = useState<Category[]>([]);

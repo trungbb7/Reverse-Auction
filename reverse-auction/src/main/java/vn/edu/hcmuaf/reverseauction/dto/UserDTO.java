@@ -1,6 +1,7 @@
 package vn.edu.hcmuaf.reverseauction.dto;
 import lombok.*;
 import vn.edu.hcmuaf.reverseauction.entity.AuthProvider;
+import vn.edu.hcmuaf.reverseauction.entity.KycStatus;
 import vn.edu.hcmuaf.reverseauction.entity.Role;
 
 import java.math.BigDecimal;
@@ -26,9 +27,11 @@ public class UserDTO {
     private BigDecimal balance;
 
 
-    private String cccdNumber;
-    private String cccdFrontImage;
-    private String cccdBackImage;
-    private vn.edu.hcmuaf.reverseauction.entity.KycStatus kycStatus;
+    private String identityNumber;
+
+    private String frontIdentity;
+    private String backIdentity;
+    private String businessLicense;
+    private KycStatus kycStatus;
     private String kycMessage;
 }
