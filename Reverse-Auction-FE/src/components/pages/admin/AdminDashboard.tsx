@@ -105,9 +105,7 @@ export default function AdminDashboard() {
     <div className="space-y-8">
       {/* Welcome Banner */}
       <div>
-        <h1 className="text-3xl font-black text-slate-800">
-          Tổng quan quản trị
-        </h1>
+        <h1 className="text-3xl font-black text-slate-800">Admin Dashboard</h1>
         <p className="text-slate-500 mt-1">
           Theo dõi số liệu hoạt động, tăng trưởng doanh số và quản lý toàn bộ hệ
           thống

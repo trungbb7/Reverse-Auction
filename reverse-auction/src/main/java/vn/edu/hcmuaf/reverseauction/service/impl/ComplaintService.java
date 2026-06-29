@@ -125,11 +125,17 @@ public class ComplaintService {
     }
 
     private ComplaintResponse toComplaintSummary(Complaint complaint) {
+
+        String productName = "";
+        if (complaint.getOrder().getProduct() != null){
+            productName = complaint.getOrder().getProduct().getName();
+        }
+
         return new ComplaintResponse(
                 complaint.getId(),
                 complaint.getOrder().getId(),
                 complaint.getOrder().getCode(),
-                complaint.getOrder().getProduct().getName(),
+                productName,
                 complaint.getBuyer().getId(),
                 complaint.getBuyer().getFullName(),
                 complaint.getOrder().getSeller().getId(),

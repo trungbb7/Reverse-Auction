@@ -60,14 +60,14 @@ const Sidebar = ({ role = "admin" }: SidebarProps) => {
   ];
 
   const sellerNavLinks = [
-     {
-       name: "Thông tin",
-       path: "/seller/sellerInfo",
-       icon: <User size={20} />,
-     },
+    {
+      name: "Thông tin",
+      path: "/seller/sellerInfo",
+      icon: <User size={20} />,
+    },
     {
       name: "Quản lý đấu giá",
-      path: "/seller",
+      path: "/seller/auction-management",
       icon: <LayoutDashboard size={20} />,
     },
     { name: "Tìm kiếm", path: "/seller/search", icon: <Search size={20} /> },

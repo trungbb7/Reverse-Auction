@@ -52,7 +52,8 @@ public class Order {
     private Bid bid;
 
     @Column(nullable = false)
-    private BigDecimal subtotal;
+    @Builder.Default
+    private BigDecimal subtotal = BigDecimal.ZERO;
 
     private BigDecimal shippingFee;
 
