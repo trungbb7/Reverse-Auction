@@ -10,16 +10,24 @@ import org.springframework.transaction.annotation.Transactional;
 import vn.edu.hcmuaf.reverseauction.dto.UserDTO;
 import vn.edu.hcmuaf.reverseauction.dto.request.ChangePasswordRequest;
 import vn.edu.hcmuaf.reverseauction.dto.request.SubmitKycRequest;
+import vn.edu.hcmuaf.reverseauction.dto.UserAddressDTO;
 import vn.edu.hcmuaf.reverseauction.entity.AuthProvider;
 import vn.edu.hcmuaf.reverseauction.entity.KycStatus;
 import vn.edu.hcmuaf.reverseauction.entity.User;
+import vn.edu.hcmuaf.reverseauction.entity.EmailUpdateVerification;
+import vn.edu.hcmuaf.reverseauction.entity.UserAddress;
 import vn.edu.hcmuaf.reverseauction.exception.CustomException;
 import vn.edu.hcmuaf.reverseauction.repository.UserRepository;
+import vn.edu.hcmuaf.reverseauction.repository.EmailUpdateVerificationRepository;
+import vn.edu.hcmuaf.reverseauction.repository.UserAddressRepository;
 import vn.edu.hcmuaf.reverseauction.service.FileStorageService;
 import vn.edu.hcmuaf.reverseauction.service.UserService;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,6 +37,9 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final FileStorageService fileStorageService;
+    private final EmailUpdateVerificationRepository emailUpdateVerificationRepository;
+    private final UserAddressRepository userAddressRepository;
+    private final EmailServiceImpl emailService;
 
     @Override
     public UserDTO getCurrentUser() {
@@ -96,20 +107,21 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (user.getProvider() == AuthProvider.GOOGLE) {
-            throw CustomException.builder()
-                    .status(HttpStatus.BAD_REQUEST)
-                    .error("Bad Request")
-                    .message("Tài khoản đăng nhập bằng Google không thể đổi mật khẩu.")
-                    .build();
-        }
-
-        if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
-            throw CustomException.builder()
-                    .status(HttpStatus.BAD_REQUEST)
-                    .error("Bad Request")
-                    .message("Mật khẩu cũ không chính xác.")
-                    .build();
+        if (user.getProvider() == AuthProvider.LOCAL) {
+            if (request.getOldPassword() == null || request.getOldPassword().trim().isEmpty()) {
+                throw CustomException.builder()
+                        .status(HttpStatus.BAD_REQUEST)
+                        .error("Bad Request")
+                        .message("Mật khẩu cũ không được để trống.")
+                        .build();
+            }
+            if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
+                throw CustomException.builder()
+                        .status(HttpStatus.BAD_REQUEST)
+                        .error("Bad Request")
+                        .message("Mật khẩu cũ không chính xác.")
+                        .build();
+            }
         }
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
@@ -194,4 +206,251 @@ public class UserServiceImpl implements UserService {
         return mapToDTO(user);
     }
 
+    @Override
+    @Transactional
+    public void requestEmailUpdate(String newEmail) {
+        if (newEmail == null || newEmail.trim().isEmpty()) {
+            throw CustomException.builder()
+                    .status(HttpStatus.BAD_REQUEST)
+                    .error("Bad Request")
+                    .message("Email mới không được để trống.")
+                    .build();
+        }
+        
+        String currentEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (newEmail.equalsIgnoreCase(currentEmail)) {
+            throw CustomException.builder()
+                    .status(HttpStatus.BAD_REQUEST)
+                    .error("Bad Request")
+                    .message("Email mới không được trùng với email hiện tại.")
+                    .build();
+        }
+
+        if (userRepository.findByEmail(newEmail).isPresent()) {
+            throw CustomException.builder()
+                    .status(HttpStatus.CONFLICT)
+                    .error("Conflict")
+                    .message("Email này đã được sử dụng bởi tài khoản khác.")
+                    .build();
+        }
+
+        User user = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        emailUpdateVerificationRepository.deleteByUser(user);
+
+        String code = String.format("%06d", new Random().nextInt(1000000));
+
+        EmailUpdateVerification verification = EmailUpdateVerification.builder()
+                .user(user)
+                .newEmail(newEmail)
+                .code(code)
+                .expiresAt(LocalDateTime.now().plusMinutes(15))
+                .build();
+
+        emailUpdateVerificationRepository.save(verification);
+
+        emailService.sendEmailUpdateVerificationCode(newEmail, code);
+    }
+
+    @Override
+    @Transactional
+    public void confirmEmailUpdate(String code) {
+        String currentEmail = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(currentEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        EmailUpdateVerification verification = emailUpdateVerificationRepository.findByUser(user)
+                .orElseThrow(() -> CustomException.builder()
+                        .status(HttpStatus.BAD_REQUEST)
+                        .error("Bad Request")
+                        .message("Không tìm thấy yêu cầu đổi email. Vui lòng thử lại.")
+                        .build());
+
+        if (verification.isExpired()) {
+            emailUpdateVerificationRepository.delete(verification);
+            throw CustomException.builder()
+                    .status(HttpStatus.BAD_REQUEST)
+                    .error("Bad Request")
+                    .message("Mã xác nhận đã hết hạn. Vui lòng yêu cầu gửi lại.")
+                    .build();
+        }
+
+        if (!verification.getCode().equals(code)) {
+            throw CustomException.builder()
+                    .status(HttpStatus.BAD_REQUEST)
+                    .error("Bad Request")
+                    .message("Mã xác nhận không chính xác.")
+                    .build();
+        }
+
+        if (userRepository.findByEmail(verification.getNewEmail()).isPresent()) {
+            emailUpdateVerificationRepository.delete(verification);
+            throw CustomException.builder()
+                    .status(HttpStatus.CONFLICT)
+                    .error("Conflict")
+                    .message("Email mới đã được sử dụng bởi tài khoản khác.")
+                    .build();
+        }
+
+        user.setEmail(verification.getNewEmail());
+        user.setVerified(true);
+        userRepository.save(user);
+
+        emailUpdateVerificationRepository.delete(verification);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UserAddressDTO> getAddresses() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return userAddressRepository.findByUser(user).stream()
+                .map(this::mapAddressToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public UserAddressDTO addAddress(UserAddressDTO dto) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        List<UserAddress> currentAddresses = userAddressRepository.findByUser(user);
+        boolean isFirstAddress = currentAddresses.isEmpty();
+
+        boolean makeDefault = isFirstAddress || dto.isDefault();
+
+        if (makeDefault) {
+            for (UserAddress addr : currentAddresses) {
+                if (addr.isDefault()) {
+                    addr.setDefault(false);
+                    userAddressRepository.save(addr);
+                }
+            }
+        }
+
+        UserAddress address = UserAddress.builder()
+                .user(user)
+                .recipientName(dto.getRecipientName())
+                .phone(dto.getPhone())
+                .address(dto.getAddress())
+                .isDefault(makeDefault)
+                .build();
+
+        UserAddress saved = userAddressRepository.save(address);
+        return mapAddressToDTO(saved);
+    }
+
+    @Override
+    @Transactional
+    public UserAddressDTO updateAddress(Long id, UserAddressDTO dto) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        UserAddress address = userAddressRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Address not found"));
+
+        if (!address.getUser().getId().equals(user.getId())) {
+            throw CustomException.builder()
+                    .status(HttpStatus.FORBIDDEN)
+                    .error("Forbidden")
+                    .message("Bạn không có quyền sửa địa chỉ này.")
+                    .build();
+        }
+
+        address.setRecipientName(dto.getRecipientName());
+        address.setPhone(dto.getPhone());
+        address.setAddress(dto.getAddress());
+
+        if (dto.isDefault() && !address.isDefault()) {
+            List<UserAddress> currentAddresses = userAddressRepository.findByUser(user);
+            for (UserAddress addr : currentAddresses) {
+                if (addr.isDefault()) {
+                    addr.setDefault(false);
+                    userAddressRepository.save(addr);
+                }
+            }
+            address.setDefault(true);
+        }
+
+        UserAddress saved = userAddressRepository.save(address);
+        return mapAddressToDTO(saved);
+    }
+
+    @Override
+    @Transactional
+    public void deleteAddress(Long id) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        UserAddress address = userAddressRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Address not found"));
+
+        if (!address.getUser().getId().equals(user.getId())) {
+            throw CustomException.builder()
+                    .status(HttpStatus.FORBIDDEN)
+                    .error("Forbidden")
+                    .message("Bạn không có quyền xóa địa chỉ này.")
+                    .build();
+        }
+
+        boolean wasDefault = address.isDefault();
+        userAddressRepository.delete(address);
+
+        if (wasDefault) {
+            List<UserAddress> remaining = userAddressRepository.findByUser(user);
+            if (!remaining.isEmpty()) {
+                UserAddress newDefault = remaining.get(0);
+                newDefault.setDefault(true);
+                userAddressRepository.save(newDefault);
+            }
+        }
+    }
+
+    @Override
+    @Transactional
+    public void setDefaultAddress(Long id) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        UserAddress address = userAddressRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Address not found"));
+
+        if (!address.getUser().getId().equals(user.getId())) {
+            throw CustomException.builder()
+                    .status(HttpStatus.FORBIDDEN)
+                    .error("Forbidden")
+                    .message("Bạn không có quyền thao tác trên địa chỉ này.")
+                    .build();
+        }
+
+        if (!address.isDefault()) {
+            List<UserAddress> currentAddresses = userAddressRepository.findByUser(user);
+            for (UserAddress addr : currentAddresses) {
+                if (addr.isDefault()) {
+                    addr.setDefault(false);
+                    userAddressRepository.save(addr);
+                }
+            }
+            address.setDefault(true);
+            userAddressRepository.save(address);
+        }
+    }
+
+    private UserAddressDTO mapAddressToDTO(UserAddress address) {
+        return UserAddressDTO.builder()
+                .id(address.getId())
+                .recipientName(address.getRecipientName())
+                .phone(address.getPhone())
+                .address(address.getAddress())
+                .isDefault(address.isDefault())
+                .build();
+    }
 }

@@ -5,8 +5,12 @@ import api from "@/utils/axios";
 import toast from "react-hot-toast";
 import type { AxiosError } from "axios";
 import type { ErrorResponse } from "@/types/errorResponse";
+import { useAppSelector } from "@/hooks/redux";
 
 export default function ChangePassword() {
+  const user = useAppSelector((state) => state.auth.user);
+  const isGoogleUser = user?.provider === "GOOGLE";
+
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -26,7 +30,7 @@ export default function ChangePassword() {
       return;
     }
 
-    if (oldPassword === newPassword) {
+    if (!isGoogleUser && oldPassword === newPassword) {
       toast.error("Mật khẩu mới không được trùng với mật khẩu cũ!");
       return;
     }
@@ -34,7 +38,7 @@ export default function ChangePassword() {
     try {
       setIsLoading(true);
       await api.put("/users/change-password", {
-        oldPassword,
+        oldPassword: isGoogleUser ? "" : oldPassword,
         newPassword,
       });
       toast.success("Thay đổi mật khẩu thành công!");
@@ -73,24 +77,30 @@ export default function ChangePassword() {
         className="space-y-4 bg-white p-6 border border-slate-100 rounded-2xl shadow-sm"
         onSubmit={handleSubmit}
       >
-        <div className="space-y-1.5">
-          <label className="text-sm font-medium text-slate-700">
-            Mật khẩu hiện tại
-          </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-              <Lock size={18} />
-            </div>
-            <input
-              type="password"
-              value={oldPassword}
-              onChange={(e) => setOldPassword(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors outline-none text-slate-800 text-sm"
-              placeholder="••••••••"
-              required
-            />
+        {isGoogleUser ? (
+          <div className="p-4 mb-4 bg-blue-50 border border-blue-200 rounded-xl text-blue-800 text-xs leading-relaxed">
+            Bạn đang đăng nhập bằng tài khoản <strong>Google</strong>. Bạn có thể thiết lập mật khẩu trực tiếp mà không cần nhập mật khẩu cũ để có thể sử dụng cả hai hình thức đăng nhập.
           </div>
-        </div>
+        ) : (
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-slate-700">
+              Mật khẩu hiện tại
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+                <Lock size={18} />
+              </div>
+              <input
+                type="password"
+                value={oldPassword}
+                onChange={(e) => setOldPassword(e.target.value)}
+                className="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500/20 focus:border-primary-500 transition-colors outline-none text-slate-800 text-sm"
+                placeholder="••••••••"
+                required
+              />
+            </div>
+          </div>
+        )}
 
         <div className="space-y-1.5">
           <label className="text-sm font-medium text-slate-700">

@@ -47,4 +47,14 @@ public class UsersController {
     public UserDTO submitKyc(@RequestBody SubmitKycRequest request) {
         return userService.submitKyc(request.getIdentityNumber(), request.getFrontIdentity(), request.getBackIdentity(), request.getBusinessLicense());
     }
+
+    @PostMapping("/me/request-email-update")
+    public void requestEmailUpdate(@RequestParam String newEmail) {
+        userService.requestEmailUpdate(newEmail);
+    }
+
+    @PostMapping("/me/confirm-email-update")
+    public void confirmEmailUpdate(@RequestParam String code) {
+        userService.confirmEmailUpdate(code);
+    }
 }

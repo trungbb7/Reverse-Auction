@@ -125,5 +125,49 @@ public class EmailServiceImpl implements EmailService {
             throw new RuntimeException("Không thể gửi email kích hoạt. Vui lòng kiểm tra cấu hình SMTP hoặc thử lại sau.", e);
         }
     }
+
+    @Override
+    public void sendEmailUpdateVerificationCode(String toEmail, String code) {
+        String htmlContent = """
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+                    <div style="background: linear-gradient(135deg, #10b981 0%%, #059669 100%%); padding: 30px; border-radius: 12px 12px 0 0; text-align: center;">
+                        <h1 style="color: white; margin: 0; font-size: 24px;">📧 Thay đổi địa chỉ Email</h1>
+                    </div>
+                    <div style="background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
+                        <p style="color: #374151; font-size: 16px;">Xin chào,</p>
+                        <p style="color: #374151; font-size: 16px;">
+                            Chúng tôi nhận được yêu cầu cập nhật địa chỉ email cho tài khoản của bạn trên <strong>Reverse Auction</strong>.
+                        </p>
+                        <p style="color: #374151; font-size: 16px;">
+                            Vui lòng sử dụng mã xác nhận dưới đây để hoàn tất việc cập nhật email của bạn. Mã này sẽ hết hạn sau <strong>15 phút</strong>.
+                        </p>
+                        <div style="text-align: center; margin: 30px 0;">
+                            <div style="background: #f3f4f6; color: #111827; font-size: 32px; font-weight: bold; letter-spacing: 6px; padding: 16px; border-radius: 8px; display: inline-block; border: 1px dashed #d1d5db;">
+                                %s
+                            </div>
+                        </div>
+                        <p style="color: #6b7280; font-size: 14px;">
+                            Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này. Email hiện tại của bạn vẫn được giữ nguyên.
+                        </p>
+                        <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+                        <p style="color: #9ca3af; font-size: 12px; text-align: center;">
+                            © 2025 Reverse Auction Platform. Không trả lời email này.
+                        </p>
+                    </div>
+                </div>
+                """.formatted(code);
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("Mã xác nhận thay đổi Email - Reverse Auction");
+            helper.setText(htmlContent, true);
+            mailSender.send(message);
+        } catch (MessagingException | MailException e) {
+            throw new RuntimeException("Không thể gửi email xác nhận. Vui lòng kiểm tra cấu hình SMTP hoặc thử lại sau.", e);
+        }
+    }
 }
 

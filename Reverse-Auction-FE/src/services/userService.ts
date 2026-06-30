@@ -1,5 +1,6 @@
 import type { User } from "@/types/user";
 import type { Transaction } from "@/types/transaction";
+import type { UserAddress } from "@/types/address";
 import api from "@/utils/axios";
 
 export const userService = {
@@ -76,5 +77,42 @@ export const userService = {
       params: { reason },
     });
     return res.data;
+  },
+
+  // Email Update
+  requestEmailUpdate: async (newEmail: string): Promise<void> => {
+    await api.post("/users/me/request-email-update", null, {
+      params: { newEmail },
+    });
+  },
+
+  confirmEmailUpdate: async (code: string): Promise<void> => {
+    await api.post("/users/me/confirm-email-update", null, {
+      params: { code },
+    });
+  },
+
+  // Multiple Addresses
+  fetchAddresses: async (): Promise<UserAddress[]> => {
+    const res = await api.get("/users/me/addresses");
+    return res.data;
+  },
+
+  addAddress: async (data: Omit<UserAddress, "id">): Promise<UserAddress> => {
+    const res = await api.post("/users/me/addresses", data);
+    return res.data;
+  },
+
+  updateAddress: async (id: number, data: Partial<UserAddress>): Promise<UserAddress> => {
+    const res = await api.put(`/users/me/addresses/${id}`, data);
+    return res.data;
+  },
+
+  deleteAddress: async (id: number): Promise<void> => {
+    await api.delete(`/users/me/addresses/${id}`);
+  },
+
+  setDefaultAddress: async (id: number): Promise<void> => {
+    await api.put(`/users/me/addresses/${id}/default`);
   },
 };
