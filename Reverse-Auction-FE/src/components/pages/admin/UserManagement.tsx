@@ -227,7 +227,7 @@ export default function UserManagement() {
                         </button>
                       )}
                       <button
-                        onClick={() => handleToggleBlock(user.id, user.enabled)}
+                        onClick={() => handleToggleBlock(user.id, user.enabled ?? true)}
                         className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                           user.enabled
                             ? "text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200"

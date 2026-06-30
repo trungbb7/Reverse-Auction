@@ -13,6 +13,7 @@ import {
   TriangleAlert,
   MessageSquare,
   LayoutGrid,
+  Landmark,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -45,6 +46,11 @@ const Sidebar = ({ role = "admin" }: SidebarProps) => {
       name: "Khiếu nại",
       path: "/admin/complaints",
       icon: <TriangleAlert size={20} />,
+    },
+    {
+      name: "Duyệt rút tiền",
+      path: "/admin/withdrawals",
+      icon: <Landmark size={20} />,
     },
     {
       name: "Doanh thu",

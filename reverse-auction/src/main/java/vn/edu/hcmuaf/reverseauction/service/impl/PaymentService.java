@@ -6,9 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.hcmuaf.reverseauction.dto.CreatePaymentRequest;
 import vn.edu.hcmuaf.reverseauction.dto.PaymentResponse;
-import vn.edu.hcmuaf.reverseauction.entity.Order;
-import vn.edu.hcmuaf.reverseauction.entity.OrderStatus;
-import vn.edu.hcmuaf.reverseauction.entity.Payment;
+import vn.edu.hcmuaf.reverseauction.entity.*;
 import vn.edu.hcmuaf.reverseauction.repository.OrderRepository;
 import vn.edu.hcmuaf.reverseauction.repository.PaymentRepository;
 import vn.edu.hcmuaf.reverseauction.service.NotificationService;
@@ -28,6 +26,7 @@ public class PaymentService {
     private final OrderRepository orderRepository;
     private final PaymentUtils paymentUtils;
     private final NotificationService notificationService;
+    private final vn.edu.hcmuaf.reverseauction.repository.TransactionRepository transactionRepository;
 
     @Transactional
     public PaymentResponse createPayment(CreatePaymentRequest request) throws NoSuchAlgorithmException, InvalidKeyException {
@@ -64,6 +63,17 @@ public class PaymentService {
             order.setStatus(OrderStatus.PAID);
             order.setUpdatedAt(LocalDateTime.now());
             orderRepository.save(order);
+
+            Transaction transaction = Transaction.builder()
+                    .user(order.getBuyer())
+                    .amount(order.getTotalAmount().negate())
+                    .type(TransactionType.PAYMENT)
+                    .status(TransactionStatus.SUCCESS)
+                    .code("VNP_" + order.getCode())
+                    .description("Thanh toán VNPay cho đơn hàng " + order.getCode())
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            transactionRepository.save(transaction);
 
             String orderTitle = order.getAuction() != null ? order.getAuction().getTitle() : (order.getProduct() != null ? order.getProduct().getName() : "sản phẩm");
 

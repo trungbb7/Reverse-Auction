@@ -1,4 +1,5 @@
 import type { User } from "@/types/user";
+import type { Transaction } from "@/types/transaction";
 import api from "@/utils/axios";
 
 export const userService = {
@@ -19,6 +20,61 @@ export const userService = {
     >,
   ): Promise<User> => {
     const res = await api.post("/users/kyc", data);
+    return res.data;
+  },
+
+  // Wallet and Transactions
+  fetchTransactions: async (): Promise<Transaction[]> => {
+    const res = await api.get("/transactions/me");
+    return res.data;
+  },
+
+  instantDeposit: async (amount: number): Promise<Transaction> => {
+    const res = await api.post("/transactions/deposit/instant", null, {
+      params: { amount },
+    });
+    return res.data;
+  },
+
+  initiateVNPayDeposit: async (amount: number, bankCode?: string): Promise<Transaction> => {
+    const res = await api.post("/transactions/deposit/vnpay", null, {
+      params: { amount, bankCode },
+    });
+    return res.data;
+  },
+
+  confirmTopup: async (txnRef: string, status: string): Promise<Transaction> => {
+    const res = await api.post("/transactions/deposit/callback", null, {
+      params: { txnRef, status },
+    });
+    return res.data;
+  },
+
+  requestWithdrawal: async (data: {
+    amount: number;
+    bankName: string;
+    accountNumber: string;
+    accountHolder: string;
+  }): Promise<Transaction> => {
+    const res = await api.post("/transactions/withdraw", data);
+    return res.data;
+  },
+
+  // Admin wallet operations
+  fetchPendingWithdrawals: async (): Promise<Transaction[]> => {
+    const res = await api.get("/admin/transactions/withdrawals/pending");
+    return res.data;
+  },
+
+  approveWithdrawal: async (id: number): Promise<Transaction> => {
+    const res = await api.post(`/admin/transactions/withdrawals/${id}/approve`);
+    return res.data;
+  },
+
+  rejectWithdrawal: async (id: number, reason?: string): Promise<Transaction> => {
+    const res = await api.post(`/admin/transactions/withdrawals/${id}/reject`, null, {
+      params: { reason },
+    });
     return res.data;
   },
 };

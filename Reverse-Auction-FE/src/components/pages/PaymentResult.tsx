@@ -11,6 +11,7 @@ import {
   Clock,
 } from "lucide-react";
 import { orderService } from "@/services/orderService";
+import { userService } from "@/services/userService";
 
 function formatCurrency(n: number) {
   return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(n);
@@ -77,6 +78,9 @@ export default function PaymentResult() {
                 }
                 if (type === "PS") {
                     await orderService.confirmPaymentSession(txnRef, "success");
+                }
+                if (type === "TOPUP") {
+                    await userService.confirmTopup(txnRef, "success");
                 }
                 setState("success");
 
@@ -247,7 +251,20 @@ export default function PaymentResult() {
 
           {/* Actions */}
           <div className="px-8 pb-8 space-y-3">
-            {isSuccess ? (
+            {transactionInfo?.type === "TOPUP" ? (
+              <>
+                <button
+                  onClick={() => navigate("/profile")}
+                  className={`w-full py-3.5 rounded-xl text-white font-black text-sm transition-all shadow-lg ${
+                    isSuccess
+                      ? "bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 shadow-emerald-200"
+                      : "bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 shadow-red-200"
+                  }`}
+                >
+                  {isSuccess ? "Vào ví của tôi" : "Quay lại ví của tôi"}
+                </button>
+              </>
+            ) : isSuccess ? (
               <>
                 <button
                   onClick={() => navigate(`/buyer/orders/${transactionInfo?.txnRef}`)}

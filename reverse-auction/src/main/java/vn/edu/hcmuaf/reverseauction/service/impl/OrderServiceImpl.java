@@ -11,10 +11,7 @@ import vn.edu.hcmuaf.reverseauction.dto.response.CheckoutResponse;
 import vn.edu.hcmuaf.reverseauction.dto.response.ReviewResponse;
 import vn.edu.hcmuaf.reverseauction.entity.*;
 import vn.edu.hcmuaf.reverseauction.exception.CustomException;
-import vn.edu.hcmuaf.reverseauction.repository.OrderRepository;
-import vn.edu.hcmuaf.reverseauction.repository.ReviewRepository;
-import vn.edu.hcmuaf.reverseauction.repository.UserRepository;
-import vn.edu.hcmuaf.reverseauction.repository.SystemSettingRepository;
+import vn.edu.hcmuaf.reverseauction.repository.*;
 import vn.edu.hcmuaf.reverseauction.service.NotificationService;
 import vn.edu.hcmuaf.reverseauction.service.OrderService;
 
@@ -36,6 +33,7 @@ public class OrderServiceImpl implements OrderService {
     private final NotificationService notificationService;
     private final UserRepository userRepository;
     private final SystemSettingRepository systemSettingRepository;
+    private final TransactionRepository transactionRepository;
 
     @Override
     @Transactional
@@ -87,6 +85,17 @@ public class OrderServiceImpl implements OrderService {
             }
             seller.setBalance(seller.getBalance().add(sellerEarnings));
             userRepository.save(seller);
+
+            Transaction transaction = Transaction.builder()
+                    .user(seller)
+                    .amount(sellerEarnings)
+                    .type(TransactionType.PAYMENT)
+                    .status(TransactionStatus.SUCCESS)
+                    .code("EARN_" + order.getCode())
+                    .description("Thu nhập bán hàng từ đơn hàng " + order.getCode())
+                    .createdAt(LocalDateTime.now())
+                    .build();
+            transactionRepository.save(transaction);
         }
 
         order.setStatus(status);
@@ -254,6 +263,17 @@ public class OrderServiceImpl implements OrderService {
         // Deduct balance from buyer
         buyer.setBalance(buyer.getBalance().subtract(totalAmount));
         userRepository.save(buyer);
+
+        Transaction transaction = Transaction.builder()
+                .user(buyer)
+                .amount(totalAmount.negate())
+                .type(TransactionType.PAYMENT)
+                .status(TransactionStatus.SUCCESS)
+                .code("PAY_" + order.getCode())
+                .description("Thanh toán bằng số dư cho đơn hàng " + order.getCode())
+                .createdAt(LocalDateTime.now())
+                .build();
+        transactionRepository.save(transaction);
 
         // Update order status to PAID
         order.setStatus(OrderStatus.PAID);

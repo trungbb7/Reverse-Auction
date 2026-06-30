@@ -6,7 +6,7 @@ import {type Order, type OrderStatus, ORDER_STEPS, ORDER_STATUS_INDEX, ORDER_STA
 import {Search, Printer} from "lucide-react";
 import toast from "react-hot-toast";
 
-const statusColor = {
+const statusColor: Record<OrderStatus, string> = {
     AWAITING_PAYMENT: "text-yellow-700",
     PAID: " text-blue-700",
     PROCESSING: "text-blue-700",
@@ -15,6 +15,7 @@ const statusColor = {
     COMPLETED: "text-emerald-700",
     DISPUTED: "text-red-700",
     CANCELLED: "text-gray-600",
+    REFUND: "text-red-700",
 };
 
 function StatusBadge({status}: { status: OrderStatus }) {
@@ -27,6 +28,7 @@ function StatusBadge({status}: { status: OrderStatus }) {
         COMPLETED: "Hoàn tất",
         DISPUTED: "Tranh chấp",
         CANCELLED: "Đã huỷ",
+        REFUND: "Hoàn tiền",
     };
 
     return (

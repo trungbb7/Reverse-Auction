@@ -55,6 +55,8 @@ import AdminOrders from "./components/pages/admin/AdminOrders.tsx";
 import AdminRevenue from "./components/pages/admin/AdminRevenue.tsx";
 import PolicyManagement from "./components/pages/admin/PolicyManagement.tsx";
 import AdminDashboard from "./components/pages/admin/AdminDashboard.tsx";
+import AdminWithdrawals from "./components/pages/admin/AdminWithdrawals.tsx";
+import VerifyEmail from "./components/pages/auth/VerifyEmail.tsx";
 
 function App() {
   const dispatch = useAppDispatch();
@@ -131,6 +133,7 @@ function App() {
               <Route path="forgot-password" element={<ForgotPassword />} />
 
               <Route path="reset-password" element={<ResetPassword />} />
+              <Route path="verify-email" element={<VerifyEmail />} />
             </Route>
 
             {/* Unauthorized page */}
@@ -153,6 +156,7 @@ function App() {
               <Route path="orders" element={<AdminOrders />} />
               <Route path="revenue" element={<AdminRevenue />} />
               <Route path="policies" element={<PolicyManagement />} />
+              <Route path="withdrawals" element={<AdminWithdrawals />} />
             </Route>
 
             {/* Seller routes */}
@@ -178,10 +182,10 @@ function App() {
             </Route>
             <Route path="/demo" element={<Demo />} />
             <Route path="/payment/result" element={<PaymentResult />} />
-      </Routes>
-      <AiChatWidget />
-      <GlobalChatWidget />
-    </BrowserRouter>
+          </Routes>
+          <AiChatWidget />
+          <GlobalChatWidget />
+        </BrowserRouter>
       </ConfirmProvider>
     </NotificationProvider>
   );

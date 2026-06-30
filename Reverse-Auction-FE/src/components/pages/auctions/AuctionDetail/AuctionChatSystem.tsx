@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Send, MessageSquare, User, Search, Image as ImageIcon, Paperclip, ChevronDown, ChevronUp, Maximize2, Minimize2 } from "lucide-react";
+import { Send, MessageSquare, Search, Image as ImageIcon, ChevronDown, ChevronUp } from "lucide-react";
 import { type AuctionMessage, auctionMessageService } from "@/services/auctionMessageService";
 import { useAppSelector } from "@/hooks/redux";
 import { Client } from "@stomp/stompjs";
@@ -27,7 +27,6 @@ export default function AuctionChatSystem({
   auctionId,
   participants,
   stompClient,
-  currentUserRole,
   initialParticipantId,
 }: AuctionChatSystemProps) {
   const [activeParticipant, setActiveParticipant] = useState<Participant | null>(null);
