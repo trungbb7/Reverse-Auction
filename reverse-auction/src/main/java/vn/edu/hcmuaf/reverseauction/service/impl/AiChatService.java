@@ -56,9 +56,7 @@ public class AiChatService {
     private final OrderRepository orderRepository;
     private final AuctionRepository auctionRepository;
     private final ObjectMapper objectMapper;
-    private final HttpClient httpClient = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(10))
-            .build();
+    private final HttpClient httpClient;
 
     @Value("${app.ai.provider:gemini}")
     private String provider;

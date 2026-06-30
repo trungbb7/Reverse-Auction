@@ -1,11 +1,5 @@
 import { useMemo, useRef, useState } from "react";
-import {
-  Bot,
-  ChevronRight,
-  Send,
-  Sparkles,
-  X,
-} from "lucide-react";
+import { Bot, ChevronRight, Send, Sparkles, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router";
 import { useAppDispatch, useAppSelector } from "@/hooks/redux";
@@ -18,16 +12,16 @@ const starterMessages: AiChatMessage[] = [
     id: "welcome",
     role: "assistant",
     content:
-      "Xin chao, toi co the ho tro tim san pham, tra cuu don hang, giai thich chinh sach, huong dan dau gia va de xuat thao tac can xac nhan.",
+      "Xin chào, tôi có thể hỗ trợ tìm sản phẩm, tra cứu đơn hàng, giải thích chính sách, hướng dẫn đấu giá và đề xuất thao tác cần xác nhận.",
     provider: "system",
   },
 ];
 
 const quickPrompts = [
-  "Goi y san pham phu hop",
-  "Tra cuu don hang cua toi",
-  "Chinh sach doi tra nhu the nao?",
-  "Toi muon tao khieu nai",
+  "Gợi ý sản phẩm phù hợp",
+  "Tra cứu đơn hàng của tôi",
+  "Chính sách đổi trả như thế nào?",
+  "Tôi muốn tạo khiếu nại",
 ];
 
 const toId = () => `${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -104,9 +98,7 @@ const AiChatWidget = () => {
       ]);
     } catch (error) {
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "Khong goi duoc AI assistant",
+        error instanceof Error ? error.message : "Khong goi duoc AI assistant",
       );
       setMessages((current) => [
         ...current,
@@ -151,22 +143,34 @@ const AiChatWidget = () => {
       case "VIEW_AUCTION": {
         const auctionId = getNumberPayload(action, "auctionId");
         if (!auctionId) return;
-        navigate(user.role === "ROLE_SELLER" ? `/seller/auctions/${auctionId}` : `/auctions/${auctionId}`);
+        navigate(
+          user.role === "ROLE_SELLER"
+            ? `/seller/auctions/${auctionId}`
+            : `/auctions/${auctionId}`,
+        );
         setIsOpen(false);
         return;
       }
       case "OPEN_CHAT_WITH_SELLER": {
         const sellerId = getNumberPayload(action, "sellerId");
         if (!sellerId) return;
-        dispatch(selectContact({ contactId: sellerId, isComplaintMode: false }));
+        dispatch(
+          selectContact({ contactId: sellerId, isComplaintMode: false }),
+        );
         setIsOpen(false);
         return;
       }
       case "CREATE_COMPLAINT_DRAFT": {
         const content =
-          typeof action.payload?.content === "string" ? action.payload.content : "";
+          typeof action.payload?.content === "string"
+            ? action.payload.content
+            : "";
         sessionStorage.setItem("aiComplaintDraft", content);
-        navigate(user.role === "ROLE_SELLER" ? "/seller/complaints" : "/buyer/complaints");
+        navigate(
+          user.role === "ROLE_SELLER"
+            ? "/seller/complaints"
+            : "/buyer/complaints",
+        );
         setIsOpen(false);
         return;
       }
@@ -179,7 +183,9 @@ const AiChatWidget = () => {
         return;
       }
       case "SUGGEST_BID_DRAFT": {
-        toast.success("AI da tao goi y bid. Hay kiem tra noi dung truoc khi gui.");
+        toast.success(
+          "AI da tao goi y bid. Hay kiem tra noi dung truoc khi gui.",
+        );
         return;
       }
       default:
@@ -188,7 +194,7 @@ const AiChatWidget = () => {
   };
 
   return (
-    <div className="fixed bottom-4 left-4 z-[61]">
+    <div className="fixed bottom-4 left-4 z-61">
       {isOpen ? (
         <div className="flex h-[min(72vh,720px)] w-[calc(100vw-2rem)] max-w-md flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_22px_70px_rgba(15,23,42,0.2)]">
           <div className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3">

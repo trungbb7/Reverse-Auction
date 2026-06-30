@@ -14,6 +14,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import vn.edu.hcmuaf.reverseauction.repository.UserRepository;
 
+import java.net.http.HttpClient;
+import java.time.Duration;
+
 @Configuration
 @RequiredArgsConstructor
 public class ApplicationConfig {
@@ -46,5 +49,12 @@ public class ApplicationConfig {
     @Bean
     public ObjectMapper objectMapper() {
         return new ObjectMapper().findAndRegisterModules();
+    }
+
+    @Bean
+    public HttpClient httpClient() {
+        return HttpClient.newBuilder()
+                .connectTimeout(Duration.ofSeconds(10))
+                .build();
     }
 }

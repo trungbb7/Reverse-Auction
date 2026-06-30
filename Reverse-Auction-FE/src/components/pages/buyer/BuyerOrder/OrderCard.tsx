@@ -11,6 +11,7 @@ import {
   CreditCard,
   Gavel,
   Package,
+  RefreshCw,
   ShoppingBag,
   XCircle,
 } from "lucide-react";
@@ -25,6 +26,7 @@ const STATUS_ICON: Record<OrderStatus, React.ElementType> = {
   COMPLETED: CheckCircle2,
   DISPUTED: XCircle,
   CANCELLED: XCircle,
+  REFUND: RefreshCw,
 };
 
 const STATUS_COLOR: Record<OrderStatus, string> = {
@@ -36,6 +38,7 @@ const STATUS_COLOR: Record<OrderStatus, string> = {
   COMPLETED: "bg-emerald-100 text-emerald-700 border-emerald-200",
   DISPUTED: "bg-red-100 text-red-700 border-red-200",
   CANCELLED: "bg-slate-100 text-slate-500 border-slate-200",
+  REFUND: "bg-orange-100 text-orange-700 border-orange-200",
 };
 
 export default function OrderCard({ order }: { order: Order }) {
@@ -59,7 +62,7 @@ export default function OrderCard({ order }: { order: Order }) {
             {isAuction ? "Đấu giá" : "Đặt hàng"}
           </span>
           <span className="text-slate-300">•</span>
-          <span>#{order.code ?? order.id}</span>
+          <span>#{order.id}</span>
         </div>
         <span
           className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${STATUS_COLOR[order.status]}`}
