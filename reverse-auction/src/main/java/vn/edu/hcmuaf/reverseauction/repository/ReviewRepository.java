@@ -14,6 +14,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     long countBySellerId(Long sellerId);
     Optional<Review> findByOrderId(Long orderId);
     List<Review> findBySellerId(Long sellerId);
+    List<Review> findByProductId(Long productId);
     @Query("""
         SELECT AVG(r.rating)
         FROM Review r

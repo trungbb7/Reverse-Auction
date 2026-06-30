@@ -46,6 +46,7 @@ import SellerComplaints from "./components/pages/seller/SellerComplaints/SellerC
 import Demo from "./components/pages/Demo.tsx";
 import ShopPage from "@/components/pages/shopPage";
 import SearchPage from "./components/pages/SearchPage";
+import ProductDetailPage from "./components/pages/buyer/ProductDetailPage";
 import CartPage from "./components/pages/buyer/buyerCart/CartPage";
 import { CheckoutPage } from "./components/pages/buyer/buyerCheckout/Checkout.tsx";
 import SellerInfo from "./components/pages/seller//SellerInfo.tsx";
@@ -81,6 +82,7 @@ function App() {
             <Route path="/" element={<MainLayout />}>
               <Route index element={<Home />} />
               <Route path="search" element={<SearchPage />} />
+              <Route path="products/:id" element={<ProductDetailPage />} />
             </Route>
 
             {/* Buyer-only routes */}

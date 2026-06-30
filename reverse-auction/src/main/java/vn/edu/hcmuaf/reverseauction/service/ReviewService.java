@@ -12,4 +12,5 @@ public interface ReviewService {
     void submitReview(Long userId, ReviewRequest request);
 
     List<ReviewResponse> getShopReviews(Long sellerId);
+    List<ReviewResponse> getProductReviews(Long productId);
 }

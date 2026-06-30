@@ -38,4 +38,8 @@ public class ReviewController {
     public List<ReviewResponse> getShopReviews(@PathVariable Long sellerId) {
         return reviewService.getShopReviews(sellerId);
     }
+    @GetMapping("/product/{productId}")
+    public List<ReviewResponse> getProductReviews(@PathVariable Long productId) {
+        return reviewService.getProductReviews(productId);
+    }
 }

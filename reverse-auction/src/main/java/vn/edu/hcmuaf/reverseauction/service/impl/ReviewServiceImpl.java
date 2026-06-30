@@ -9,9 +9,11 @@ import vn.edu.hcmuaf.reverseauction.dto.response.ReviewContextResponse;
 import vn.edu.hcmuaf.reverseauction.dto.response.ReviewResponse;
 import vn.edu.hcmuaf.reverseauction.entity.Order;
 import vn.edu.hcmuaf.reverseauction.entity.OrderStatus;
+import vn.edu.hcmuaf.reverseauction.entity.Product;
 import vn.edu.hcmuaf.reverseauction.entity.Review;
 import vn.edu.hcmuaf.reverseauction.entity.User;
 import vn.edu.hcmuaf.reverseauction.repository.OrderRepository;
+import vn.edu.hcmuaf.reverseauction.repository.ProductRepository;
 import vn.edu.hcmuaf.reverseauction.repository.ReviewRepository;
 import vn.edu.hcmuaf.reverseauction.repository.UserRepository;
 import vn.edu.hcmuaf.reverseauction.service.ReviewService;
@@ -27,6 +29,7 @@ public class ReviewServiceImpl implements ReviewService {
     private final OrderRepository orderRepository;
     private final ReviewRepository reviewRepository;
     private final UserRepository userRepository;
+    private final ProductRepository productRepository;
     @Override
     public ReviewContextResponse getContext(Long orderId, Long userId) {
         Order order = orderRepository.findById(orderId)
@@ -98,9 +101,23 @@ public class ReviewServiceImpl implements ReviewService {
         review.setComment(request.getComment());
         review.setCreatedAt(LocalDateTime.now());
 
+        Product product = null;
+        if (order.getProduct() != null) {
+            product = order.getProduct();
+        } else if (order.getItems() != null && !order.getItems().isEmpty()) {
+            product = order.getItems().get(0).getProduct();
+        }
+
+        if (product != null) {
+            review.setProduct(product);
+        }
+
         reviewRepository.save(review);
 
         updateSellerRating(order.getSeller(), request.getRating());
+        if (product != null) {
+            updateProductRating(product, request.getRating());
+        }
     }
 
     @Override
@@ -111,6 +128,16 @@ public class ReviewServiceImpl implements ReviewService {
                 .map(this::toResponse)
                 .toList();
     }
+
+    @Override
+    public List<ReviewResponse> getProductReviews(Long productId) {
+        List<Review> reviews = reviewRepository.findByProductId(productId);
+
+        return reviews.stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     private ReviewResponse toResponse(Review review) {
         return new ReviewResponse(
                 review.getId().toString(),
@@ -133,5 +160,14 @@ public class ReviewServiceImpl implements ReviewService {
         seller.setTotalReviews(oldTotal + 1);
 
         userRepository.save(seller);
+    }
+
+    private void updateProductRating(Product product, int newRating) {
+        double oldRating = product.getRatingAverage() != null ? product.getRatingAverage() : 0.0;
+        List<Review> productReviews = reviewRepository.findByProductId(product.getId());
+        int oldTotal = productReviews.size();
+        double newAvg = (oldRating * oldTotal + newRating) / (oldTotal + 1);
+        product.setRatingAverage(newAvg);
+        productRepository.save(product);
     }
 }

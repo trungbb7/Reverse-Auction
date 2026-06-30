@@ -103,6 +103,9 @@ public class CheckoutServiceImpl implements CheckoutService {
             }
             order.setCode(generateOrderCode(buyer.getId()));
             order.setItems(orderItems);
+            if (!orderItems.isEmpty()) {
+                order.setProduct(orderItems.get(0).getProduct());
+            }
             order.setSubtotal(subtotal);
             BigDecimal finalPrice = subtotal.add(shippingFee);
 

@@ -19,6 +19,11 @@ import java.util.List;
 public class ProductController {
     private final ProductService productService;
 
+    @GetMapping("/{id}")
+    public ProductResponse getProductById(@PathVariable Long id) {
+        return productService.getById(id);
+    }
+
     @GetMapping("/list/{id}")
     public List<ProductResponse> getShopProducts(@PathVariable Long id) {
         return productService.getProductsBySeller(id);
