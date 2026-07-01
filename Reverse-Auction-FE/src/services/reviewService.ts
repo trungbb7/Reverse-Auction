@@ -19,6 +19,8 @@ export const reviewService = {
         const res = await api.get(`/reviews/shop/${shopId}`);
         return res.data;
     },
-
-
+    getProductReviews: async (productId: string | number) : Promise<Review[]> => {
+        const res = await api.get(`/reviews/product/${productId}`);
+        return res.data;
+    },
 };

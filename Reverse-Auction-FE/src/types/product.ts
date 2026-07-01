@@ -26,6 +26,7 @@ export interface Product {
     categoryName: string;
 
     price: number;
+    originalPrice?: number;
 
     stockQuantity: number;
     rating: number;
@@ -52,6 +53,7 @@ export interface ProductRequest {
     categoryId: number;
 
     price: number;
+    originalPrice?: number;
     stockQuantity: number;
 
     status: ProductStatus;

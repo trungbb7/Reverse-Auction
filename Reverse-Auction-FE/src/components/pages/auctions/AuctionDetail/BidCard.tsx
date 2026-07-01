@@ -1,6 +1,6 @@
 import { formatCurrency, formatTimeAgo } from "@/utils/time";
 import SellerAvatar from "./SellerAvatar";
-import { Crown } from "lucide-react";
+import { Crown, CheckCircle } from "lucide-react";
 import type { Bid } from "@/types/auction";
 import { Link } from "react-router";
 
@@ -38,6 +38,11 @@ export default function BidCard({
             >
               {bid.sellerName}
             </Link>
+            {bid.sellerKycStatus === "APPROVED" && (
+              <span className="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200 inline-flex items-center gap-1" title="Đã xác thực danh tính (KYC)">
+                <CheckCircle className="w-3 h-3 text-blue-500" /> Đã xác thực
+              </span>
+            )}
             {bid.isWinner && (
               <span className="text-[10px] font-bold text-green-700 bg-green-200 px-2 py-0.5 rounded-full flex items-center gap-1">
                 THẮNG CUỘC

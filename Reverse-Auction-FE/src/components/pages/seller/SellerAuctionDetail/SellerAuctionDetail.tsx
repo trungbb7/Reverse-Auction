@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router";
 import {
   Clock,
   Users,
-  MapPin,
   Image as ImageIcon,
   Trophy,
   XCircle,
@@ -179,7 +178,7 @@ export default function SellerAuctionDetail() {
           </div>
           <div className="flex-1">
             <p className="text-lg font-black mb-0.5">
-              🎉 Chúc mừng! Bạn đã thắng phiên đấu giá!
+              Chúc mừng! Bạn đã thắng phiên đấu giá!
             </p>
             <p className="text-sm text-emerald-100 mb-3">
               Giá thắng của bạn:{" "}
@@ -258,26 +257,40 @@ export default function SellerAuctionDetail() {
                 <Users className="w-5 h-5 text-slate-400" />
               </div>
               <div className="flex-1">
-                <p className="font-bold text-slate-900 text-sm">
-                  {auction.buyerName}
-                </p>
-                <p className="text-xs text-slate-400 flex items-center gap-1">
-                  <MapPin className="w-3 h-3" />
-                  Người mua xác thực • 142 giao dịch
-                </p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="font-bold text-slate-900 text-sm">
+                    {auction.buyerName}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-slate-500 mt-1 flex-wrap font-medium">
+                  <span>{auction.buyerTotalOrders ?? 0} đơn mua</span>
+                  <span>•</span>
+                  <span className="text-emerald-600 font-bold">
+                    HT:{" "}
+                    {auction.buyerCompletionRate
+                      ? `${auction.buyerCompletionRate.toFixed(0)}%`
+                      : "0%"}
+                  </span>
+                </div>
               </div>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => chatRef.current?.scrollIntoView({ behavior: "smooth" })}
+                  onClick={() =>
+                    chatRef.current?.scrollIntoView({ behavior: "smooth" })
+                  }
                   className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors shadow-sm"
                   title="Đi đến thảo luận"
                 >
                   <MessageSquare className="w-4 h-4" />
-                  <span className="text-xs font-bold">Thảo luận với người mua</span>
+                  <span className="text-xs font-bold">
+                    Thảo luận với người mua
+                  </span>
                 </button>
-                <span className="text-xs font-bold text-blue-700 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full">
-                  Priority Buyer
-                </span>
+                {auction.buyerKycStatus === "APPROVED" && (
+                  <span className="text-xs font-bold text-blue-700 bg-blue-50 border border-blue-100 px-3 py-1 rounded-full">
+                    Priority Buyer
+                  </span>
+                )}
               </div>
             </div>
 
@@ -360,7 +373,12 @@ export default function SellerAuctionDetail() {
           auctionId={Number(id)}
           participants={
             auction.buyerId
-              ? [{ id: auction.buyerId, name: auction.buyerName || "Người mua" }]
+              ? [
+                  {
+                    id: auction.buyerId,
+                    name: auction.buyerName || "Người mua",
+                  },
+                ]
               : []
           }
           stompClient={stompClient}

@@ -192,5 +192,12 @@ public class BidServiceImpl implements BidService {
         dto.setSellerTotalReviews(totalReviews != null ? totalReviews.intValue() : 0);
         dto.setSellerTotalOrders(totalOrders);
         dto.setSellerCompletionRate(completionRate);
+
+        User seller = userRepository.findById(sellerId).orElse(null);
+        if (seller != null && seller.getKycStatus() != null) {
+            dto.setSellerKycStatus(seller.getKycStatus().name());
+        } else {
+            dto.setSellerKycStatus("UNVERIFIED");
+        }
     }
 }

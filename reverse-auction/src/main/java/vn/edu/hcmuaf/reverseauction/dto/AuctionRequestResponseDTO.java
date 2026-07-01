@@ -18,6 +18,11 @@ public class AuctionRequestResponseDTO {
     private Long id;
     private Long buyerId;
     private String buyerName;
+    private Double buyerRating;
+    private Integer buyerTotalReviews;
+    private String buyerKycStatus;
+    private Integer buyerTotalOrders;
+    private Double buyerCompletionRate;
     private Long categoryId;
     private String categoryName;
     private String title;

@@ -17,6 +17,7 @@ public record ProductResponse(
         List<String> imageUrls,
 
         BigDecimal price,
+        BigDecimal originalPrice,
         Integer stockQuantity,
 
         String status,

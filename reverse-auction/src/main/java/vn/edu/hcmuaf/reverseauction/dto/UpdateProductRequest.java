@@ -14,6 +14,7 @@ public record UpdateProductRequest(
         List<String> imageUrls,
         Long categoryId,
         BigDecimal price,
+        BigDecimal originalPrice,
         ProductStatus status,
         Integer stockQuantity
 ) {}

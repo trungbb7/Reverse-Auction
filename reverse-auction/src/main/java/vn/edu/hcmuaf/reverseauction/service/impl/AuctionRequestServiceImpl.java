@@ -21,6 +21,7 @@ import vn.edu.hcmuaf.reverseauction.service.NotificationService;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -66,14 +67,18 @@ public class AuctionRequestServiceImpl implements AuctionRequestService {
 
         AuctionRequest savedAuctionRequest = auctionRequestRepository.save(auctionRequest);
 
-        return auctionRequestMapper.toDTO(savedAuctionRequest);
+        return enrichBuyerStats(auctionRequestMapper.toDTO(savedAuctionRequest));
     }
 
     @Override
     @Transactional
     public PageResponse<AuctionRequestResponseDTO> getAllAuctionRequests(Pageable pageable) {
         Page<AuctionRequest> page = auctionRequestRepository.findAll(pageable);
-        return auctionRequestMapper.toPageResponse(page);
+        PageResponse<AuctionRequestResponseDTO> response = auctionRequestMapper.toPageResponse(page);
+        if (response.getContent() != null) {
+            response.getContent().forEach(this::enrichBuyerStats);
+        }
+        return response;
     }
 
     @Override
@@ -83,7 +88,11 @@ public class AuctionRequestServiceImpl implements AuctionRequestService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
 
         Page<AuctionRequest> page = auctionRequestRepository.findByBuyer(buyer, pageable);
-        return auctionRequestMapper.toPageResponse(page);
+        PageResponse<AuctionRequestResponseDTO> response = auctionRequestMapper.toPageResponse(page);
+        if (response.getContent() != null) {
+            response.getContent().forEach(this::enrichBuyerStats);
+        }
+        return response;
     }
 
     @Override
@@ -92,7 +101,7 @@ public class AuctionRequestServiceImpl implements AuctionRequestService {
         AuctionRequest auc = auctionRequestRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Auction not found with id: " + id));
 
-        return auctionRequestMapper.toDTO(auc);
+        return enrichBuyerStats(auctionRequestMapper.toDTO(auc));
     }
 
     @Override
@@ -166,7 +175,7 @@ public class AuctionRequestServiceImpl implements AuctionRequestService {
                 winnerBid.getBidPrice(), auction.getTitle(), orderCode);
         notificationService.createAndSendNotification(winnerBid.getSeller(), title, content, "AUCTION_WON", auction.getId());
 
-        AuctionRequestResponseDTO dto = auctionRequestMapper.toDTO(saved);
+        AuctionRequestResponseDTO dto = enrichBuyerStats(auctionRequestMapper.toDTO(saved));
         dto.setOrderId(savedOder.getId());
         return dto;
     }
@@ -202,7 +211,7 @@ public class AuctionRequestServiceImpl implements AuctionRequestService {
 
         auctionRequestRepository.save(auction);
 
-        return auctionRequestMapper.toDTO(auction);
+        return enrichBuyerStats(auctionRequestMapper.toDTO(auction));
     }
 
     @Override
@@ -214,6 +223,26 @@ public class AuctionRequestServiceImpl implements AuctionRequestService {
                 .and(AuctionRequestSpecification.hasKeyword(keyword));
 
         Page<AuctionRequest> page = auctionRequestRepository.findAll(spec, pageable);
-        return auctionRequestMapper.toPageResponse(page);
+        PageResponse<AuctionRequestResponseDTO> response = auctionRequestMapper.toPageResponse(page);
+        if (response.getContent() != null) {
+            response.getContent().forEach(this::enrichBuyerStats);
+        }
+        return response;
+    }
+
+    private AuctionRequestResponseDTO enrichBuyerStats(AuctionRequestResponseDTO dto) {
+        if (dto == null || dto.getBuyerId() == null) return dto;
+        List<Order> orders = orderRepository.findByBuyer_Id(dto.getBuyerId());
+        int totalOrders = orders.size();
+        double completionRate = 0.0;
+        if (totalOrders > 0) {
+            long completedOrders = orders.stream()
+                    .filter(o -> o.getStatus() == OrderStatus.COMPLETED)
+                    .count();
+            completionRate = (double) completedOrders / totalOrders * 100.0;
+        }
+        dto.setBuyerTotalOrders(totalOrders);
+        dto.setBuyerCompletionRate(completionRate);
+        return dto;
     }
 }

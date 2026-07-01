@@ -28,4 +28,5 @@ public class BidResponseDTO {
     private Integer sellerTotalReviews;
     private Integer sellerTotalOrders;
     private Double sellerCompletionRate;
+    private String sellerKycStatus;
 }

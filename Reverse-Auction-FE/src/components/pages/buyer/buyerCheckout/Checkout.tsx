@@ -16,6 +16,7 @@ import type { CartItem, CartGroupedBySeller } from "@/types/cart.ts";
 import type { ShippingInfo, CheckoutRequest } from "@/types/orders.ts";
 import { userService } from "@/services/userService.ts";
 import type { User as UserType } from "@/types/user.ts";
+import type { UserAddress } from "@/types/address.ts";
 import ShopSection from "@/components/pages/buyer/buyerCheckout/ShopSection.tsx";
 import PaymentMethodSelector from "@/components/pages/buyer/buyerCheckout/PaymentMethod.tsx";
 import ShippingInfoForm from "@/components/pages/buyer/buyerCheckout/ShippingInfoForm.tsx";
@@ -83,6 +84,7 @@ export function CheckoutPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [currentUser, setCurrentUser] = useState<UserType | null>(null);
+  const [userAddresses, setUserAddresses] = useState<UserAddress[]>([]);
 
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [groupedShops, setGroupedShops] = useState<CartGroupedBySeller[]>([]);
@@ -120,10 +122,28 @@ export function CheckoutPage() {
 
         const user = await userService.fetchUser();
         setCurrentUser(user);
+
+        let initialName = user.fullName || "";
+        let initialPhone = user.phone || "";
+        let initialAddress = user.address || "";
+
+        try {
+          const list = await userService.fetchAddresses();
+          setUserAddresses(list);
+          const defaultAddr = list.find((addr) => addr.isDefault) || list[0];
+          if (defaultAddr) {
+            initialName = defaultAddr.recipientName;
+            initialPhone = defaultAddr.phone;
+            initialAddress = defaultAddr.address;
+          }
+        } catch (err) {
+          console.error("Failed to load user addresses", err);
+        }
+
         setShippingInfo({
-          fullName: user.fullName || "",
-          phone: user.phone || "",
-          address: user.address || "",
+          fullName: initialName,
+          phone: initialPhone,
+          address: initialAddress,
           note: "",
         });
 
@@ -313,7 +333,11 @@ export function CheckoutPage() {
             </div>
 
             {/* Shipping Info Form */}
-            <ShippingInfoForm value={shippingInfo} onChange={setShippingInfo} />
+            <ShippingInfoForm
+              value={shippingInfo}
+              onChange={setShippingInfo}
+              userAddresses={userAddresses}
+            />
           </div>
 
           {/* RIGHT - Payment Summary */}

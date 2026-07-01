@@ -12,6 +12,11 @@ export interface Auction {
   title?: string;
   buyerId?: number;
   buyerName?: string;
+  buyerRating?: number;
+  buyerTotalReviews?: number;
+  buyerKycStatus?: "UNVERIFIED" | "PENDING" | "APPROVED" | "REJECTED";
+  buyerTotalOrders?: number;
+  buyerCompletionRate?: number;
   categoryId?: number;
   categoryName?: string;
   budgetMax?: number;
@@ -47,6 +52,7 @@ export interface Bid {
   sellerTotalReviews?: number;
   sellerTotalOrders?: number;
   sellerCompletionRate?: number;
+  sellerKycStatus?: "UNVERIFIED" | "PENDING" | "APPROVED" | "REJECTED";
 }
 
 export const auctionEmpty: Auction = {

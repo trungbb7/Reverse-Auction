@@ -3,6 +3,10 @@ import api from "@/utils/axios";
 import type {Category} from "@/types/category.ts";
 
 export const productService = {
+    getProductById: async (id: string | number): Promise<Product> => {
+        const res = await api.get(`/products/${id}`);
+        return res.data;
+    },
     fetchProducts: async (): Promise<Product[]> => {
         const res = await api.get("/products/list");
         return res.data;

@@ -103,6 +103,7 @@ public class ProductServiceImpl implements ProductService {
         p.setModel(r.model());
         p.setImageUrl(r.imageUrl());
         p.setPrice(r.price());
+        p.setOriginalPrice(r.originalPrice());
         p.setStockQuantity(r.stockQuantity());
         p.setStatus(r.status());
 
@@ -133,6 +134,7 @@ public class ProductServiceImpl implements ProductService {
         if (r.status() != null) p.setStatus(r.status());
 
         if (r.price() != null) p.setPrice(r.price());
+        if (r.originalPrice() != null) p.setOriginalPrice(r.originalPrice());
         if (r.stockQuantity() != null) p.setStockQuantity(r.stockQuantity());
 
         if (r.categoryId() != null) {
@@ -168,6 +170,7 @@ public class ProductServiceImpl implements ProductService {
                 p.getImageUrl(),
                 urls,
                 p.getPrice(),
+                p.getOriginalPrice(),
                 p.getStockQuantity(),
                 p.getStatus().name(),
                 p.getCategory().getId(),

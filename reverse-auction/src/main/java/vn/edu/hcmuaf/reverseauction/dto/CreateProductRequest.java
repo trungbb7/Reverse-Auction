@@ -16,5 +16,6 @@ public record CreateProductRequest(
         Long categoryId,
         ProductStatus status,
         BigDecimal price,
+        BigDecimal originalPrice,
         Integer stockQuantity
 ) {}

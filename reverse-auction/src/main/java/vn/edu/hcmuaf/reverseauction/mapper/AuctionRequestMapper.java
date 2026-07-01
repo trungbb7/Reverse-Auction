@@ -19,6 +19,9 @@ import java.util.stream.Collectors;
 public interface AuctionRequestMapper {
     @Mapping(target = "buyerId", expression = "java(aucRe.getBuyer().getId())")
     @Mapping(target = "buyerName", expression = "java(aucRe.getBuyer().getFullName())")
+    @Mapping(target = "buyerRating", expression = "java(aucRe.getBuyer().getRating())")
+    @Mapping(target = "buyerTotalReviews", expression = "java(aucRe.getBuyer().getTotalReviews())")
+    @Mapping(target = "buyerKycStatus", expression = "java(aucRe.getBuyer().getKycStatus() != null ? aucRe.getBuyer().getKycStatus().name() : \"UNVERIFIED\")")
     @Mapping(target = "categoryId", expression = "java(aucRe.getCategory().getId())")
     @Mapping(target = "categoryName", expression = "java(aucRe.getCategory().getName())")
     @Mapping(target = "lowestPrice", source = "aucRe", qualifiedByName = "calculateLowestBidPrice")

@@ -1,6 +1,6 @@
 import type { Bid } from "@/types/auction";
 import { formatCurrency, formatTimeAgo } from "@/utils/time";
-import { Trophy } from "lucide-react";
+import { Trophy, CheckCircle } from "lucide-react";
 
 export default function BidStream({
   bids,
@@ -51,7 +51,7 @@ export default function BidStream({
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-1.5 min-w-0">
+                  <div className="flex items-center gap-1.5 min-w-0 flex-wrap">
                     <p
                       className={`text-sm font-bold truncate ${
                         isWinner
@@ -63,9 +63,18 @@ export default function BidStream({
                     >
                       {isMe ? "Bạn" : bid.sellerName}
                     </p>
+                    {bid.sellerKycStatus === "APPROVED" && (
+                      <span
+                        className="text-[9px] font-bold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded-full border border-blue-200 inline-flex items-center gap-0.5"
+                        title="Đã xác thực danh tính (KYC)"
+                      >
+                        <CheckCircle className="w-2.5 h-2.5 text-blue-500 fill-blue-500/10" />{" "}
+                        Xác thực
+                      </span>
+                    )}
                     {isWinner && (
                       <span className="shrink-0 text-[10px] font-black text-white bg-emerald-500 px-2 py-0.5 rounded-full">
-                        🏆 Người thắng
+                        Người thắng
                       </span>
                     )}
                   </div>
@@ -73,7 +82,27 @@ export default function BidStream({
                     {formatTimeAgo(bid.updatedAt)}
                   </span>
                 </div>
-                <p className={`text-base font-black ${isWinner ? "text-emerald-800" : "text-slate-900"}`}>
+
+                {/* Seller stats & reputation */}
+                <div className="flex items-center gap-1.5 text-[10px] text-slate-500 mt-0.5 flex-wrap font-medium">
+                  <span className="flex items-center gap-0.5 text-amber-500 font-bold">
+                    ★ {bid.sellerRating ? bid.sellerRating.toFixed(1) : "0.0"}
+                  </span>
+                  <span>({bid.sellerTotalReviews ?? 0} ĐG)</span>
+                  <span>•</span>
+                  <span>{bid.sellerTotalOrders ?? 0} đơn</span>
+                  <span>•</span>
+                  <span className="text-emerald-600 font-bold">
+                    HT:{" "}
+                    {bid.sellerCompletionRate
+                      ? `${bid.sellerCompletionRate.toFixed(0)}%`
+                      : "0%"}
+                  </span>
+                </div>
+
+                <p
+                  className={`text-base font-black mt-1 ${isWinner ? "text-emerald-800" : "text-slate-900"}`}
+                >
                   {formatCurrency(bid.bidPrice)}
                 </p>
                 {bid.note && (

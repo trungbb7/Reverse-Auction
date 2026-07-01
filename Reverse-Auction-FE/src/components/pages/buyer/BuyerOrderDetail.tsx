@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router";
+import { useParams, useNavigate, Link } from "react-router";
 import {
   ArrowLeft,
   Package,
@@ -49,6 +49,7 @@ const STEP_ICONS = [CreditCard, CheckCircle2, Clock, Truck, Package];
 
 import { userService } from "@/services/userService";
 import type { User as UserType } from "@/types/user";
+import type { UserAddress } from "@/types/address";
 
 /* ─── Payment Panel ─────────────────────────────────────────── */
 function PaymentPanel({
@@ -59,6 +60,7 @@ function PaymentPanel({
   onPaymentSuccess: (updated: Order) => void;
 }) {
   const [currentUser, setCurrentUser] = useState<UserType | null>(null);
+  const [userAddresses, setUserAddresses] = useState<UserAddress[]>([]);
   const [shippingAddress, setShippingAddress] = useState("");
   const [buyerPhone, setBuyerPhone] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<"vnpay" | "balance">(
@@ -72,8 +74,26 @@ function PaymentPanel({
       try {
         const data = await userService.fetchUser();
         setCurrentUser(data);
-        setShippingAddress(order.shippingAddress || data.address || "");
-        setBuyerPhone(order.buyerPhone || data.phone || "");
+
+        let initialAddr = order.shippingAddress || data.address || "";
+        let initialPhone = order.buyerPhone || data.phone || "";
+
+        try {
+          const list = await userService.fetchAddresses();
+          setUserAddresses(list);
+          if (!order.shippingAddress) {
+            const defaultAddr = list.find((addr) => addr.isDefault) || list[0];
+            if (defaultAddr) {
+              initialAddr = defaultAddr.address;
+              initialPhone = defaultAddr.phone;
+            }
+          }
+        } catch (err) {
+          console.error("Failed to load user addresses", err);
+        }
+
+        setShippingAddress(initialAddr);
+        setBuyerPhone(initialPhone);
       } catch (err) {
         console.error("Failed to load user profile", err);
       }
@@ -149,6 +169,42 @@ function PaymentPanel({
         <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">
           Thông tin giao hàng
         </p>
+
+        {userAddresses.length > 0 && (
+          <div className="mb-2.5 p-2 bg-white rounded-lg border border-slate-100 space-y-1.5">
+            <label className="block text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+              Chọn nhanh từ địa chỉ đã lưu:
+            </label>
+            <div className="flex flex-col gap-1.5 max-h-28 overflow-y-auto pr-1">
+              {userAddresses.map((addr) => (
+                <button
+                  key={addr.id}
+                  type="button"
+                  onClick={() => {
+                    setShippingAddress(addr.address);
+                    setBuyerPhone(addr.phone);
+                  }}
+                  className="w-full text-left p-2 rounded-md border border-slate-200 hover:border-[#375F97] hover:bg-blue-50/20 transition-all text-[11px] flex justify-between items-center bg-white"
+                >
+                  <div className="min-w-0 pr-1.5">
+                    <span className="font-semibold text-slate-700">
+                      {addr.recipientName}
+                    </span>
+                    <span className="text-slate-400 mx-1">•</span>
+                    <span className="text-slate-600">{addr.phone}</span>
+                    <p className="text-slate-500 truncate text-[10px] mt-0.5">
+                      {addr.address}
+                    </p>
+                  </div>
+                  <span className="text-[9px] font-bold text-[#375F97] shrink-0">
+                    Chọn
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="space-y-2.5">
           <div>
             <label className="block text-[11px] text-slate-400 font-semibold mb-1">
@@ -575,9 +631,11 @@ export default function BuyerOrderDetail() {
                   {order.sellerName?.charAt(0) ?? "S"}
                 </div>
                 <div>
-                  <p className="font-bold text-slate-900 text-sm">
-                    {order.sellerName}
-                  </p>
+                  <Link to={`/shopPage/${order.sellerId}`}>
+                    <p className="font-bold text-slate-900 text-sm">
+                      {order.sellerName}
+                    </p>
+                  </Link>
                   <p className="text-xs text-slate-400">
                     ID: #{order.sellerId}
                   </p>

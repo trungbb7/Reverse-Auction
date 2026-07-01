@@ -45,6 +45,9 @@ public class Product {
     @Column(precision = 15, scale = 2)
     private BigDecimal price;
 
+    @Column(name = "original_price", precision = 15, scale = 2)
+    private BigDecimal originalPrice;
+
     private Integer stockQuantity;
 
     @Enumerated(EnumType.STRING)
