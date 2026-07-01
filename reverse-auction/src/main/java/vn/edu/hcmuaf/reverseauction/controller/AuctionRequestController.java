@@ -80,7 +80,7 @@ public class AuctionRequestController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
-            @RequestParam(defaultValue = "desc") String sortDir) {
+        @RequestParam(defaultValue = "desc") String sortDir) {
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         assert authentication != null;

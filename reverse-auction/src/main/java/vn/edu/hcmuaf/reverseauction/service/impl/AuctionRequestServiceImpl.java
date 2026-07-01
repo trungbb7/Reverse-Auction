@@ -160,6 +160,7 @@ public class AuctionRequestServiceImpl implements AuctionRequestService {
                 .bid(winnerBid)
                 .buyer(auction.getBuyer())
                 .seller(winnerBid.getSeller())
+                .subtotal(winnerBid.getBidPrice())
                 .finalPrice(winnerBid.getBidPrice())
                 .shippingFee(BigDecimal.ZERO)
                 .totalAmount(winnerBid.getBidPrice())

@@ -13,11 +13,12 @@ import vn.edu.hcmuaf.reverseauction.dto.ResolveComplaintRequest;
 import vn.edu.hcmuaf.reverseauction.dto.ResolveComplaintResponse;
 import vn.edu.hcmuaf.reverseauction.dto.response.FileResponse;
 import vn.edu.hcmuaf.reverseauction.entity.*;
-import vn.edu.hcmuaf.reverseauction.repository.ComplaintRepository;
-import vn.edu.hcmuaf.reverseauction.repository.OrderRepository;
+import vn.edu.hcmuaf.reverseauction.repository.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 
@@ -26,7 +27,10 @@ import java.util.Locale;
 public class ComplaintService {
     private final ComplaintRepository complaintRepository;
     private final OrderRepository orderRepository;
+    private final SystemSettingRepository systemSettingRepository;
     private final FileService fileService;
+    private final UserRepository userRepository;
+    private final TransactionRepository transactionRepository;
 
     @Transactional
     public CreateComplaintResponse createComplaint(CreateComplaintRequest request) {
@@ -121,10 +125,66 @@ public class ComplaintService {
             Verdict verdict = Verdict.valueOf(request.verdict());
 
             Order order = complaint.getOrder();
+
             if (verdict == Verdict.REJECT_COMPLAINT) {
                 order.setStatus(OrderStatus.COMPLETED);
+                User seller = order.getSeller();
+                BigDecimal commRate = systemSettingRepository.findById("COMMISSION_RATE")
+                        .map(s -> {
+                            try {
+                                return new BigDecimal(s.getValue());
+                            } catch (Exception e) {
+                                return BigDecimal.valueOf(10);
+                            }
+                        })
+                        .orElse(BigDecimal.valueOf(10));
+                BigDecimal totalAmount = order.getTotalAmount() != null ? order.getTotalAmount() : BigDecimal.ZERO;
+                BigDecimal commAmount = totalAmount.multiply(commRate).divide(BigDecimal.valueOf(100));
+                BigDecimal sellerEarnings = totalAmount.subtract(commAmount);
+
+                order.setCommissionRate(commRate);
+                order.setCommissionAmount(commAmount);
+
+                if (seller.getBalance() == null){
+                    seller.setBalance(BigDecimal.ZERO);
+                }
+
+                seller.setBalance(seller.getBalance().add(sellerEarnings));
+                userRepository.save(seller);
+
+                Transaction transaction = Transaction.builder()
+                        .user(seller)
+                        .amount(sellerEarnings)
+                        .type(TransactionType.PAYMENT)
+                        .status(TransactionStatus.SUCCESS)
+                        .code("EARN_" + order.getCode())
+                        .description("Thu nhập bán hàng từ đơn hàng " + order.getCode())
+                        .createdAt(LocalDateTime.now())
+                        .build();
+                transactionRepository.save(transaction);
+
+
             } else if (verdict == Verdict.REFUND_TO_BUYER) {
                 order.setStatus(OrderStatus.REFUND);
+                User buyer = order.getBuyer();
+                if(buyer.getBalance() == null){
+                    buyer.setBalance(BigDecimal.ZERO);
+                }
+                BigDecimal amount = order.getSubtotal() != null ? order.getSubtotal() : BigDecimal.ZERO;
+                buyer.setBalance(buyer.getBalance().add(amount));
+
+                userRepository.save(buyer);
+
+                Transaction transaction = Transaction.builder()
+                        .user(buyer)
+                        .amount(amount)
+                        .type(TransactionType.REFUND)
+                        .status(TransactionStatus.SUCCESS)
+                        .code("REFUND_" + order.getCode())
+                        .description("Hoàn tiền cho người mua" + order.getCode())
+                        .createdAt(LocalDateTime.now())
+                        .build();
+                transactionRepository.save(transaction);
             }
 
             complaint.setVerdict(verdict);
